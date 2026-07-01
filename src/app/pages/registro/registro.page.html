@@ -1,0 +1,91 @@
+<ion-content fullscreen class="registro-page">
+
+  <div class="maze-background"></div>
+
+  <section class="top-characters">
+    <div class="monster">😈</div>
+
+    <div class="ghost red">
+      <div class="eyes"><span></span><span></span></div>
+    </div>
+
+    <div class="ghost pink">
+      <div class="eyes"><span></span><span></span></div>
+    </div>
+
+    <div class="ghost cyan">
+      <div class="eyes"><span></span><span></span></div>
+    </div>
+
+    <div class="ghost orange">
+      <div class="eyes"><span></span><span></span></div>
+    </div>
+  </section>
+
+  <div class="registro-card">
+
+    <h1>PAC-MAN CR</h1>
+    <h2>Crear cuenta</h2>
+    <p>Únete al multijugador online</p>
+
+    <ion-item lines="none" class="input-box">
+      <ion-icon name="person-outline" slot="start"></ion-icon>
+      <ion-input
+        placeholder="Nombre de usuario"
+        [(ngModel)]="nombreUsuario">
+      </ion-input>
+    </ion-item>
+
+    <ion-item lines="none" class="input-box">
+      <ion-icon name="mail-outline" slot="start"></ion-icon>
+      <ion-input
+        type="email"
+        placeholder="Correo"
+        [(ngModel)]="correo">
+      </ion-input>
+    </ion-item>
+
+    <ion-item lines="none" class="input-box">
+      <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+      <ion-input
+        [type]="mostrarPassword ? 'text' : 'password'"
+        placeholder="Contraseña"
+        [(ngModel)]="password">
+      </ion-input>
+
+      <ion-button fill="clear" slot="end" (click)="mostrarPassword = !mostrarPassword">
+        <ion-icon [name]="mostrarPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+      </ion-button>
+    </ion-item>
+
+    <ion-item lines="none" class="input-box">
+      <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+      <ion-input
+        [type]="mostrarConfirmar ? 'text' : 'password'"
+        placeholder="Confirmar contraseña"
+        [(ngModel)]="confirmarPassword">
+      </ion-input>
+
+      <ion-button fill="clear" slot="end" (click)="mostrarConfirmar = !mostrarConfirmar">
+        <ion-icon [name]="mostrarConfirmar ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+      </ion-button>
+    </ion-item>
+
+    <ion-button expand="block" class="btn-crear" (click)="crearCuenta()">
+      CREAR CUENTA
+    </ion-button>
+
+    <ion-button expand="block" fill="clear" class="btn-volver" (click)="volverLogin()">
+      VOLVER AL LOGIN
+    </ion-button>
+
+  </div>
+
+  <div class="pacman-run">
+    <div class="pacman"></div>
+    <div class="dots">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+
+</ion-content>

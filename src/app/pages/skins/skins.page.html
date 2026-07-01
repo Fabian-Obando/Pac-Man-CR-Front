@@ -1,0 +1,93 @@
+<ion-content fullscreen class="skins-page">
+  <div class="background-grid"></div>
+
+  <div class="shop-container">
+
+    <div class="shop-header">
+      <button class="back-shop" (click)="volverMenu()">← MENÚ</button>
+
+      <div class="title-area">
+        <h1>TIENDA</h1>
+        <small>Pac-Man CR</small>
+      </div>
+
+      <div class="gold-box">🪙 {{ oro }}</div>
+    </div>
+
+    <div class="categorias">
+      <button [class.active]="categoriaActual === 'Pac-Man'" (click)="cambiarCategoria('Pac-Man')">PAC-MAN</button>
+      <button [class.active]="categoriaActual === 'Fantasma'" (click)="cambiarCategoria('Fantasma')">FANTASMAS</button>
+      <button [class.active]="categoriaActual === 'Monstruo'" (click)="cambiarCategoria('Monstruo')">MONSTRUOS</button>
+    </div>
+
+    <div class="rarezas">
+      <button [class.active]="rarezaActual === 'Todas'" (click)="cambiarRareza('Todas')">Todas</button>
+      <button [class.active]="rarezaActual === 'Común'" (click)="cambiarRareza('Común')">Común</button>
+      <button [class.active]="rarezaActual === 'Rara'" (click)="cambiarRareza('Rara')">Rara</button>
+      <button [class.active]="rarezaActual === 'Épica'" (click)="cambiarRareza('Épica')">Épica</button>
+      <button [class.active]="rarezaActual === 'Legendaria'" (click)="cambiarRareza('Legendaria')">Legendaria</button>
+      <button [class.active]="rarezaActual === 'Mítica'" (click)="cambiarRareza('Mítica')">Mítica</button>
+    </div>
+
+    <div class="skins-grid">
+      <div
+        class="skin-card"
+        *ngFor="let skin of skinsFiltradas"
+        [class.selected]="skinSeleccionada?.id === skin.id"
+        [class.equipped-card]="skin.equipada"
+        (click)="seleccionarSkin(skin)">
+
+        <div class="rarity" [ngClass]="skin.rareza.toLowerCase()">{{ skin.rareza }}</div>
+
+        <div class="skin-stage">
+          <div class="skin-character" [ngClass]="skin.estilo">
+            <span class="eye one"></span>
+            <span class="eye two"></span>
+            <span class="mouth"></span>
+            <span class="crown"></span>
+            <span class="horn left"></span>
+            <span class="horn right"></span>
+          </div>
+        </div>
+
+        <h2>{{ skin.nombre }}</h2>
+        <p>{{ skin.descripcion }}</p>
+
+        <div class="price" *ngIf="!skin.comprada">🪙 {{ skin.precio }}</div>
+        <div class="owned" *ngIf="skin.comprada && !skin.equipada">COMPRADA</div>
+        <div class="equipped" *ngIf="skin.equipada">EQUIPADA</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-panel" *ngIf="skinSeleccionada">
+    <div class="big-stage">
+      <div class="skin-character big" [ngClass]="skinSeleccionada.estilo">
+        <span class="eye one"></span>
+        <span class="eye two"></span>
+        <span class="mouth"></span>
+        <span class="crown"></span>
+        <span class="horn left"></span>
+        <span class="horn right"></span>
+      </div>
+    </div>
+
+    <div class="preview-info">
+      <h2>{{ skinSeleccionada.nombre }}</h2>
+      <span [ngClass]="skinSeleccionada.rareza.toLowerCase()">{{ skinSeleccionada.rareza }}</span>
+      <p>{{ skinSeleccionada.descripcion }}</p>
+
+      <button class="buy-btn" *ngIf="!skinSeleccionada.comprada" (click)="comprarSkin()">
+        COMPRAR 🪙 {{ skinSeleccionada.precio }}
+      </button>
+
+      <button class="equip-btn" *ngIf="skinSeleccionada.comprada && !skinSeleccionada.equipada" (click)="equiparSkin()">
+        EQUIPAR
+      </button>
+
+      <button class="equipped-btn" *ngIf="skinSeleccionada.equipada">
+        EQUIPADA
+      </button>
+    </div>
+  </div>
+</ion-content>

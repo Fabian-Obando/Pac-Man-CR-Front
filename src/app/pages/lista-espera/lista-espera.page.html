@@ -1,0 +1,127 @@
+<ion-content fullscreen class="queue-page">
+
+  <div class="background-grid"></div>
+
+  <div class="container">
+
+    <h1>LISTA DE ESPERA</h1>
+
+    <p class="subtitle">
+      La sala está llena. Espera tu turno.
+    </p>
+
+    <div class="room-card">
+
+      <div class="top">
+
+        <div>
+
+          <span class="label">
+            Código de Sala
+          </span>
+
+          <h2>{{codigoSala}}</h2>
+
+        </div>
+
+        <div class="capacity">
+
+          {{jugadores}} / {{capacidad}}
+
+        </div>
+
+      </div>
+
+      <div class="queue-status">
+
+        <div class="status-box">
+
+          <span>Posición</span>
+
+          <h3>#{{posicion}}</h3>
+
+        </div>
+
+        <div class="status-box">
+
+          <span>Delante de ti</span>
+
+          <h3>{{personasDelante}}</h3>
+
+        </div>
+
+        <div class="status-box">
+
+          <span>Tiempo</span>
+
+          <h3>{{tiempoTexto}}</h3>
+
+        </div>
+
+      </div>
+
+      <div class="loader">
+
+        <div class="loader-bar">
+
+          <div
+            class="loader-fill"
+            [style.width.%]="100-(tiempo/42*100)">
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        class="ready-box"
+        *ngIf="listo">
+
+        <h2>
+          🎉 ¡Ya puedes entrar!
+        </h2>
+
+        <button
+          class="enter-btn"
+          (click)="entrarSala()">
+
+          ENTRAR A LA PARTIDA
+
+        </button>
+
+      </div>
+
+      <div
+        class="waiting-box"
+        *ngIf="!listo">
+
+        <div class="ghosts">
+
+          <div class="ghost red"></div>
+          <div class="ghost pink"></div>
+          <div class="ghost cyan"></div>
+          <div class="ghost orange"></div>
+
+        </div>
+
+        <p>
+
+          Esperando que un jugador abandone la partida...
+
+        </p>
+
+      </div>
+
+    </div>
+
+    <button
+      class="exit-btn"
+      (click)="salirCola()">
+
+      SALIR DE LA COLA
+
+    </button>
+
+  </div>
+
+</ion-content>

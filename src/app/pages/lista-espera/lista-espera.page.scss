@@ -1,0 +1,477 @@
+.queue-page {
+  --background: #000;
+  overflow: hidden;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* =======================
+   FONDO
+======================= */
+
+.background-grid {
+  position: fixed;
+  inset: 0;
+
+  background:
+    radial-gradient(circle,#ffd500 2px,transparent 3px),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 120px,
+      rgba(0,90,255,.9) 120px 124px
+    ),
+    repeating-linear-gradient(
+      transparent 0 120px,
+      rgba(0,90,255,.9) 120px 124px
+    ),
+    #000;
+
+  background-size:
+    42px 42px,
+    124px 124px,
+    124px 124px;
+
+  animation:gridMove 18s linear infinite;
+}
+
+@keyframes gridMove{
+
+    from{
+        background-position:0 0;
+    }
+
+    to{
+        background-position:0 42px;
+    }
+
+}
+
+/* =======================
+CONTENEDOR
+======================= */
+
+.container{
+
+    position:relative;
+    z-index:2;
+
+    min-height:100vh;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:30px;
+
+}
+
+.container h1{
+
+    color:#ffd500;
+
+    font-size:58px;
+
+    margin:0;
+
+    text-shadow:
+    0 0 18px gold,
+    0 0 40px gold;
+
+}
+
+.subtitle{
+
+    color:#00ffff;
+
+    font-size:22px;
+
+    margin-bottom:35px;
+
+}
+
+/* =======================
+CARD
+======================= */
+
+.room-card{
+
+    width:min(700px,95vw);
+
+    background:rgba(0,0,0,.92);
+
+    border-radius:26px;
+
+    padding:30px;
+
+    border:3px solid #ffd500;
+
+    box-shadow:
+    0 0 30px gold,
+    inset 0 0 20px rgba(255,213,0,.15);
+
+}
+
+.top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.label{
+
+    color:#00ffff;
+
+    font-size:17px;
+
+}
+
+.top h2{
+
+    color:#ffd500;
+
+    font-size:42px;
+
+    margin-top:8px;
+
+}
+
+.capacity{
+
+    width:90px;
+
+    height:90px;
+
+    border-radius:50%;
+
+    display:grid;
+
+    place-items:center;
+
+    font-size:28px;
+
+    font-weight:bold;
+
+    background:#ffd500;
+
+    color:#000;
+
+    box-shadow:0 0 20px gold;
+
+}
+
+/* =======================
+ESTADO
+======================= */
+
+.queue-status{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:18px;
+
+    margin:35px 0;
+
+}
+
+.status-box{
+
+    background:#050505;
+
+    border:2px solid #0059ff;
+
+    border-radius:18px;
+
+    padding:20px;
+
+    text-align:center;
+
+    box-shadow:0 0 16px #0059ff;
+
+}
+
+.status-box span{
+
+    color:#00ffff;
+
+    font-size:15px;
+
+}
+
+.status-box h3{
+
+    margin-top:10px;
+
+    color:#ffd500;
+
+    font-size:34px;
+
+}
+
+/* =======================
+BARRA
+======================= */
+
+.loader{
+
+    margin-top:15px;
+
+}
+
+.loader-bar{
+
+    width:100%;
+
+    height:18px;
+
+    background:#101010;
+
+    border-radius:40px;
+
+    overflow:hidden;
+
+    border:2px solid #0059ff;
+
+}
+
+.loader-fill{
+
+    height:100%;
+
+    background:linear-gradient(90deg,#00ffff,#00ff66);
+
+    transition:.6s;
+
+    box-shadow:0 0 20px cyan;
+
+}
+
+/* =======================
+FANTASMAS
+======================= */
+
+.waiting-box{
+
+    margin-top:35px;
+
+    text-align:center;
+
+}
+
+.waiting-box p{
+
+    color:white;
+
+    font-size:18px;
+
+}
+
+.ghosts{
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:22px;
+
+    margin-bottom:20px;
+
+}
+
+.ghost{
+
+    width:58px;
+
+    height:68px;
+
+    border-radius:50% 50% 15% 15%;
+
+    animation:float 1.5s ease-in-out infinite;
+
+    filter:drop-shadow(0 0 10px currentColor);
+
+}
+
+.red{
+
+    background:#ff3030;
+
+    color:#ff3030;
+
+}
+
+.pink{
+
+    background:#ff7bd5;
+
+    color:#ff7bd5;
+
+}
+
+.cyan{
+
+    background:#00ffff;
+
+    color:#00ffff;
+
+}
+
+.orange{
+
+    background:#ff9800;
+
+    color:#ff9800;
+
+}
+
+.ghost:nth-child(2){
+
+    animation-delay:.2s;
+
+}
+
+.ghost:nth-child(3){
+
+    animation-delay:.4s;
+
+}
+
+.ghost:nth-child(4){
+
+    animation-delay:.6s;
+
+}
+
+@keyframes float{
+
+    50%{
+
+        transform:translateY(-12px);
+
+    }
+
+}
+
+/* =======================
+READY
+======================= */
+
+.ready-box{
+
+    margin-top:35px;
+
+    text-align:center;
+
+}
+
+.ready-box h2{
+
+    color:#00ff66;
+
+    font-size:34px;
+
+    text-shadow:0 0 15px #00ff66;
+
+}
+
+.enter-btn{
+
+    margin-top:20px;
+
+    width:100%;
+
+    height:64px;
+
+    border:none;
+
+    border-radius:18px;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    background:linear-gradient(90deg,#ffd500,#ff9800);
+
+    box-shadow:0 0 22px gold;
+
+}
+
+/* =======================
+SALIR
+======================= */
+
+.exit-btn{
+
+    margin-top:30px;
+
+    width:340px;
+
+    height:60px;
+
+    border-radius:18px;
+
+    border:2px solid #ff4444;
+
+    background:transparent;
+
+    color:#ff4444;
+
+    font-size:20px;
+
+    font-weight:bold;
+
+}
+
+/* =======================
+RESPONSIVE
+======================= */
+
+@media(max-width:850px){
+
+.queue-status{
+
+grid-template-columns:1fr;
+
+}
+
+.container h1{
+
+font-size:40px;
+
+}
+
+.room-card{
+
+padding:22px;
+
+}
+
+.capacity{
+
+width:70px;
+height:70px;
+font-size:22px;
+
+}
+
+.top h2{
+
+font-size:30px;
+
+}
+
+.exit-btn{
+
+width:100%;
+
+}
+
+}

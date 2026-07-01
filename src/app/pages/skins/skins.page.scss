@@ -1,0 +1,437 @@
+.skins-page {
+  --background: #000;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: auto;
+}
+
+.background-grid {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle, #ffd500 2px, transparent 3px),
+    repeating-linear-gradient(90deg, transparent 0 120px, rgba(0, 90, 255, .85) 120px 124px),
+    repeating-linear-gradient(transparent 0 120px, rgba(0, 90, 255, .85) 120px 124px),
+    #000;
+  background-size: 42px 42px, 124px 124px, 124px 124px;
+  z-index: -1;
+}
+
+.shop-container {
+  padding: 24px;
+  padding-bottom: 270px;
+}
+
+.shop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.back-shop {
+  height: 56px;
+  padding: 0 22px;
+  border-radius: 16px;
+  border: 2px solid #00ffff;
+  background: #050505;
+  color: #00ffff;
+  font-size: 18px;
+  font-weight: 900;
+  box-shadow: 0 0 15px cyan;
+}
+
+.title-area {
+  text-align: center;
+}
+
+.title-area h1 {
+  margin: 0;
+  color: #ffd500;
+  font-size: 54px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 25px gold;
+}
+
+.title-area small {
+  color: #00ffff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.gold-box {
+  padding: 14px 22px;
+  border-radius: 18px;
+  background: #ffd500;
+  color: black;
+  font-size: 23px;
+  font-weight: 900;
+  box-shadow: 0 0 25px gold;
+}
+
+.categorias,
+.rarezas {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  margin-top: 20px;
+  padding-bottom: 8px;
+}
+
+.categorias button,
+.rarezas button {
+  flex: none;
+  padding: 12px 20px;
+  border-radius: 16px;
+  border: 2px solid #0059ff;
+  background: #080808;
+  color: white;
+  font-weight: 900;
+}
+
+.categorias button.active,
+.rarezas button.active {
+  background: #ffd500;
+  color: black;
+  border-color: #ffd500;
+  box-shadow: 0 0 20px gold;
+}
+
+.skins-grid {
+  margin-top: 25px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 20px;
+}
+
+.skin-card {
+  position: relative;
+  min-height: 285px;
+  padding: 16px;
+  border-radius: 24px;
+  background: rgba(0, 0, 0, .92);
+  border: 3px solid #0059ff;
+  box-shadow: 0 0 18px #0059ff;
+  text-align: center;
+  transition: .25s;
+  overflow: hidden;
+}
+
+.skin-card.selected {
+  border-color: #ffd500;
+  box-shadow: 0 0 35px gold;
+  transform: translateY(-8px);
+}
+
+.equipped-card {
+  border-color: #00ff66;
+}
+
+.rarity {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 900;
+  background: #222;
+}
+
+.común { color: white; }
+.rara { color: #00aaff; }
+.épica { color: #b94cff; }
+.legendaria { color: #ff9800; }
+.mítica { color: #ff2ad4; }
+
+.skin-stage {
+  height: 120px;
+  display: grid;
+  place-items: center;
+  margin-top: 25px;
+}
+
+.skin-card h2 {
+  margin: 10px 0 5px;
+  color: white;
+  font-size: 21px;
+}
+
+.skin-card p {
+  color: #00ffff;
+  font-size: 13px;
+  min-height: 36px;
+}
+
+.price {
+  color: #ffd500;
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.owned {
+  color: #00ffff;
+  font-weight: 900;
+}
+
+.equipped {
+  color: #00ff66;
+  font-weight: 900;
+}
+
+/* PERSONAJES */
+
+.skin-character {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  animation: float 2s ease-in-out infinite;
+}
+
+.skin-character.big {
+  width: 145px;
+  height: 145px;
+}
+
+/* PAC-MAN */
+
+.pacman {
+  border-radius: 50%;
+  background: #ffd500;
+  clip-path: polygon(100% 50%, 62% 8%, 0 0, 0 100%, 62% 92%);
+  box-shadow: 0 0 25px gold;
+  animation: chomp .25s infinite, float 2s ease-in-out infinite;
+}
+
+.pacman .eye.one {
+  display: block;
+  position: absolute;
+  top: 22%;
+  right: 34%;
+  width: 9%;
+  height: 9%;
+  background: #111;
+  border-radius: 50%;
+}
+
+.pacman.ice { background: linear-gradient(135deg, #dffcff, #00aaff); box-shadow: 0 0 25px cyan; }
+.pacman.lava { background: radial-gradient(circle, #fff07a, #ff3b00 55%, #700000); box-shadow: 0 0 30px red; }
+.pacman.king { background: linear-gradient(135deg, #fff6a0, gold, #a86d00); }
+.pacman.galaxy { background: radial-gradient(circle at 30% 30%, white, #8d32ff 30%, #120024); box-shadow: 0 0 30px #b94cff; }
+
+.crown {
+  display: none;
+}
+
+.king .crown {
+  display: block;
+  position: absolute;
+  top: -24%;
+  left: 28%;
+  width: 45%;
+  height: 28%;
+  background: gold;
+  clip-path: polygon(0 100%, 0 40%, 25% 75%, 50% 0, 75% 75%, 100% 40%, 100% 100%);
+  filter: drop-shadow(0 0 7px gold);
+}
+
+/* FANTASMAS */
+
+.ghost {
+  border-radius: 45% 45% 8% 8%;
+  background: red;
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 88% 100%, 74% 82%, 58% 100%, 42% 82%, 26% 100%, 12% 82%, 0 100%);
+  filter: drop-shadow(0 0 18px currentColor);
+}
+
+.ghost .eye {
+  display: block;
+  position: absolute;
+  top: 28%;
+  width: 18%;
+  height: 23%;
+  background: white;
+  border-radius: 50%;
+}
+
+.ghost .eye.one { left: 24%; }
+.ghost .eye.two { right: 24%; }
+
+.ghost .eye::after {
+  content: "";
+  position: absolute;
+  top: 38%;
+  left: 38%;
+  width: 38%;
+  height: 38%;
+  background: #0059ff;
+  border-radius: 50%;
+}
+
+.ghost.red { background: #ff2d2d; color: #ff2d2d; }
+.ghost.ice { background: linear-gradient(#dffcff, #00aaff); color: cyan; }
+.ghost.shadow { background: linear-gradient(#555, #050505); color: #8d32ff; }
+.ghost.plasma { background: linear-gradient(#00ffff, #003cff); color: cyan; }
+.ghost.cosmic { background: radial-gradient(circle, white, #8d32ff 30%, #18002f); color: #b94cff; }
+
+/* MONSTRUOS */
+
+.monster {
+  border-radius: 42% 42% 22% 22%;
+  background: red;
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 22px currentColor);
+  animation: monsterBreath 1.4s infinite;
+}
+
+.monster .horn {
+  display: block;
+  position: absolute;
+  top: -12%;
+  width: 25%;
+  height: 25%;
+  background: inherit;
+  clip-path: polygon(50% 0, 0 100%, 100% 100%);
+}
+
+.monster .horn.left { left: 12%; transform: rotate(-25deg); }
+.monster .horn.right { right: 12%; transform: rotate(25deg); }
+
+.monster .eye {
+  display: block;
+  position: absolute;
+  top: 32%;
+  width: 17%;
+  height: 15%;
+  background: #ffd500;
+  border-radius: 50%;
+}
+
+.monster .eye.one { left: 25%; }
+.monster .eye.two { right: 25%; }
+
+.monster .mouth {
+  display: block;
+  position: absolute;
+  left: 33%;
+  bottom: 22%;
+  width: 34%;
+  height: 12%;
+  background: #050505;
+  border-radius: 0 0 50% 50%;
+}
+
+.monster.demon { background: radial-gradient(circle, #ff5757, #750000); color: red; }
+.monster.oni { background: radial-gradient(circle, #ff5aff, #4a003d); color: #ff5aff; }
+.monster.cyborg { background: linear-gradient(135deg, #ddd, #222); color: cyan; border: 3px solid cyan; }
+.monster.dragon { background: radial-gradient(circle, #ffd94f, #ff6600, #6b0000); color: #ff6600; }
+.monster.hydra { background: radial-gradient(circle, #79ffcb, #00cc88, #003322); color: #00ff99; }
+
+/* PANEL */
+
+.preview-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 245px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 25px;
+  background: rgba(0, 0, 0, .96);
+  border-top: 4px solid #ffd500;
+  box-shadow: 0 -8px 30px gold;
+  z-index: 50;
+}
+
+.big-stage {
+  width: 190px;
+  display: grid;
+  place-items: center;
+}
+
+.preview-info h2 {
+  margin: 0;
+  color: white;
+  font-size: 36px;
+}
+
+.preview-info p {
+  color: #ddd;
+  max-width: 650px;
+}
+
+.buy-btn,
+.equip-btn,
+.equipped-btn {
+  width: 250px;
+  height: 55px;
+  border-radius: 16px;
+  border: none;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.buy-btn {
+  background: linear-gradient(90deg, #ffd500, #ff9800);
+  color: black;
+  box-shadow: 0 0 20px gold;
+}
+
+.equip-btn {
+  background: #00c853;
+  color: white;
+  box-shadow: 0 0 20px #00ff66;
+}
+
+.equipped-btn {
+  background: #111;
+  color: #00ff66;
+  border: 2px solid #00ff66;
+}
+
+/* ANIMACIONES */
+
+@keyframes chomp {
+  50% {
+    clip-path: polygon(100% 50%, 85% 28%, 0 0, 0 100%, 85% 72%);
+  }
+}
+
+@keyframes float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes monsterBreath {
+  50% {
+    transform: scale(1.18);
+  }
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .shop-header {
+    flex-direction: column;
+  }
+
+  .title-area h1 {
+    font-size: 38px;
+  }
+
+  .skins-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .shop-container {
+    padding-bottom: 360px;
+  }
+
+  .preview-panel {
+    flex-direction: column;
+    text-align: center;
+  }
+}

@@ -1,0 +1,97 @@
+<ion-content [fullscreen]="true" class="login-page">
+
+  <div class="background"></div>
+
+  <!-- Personajes -->
+  <div class="characters">
+
+    <div class="monster">
+      😈
+    </div>
+
+    <div class="ghost red"></div>
+    <div class="ghost pink"></div>
+    <div class="ghost cyan"></div>
+    <div class="ghost orange"></div>
+
+  </div>
+
+  <div class="login-card">
+
+    <h1>PAC-MAN CR</h1>
+
+    <h2>Multijugador Online</h2>
+
+    <p class="authors">
+      Fabián Obando • Steven Gutiérrez
+    </p>
+
+    <ion-item lines="none">
+
+      <ion-icon
+      slot="start"
+      name="mail-outline">
+      </ion-icon>
+
+      <ion-input
+      placeholder="Correo"
+      type="email"
+      [(ngModel)]="correo">
+      </ion-input>
+
+    </ion-item>
+
+    <ion-item lines="none">
+
+      <ion-icon
+      slot="start"
+      name="lock-closed-outline">
+      </ion-icon>
+
+      <ion-input
+      [type]="mostrarPassword ? 'text':'password'"
+      placeholder="Contraseña"
+      [(ngModel)]="password">
+      </ion-input>
+
+      <ion-button
+      fill="clear"
+      slot="end"
+      (click)="mostrarPassword=!mostrarPassword">
+
+      <ion-icon
+      [name]="mostrarPassword ? 'eye-off-outline':'eye-outline'">
+      </ion-icon>
+
+      </ion-button>
+
+    </ion-item>
+
+    <ion-button
+    expand="block"
+    class="btn-login"
+    (click)="login()">
+
+      INICIAR SESIÓN
+
+    </ion-button>
+
+    <ion-button
+
+    fill="outline"
+
+    expand="block"
+
+    color="primary"
+
+    routerLink="/registro">
+
+      CREAR CUENTA NUEVA
+
+    </ion-button>
+
+  </div>
+
+  <div class="pacman"></div>
+
+</ion-content>

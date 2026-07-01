@@ -1,0 +1,512 @@
+.skins-page {
+  --background: #000;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: auto;
+}
+
+.background-grid {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle, #ffd500 2px, transparent 3px),
+    repeating-linear-gradient(90deg, transparent 0 120px, rgba(0, 90, 255, .85) 120px 124px),
+    repeating-linear-gradient(transparent 0 120px, rgba(0, 90, 255, .85) 120px 124px),
+    #000;
+  background-size: 42px 42px, 124px 124px, 124px 124px;
+  z-index: -1;
+}
+
+.shop-container {
+  padding: 22px;
+  padding-bottom: 260px;
+}
+
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.shop-header h1 {
+  margin: 0;
+  font-size: 48px;
+  color: #ffd500;
+  text-shadow: 0 0 20px gold;
+}
+
+.shop-header small {
+  color: #00ffff;
+  font-weight: 800;
+}
+
+.back-shop {
+  height: 48px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 2px solid #00ffff;
+  background: #050505;
+  color: #00ffff;
+  font-weight: 900;
+}
+
+.gold-box {
+  padding: 13px 20px;
+  border-radius: 16px;
+  background: #ffd500;
+  color: #000;
+  font-size: 22px;
+  font-weight: 900;
+  box-shadow: 0 0 20px gold;
+}
+
+.categorias,
+.rarezas {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  margin-top: 18px;
+  padding-bottom: 6px;
+}
+
+.categorias button,
+.rarezas button {
+  flex: none;
+  border-radius: 14px;
+  border: 2px solid #0059ff;
+  background: #080808;
+  color: white;
+  font-weight: 900;
+  padding: 12px 18px;
+}
+
+.categorias button.active,
+.rarezas button.active {
+  background: #ffd500;
+  color: #000;
+  border-color: #ffd500;
+  box-shadow: 0 0 18px gold;
+}
+
+.skins-grid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 18px;
+}
+
+.skin-card {
+  position: relative;
+  min-height: 245px;
+  padding: 14px;
+  background: rgba(0, 0, 0, .92);
+  border: 3px solid #0059ff;
+  border-radius: 22px;
+  text-align: center;
+  box-shadow: 0 0 16px #0059ff;
+  transition: .25s;
+}
+
+.skin-card:hover,
+.skin-card.selected {
+  transform: translateY(-8px) scale(1.03);
+  border-color: #ffd500;
+  box-shadow: 0 0 30px gold;
+}
+
+.skin-card.equipped {
+  border-color: #00ff66;
+  box-shadow: 0 0 25px #00ff66;
+}
+
+.rarity-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #222;
+  font-weight: 900;
+}
+
+.común { color: white; }
+.rara { color: #00aaff; }
+.épica { color: #c653ff; }
+.legendaria { color: #ff9800; }
+.mítica { color: #ff3df2; }
+
+.skin-preview {
+  height: 115px;
+  display: grid;
+  place-items: center;
+  margin-top: 20px;
+}
+
+.skin-card h2 {
+  margin: 8px 0 4px;
+  color: white;
+  font-size: 19px;
+}
+
+.skin-card p {
+  color: #00ffff;
+  font-size: 13px;
+  min-height: 34px;
+}
+
+.price,
+.owned-label,
+.equipped-label {
+  margin-top: 8px;
+  font-weight: 900;
+  color: #ffd500;
+}
+
+.equipped-label {
+  color: #00ff66;
+}
+
+/* ================= PERSONAJES BASE ================= */
+
+.character {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  margin: auto;
+  animation: floatSkin 2s infinite alternate;
+}
+
+.character.big {
+  width: 145px;
+  height: 145px;
+}
+
+/* ================= PAC-MAN CSS ================= */
+
+[class*="pacman-"] {
+  border-radius: 50%;
+  clip-path: polygon(100% 50%, 60% 0, 0 0, 0 100%, 60% 100%);
+  animation: pacChomp .28s infinite, floatSkin 2s infinite alternate;
+}
+
+.pacman-clasico {
+  background: #ffd500;
+  box-shadow: 0 0 20px gold;
+}
+
+.pacman-hielo {
+  background: linear-gradient(135deg, #9ff4ff, #00aaff);
+  box-shadow: 0 0 20px cyan;
+}
+
+.pacman-lava {
+  background: radial-gradient(circle, #ffdd00, #ff3b00 55%, #720000);
+  box-shadow: 0 0 25px red;
+}
+
+.pacman-neon {
+  background: #00ff88;
+  box-shadow: 0 0 25px #00ff88;
+}
+
+.pacman-rey {
+  background: linear-gradient(135deg, #fff6a0, #ffd500, #b8860b);
+  box-shadow: 0 0 28px gold;
+}
+
+.pacman-rey::before {
+  content: "";
+  position: absolute;
+  top: -25px;
+  left: 18px;
+  width: 42px;
+  height: 24px;
+  background: gold;
+  clip-path: polygon(0 100%, 0 40%, 25% 75%, 50% 20%, 75% 75%, 100% 40%, 100% 100%);
+  filter: drop-shadow(0 0 8px gold);
+}
+
+.pacman-galaxia {
+  background: radial-gradient(circle at 30% 30%, #fff, #7b2cff 25%, #12002e 70%);
+  box-shadow: 0 0 28px #b94cff;
+}
+
+/* ================= FANTASMAS CSS ================= */
+
+[class*="ghost-"] {
+  border-radius: 45% 45% 12% 12%;
+  filter: drop-shadow(0 0 15px currentColor);
+}
+
+[class*="ghost-"]::before {
+  content: "";
+  position: absolute;
+  top: 24%;
+  left: 22%;
+  width: 18%;
+  height: 25%;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 28px 0 white;
+}
+
+[class*="ghost-"]::after {
+  content: "";
+  position: absolute;
+  top: 35%;
+  left: 30%;
+  width: 8%;
+  height: 8%;
+  background: #004cff;
+  border-radius: 50%;
+  box-shadow: 28px 0 #004cff;
+}
+
+.ghost-rojo {
+  background: #ff2d2d;
+  color: #ff2d2d;
+}
+
+.ghost-hielo {
+  background: linear-gradient(#bff8ff, #00b7ff);
+  color: #00d9ff;
+}
+
+.ghost-sombra {
+  background: linear-gradient(#333, #050505);
+  color: #7b2cff;
+}
+
+.ghost-plasma {
+  background: linear-gradient(#00ffff, #003cff);
+  color: cyan;
+}
+
+.ghost-rey {
+  background: linear-gradient(#ff3030, #8b0000);
+  color: gold;
+}
+
+.ghost-rey::before {
+  top: 28%;
+}
+
+.ghost-rey .crown,
+.ghost-rey::marker {
+  display: none;
+}
+
+.ghost-rey::after {
+  background: #000;
+  box-shadow: 28px 0 #000;
+}
+
+.ghost-rey {
+  &::before {
+    box-shadow: 28px 0 white;
+  }
+}
+
+.ghost-cosmico {
+  background: radial-gradient(circle, #fff, #8a2be2 35%, #130022);
+  color: #c653ff;
+}
+
+/* ================= MONSTRUOS CSS ================= */
+
+[class*="monster-"] {
+  border-radius: 44% 44% 24% 24%;
+  filter: drop-shadow(0 0 18px currentColor);
+  transform: scale(1.05);
+}
+
+[class*="monster-"]::before {
+  content: "";
+  position: absolute;
+  top: 25%;
+  left: 22%;
+  width: 18%;
+  height: 20%;
+  background: #ffd500;
+  border-radius: 50%;
+  box-shadow: 30px 0 #ffd500;
+}
+
+[class*="monster-"]::after {
+  content: "";
+  position: absolute;
+  bottom: 18%;
+  left: 32%;
+  width: 36%;
+  height: 12%;
+  background: #000;
+  border-radius: 0 0 50% 50%;
+}
+
+.monster-demonio {
+  background: radial-gradient(circle, #ff3d3d, #620000);
+  color: red;
+}
+
+.monster-demonio {
+  clip-path: polygon(15% 20%, 28% 0, 40% 18%, 60% 18%, 72% 0, 85% 20%, 100% 45%, 85% 100%, 15% 100%, 0 45%);
+}
+
+.monster-oni {
+  background: radial-gradient(circle, #ff4cff, #4a003d);
+  color: #ff4cff;
+  clip-path: polygon(10% 25%, 25% 0, 42% 18%, 58% 18%, 75% 0, 90% 25%, 100% 70%, 70% 100%, 30% 100%, 0 70%);
+}
+
+.monster-cyborg {
+  background: linear-gradient(135deg, #d9d9d9, #1c1c1c);
+  color: #00ffff;
+  border: 3px solid #00ffff;
+}
+
+.monster-dragon {
+  background: radial-gradient(circle, #ffb000, #ff2d2d 55%, #3d0000);
+  color: #ff2d2d;
+  clip-path: polygon(8% 18%, 25% 0, 44% 15%, 56% 15%, 75% 0, 92% 18%, 100% 60%, 80% 100%, 20% 100%, 0 60%);
+}
+
+.monster-hydra {
+  background: radial-gradient(circle, #00ff99, #002b18 70%);
+  color: #00ff99;
+  clip-path: polygon(0 25%, 18% 0, 35% 18%, 50% 0, 65% 18%, 82% 0, 100% 25%, 90% 100%, 10% 100%);
+}
+
+/* ================= PANEL GRANDE ================= */
+
+.preview-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 235px;
+  background: rgba(0, 0, 0, .96);
+  border-top: 4px solid #ffd500;
+  box-shadow: 0 -8px 30px gold;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 25px;
+  z-index: 30;
+}
+
+.preview-big {
+  width: 180px;
+  height: 180px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.preview-info h2 {
+  margin: 0;
+  color: white;
+  font-size: 34px;
+}
+
+.preview-info span {
+  display: inline-block;
+  margin-top: 6px;
+  font-weight: 900;
+}
+
+.preview-info p {
+  color: #ddd;
+  max-width: 650px;
+  line-height: 1.4;
+}
+
+.preview-info small {
+  display: block;
+  color: #00ffff;
+  margin-bottom: 12px;
+}
+
+.buy-btn,
+.equip-btn,
+.equipped-btn {
+  width: 250px;
+  height: 55px;
+  border: none;
+  border-radius: 16px;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.buy-btn {
+  background: linear-gradient(90deg, #ffd500, #ff9800);
+  color: #000;
+  box-shadow: 0 0 18px gold;
+}
+
+.equip-btn {
+  background: #00c853;
+  color: white;
+  box-shadow: 0 0 18px #00ff66;
+}
+
+.equipped-btn {
+  background: #111;
+  color: #00ff66;
+  border: 2px solid #00ff66;
+}
+
+/* ================= ANIMACIONES ================= */
+
+@keyframes pacChomp {
+  50% {
+    clip-path: polygon(100% 50%, 82% 18%, 0 0, 0 100%, 82% 82%);
+  }
+}
+
+@keyframes floatSkin {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-8px);
+  }
+}
+
+/* ================= CELULAR ================= */
+
+@media (max-width: 900px) {
+  .shop-header h1 {
+    font-size: 32px;
+  }
+
+  .shop-container {
+    padding-bottom: 360px;
+  }
+
+  .skins-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .preview-panel {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .preview-big {
+    width: 130px;
+    height: 130px;
+  }
+
+  .character.big {
+    width: 115px;
+    height: 115px;
+  }
+
+  .buy-btn,
+  .equip-btn,
+  .equipped-btn {
+    width: 100%;
+  }
+}

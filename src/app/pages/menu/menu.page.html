@@ -1,0 +1,220 @@
+<ion-content fullscreen class="menu-page">
+
+  <!-- Fondo -->
+  <div class="maze-background"></div>
+
+  <!-- Perfil -->
+  <div class="profile">
+
+    <div class="avatar">
+      👤
+    </div>
+
+    <div class="info">
+
+      <h2>{{nombre}}</h2>
+
+      <span>Nivel {{nivel}}</span>
+
+      <div class="xp-bar">
+
+        <div class="xp-fill"></div>
+
+      </div>
+
+      <small>180 / 500 XP</small>
+
+    </div>
+
+  </div>
+
+  <!-- Monedas -->
+
+  <div class="coins">
+
+    🪙 {{monedas}}
+
+  </div>
+
+  <!-- Logo -->
+
+  <section class="logo">
+
+    <h1>PAC-MAN CR</h1>
+
+    <h3>Multijugador Online</h3>
+
+  </section>
+
+  <!-- Personajes -->
+
+  <section class="characters">
+
+    <div class="ghost red">
+
+      <div class="eyes">
+
+        <span></span>
+
+        <span></span>
+
+      </div>
+
+    </div>
+
+    <div class="ghost pink">
+
+      <div class="eyes">
+
+        <span></span>
+
+        <span></span>
+
+      </div>
+
+    </div>
+
+    <div class="ghost cyan">
+
+      <div class="eyes">
+
+        <span></span>
+
+        <span></span>
+
+      </div>
+
+    </div>
+
+    <div class="ghost orange">
+
+      <div class="eyes">
+
+        <span></span>
+
+        <span></span>
+
+      </div>
+
+    </div>
+
+    <div class="monster">
+
+      😈
+
+    </div>
+
+  </section>
+
+  <!-- Botón principal -->
+
+  <ion-button
+    expand="block"
+    class="play-btn"
+    (click)="jugar()">
+
+    ▶ JUGAR
+
+  </ion-button>
+
+  <!-- Menú -->
+
+  <div class="menu-grid">
+
+    <ion-button
+      expand="block"
+      fill="outline"
+      (click)="amigos()">
+
+      👥 Amigos
+
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="outline"
+      (click)="ranking()">
+
+      🏆 Ranking
+
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="outline"
+      (click)="skins()">
+
+      🎨 Skins
+
+    </ion-button>
+
+    <ion-button
+      expand="block"
+      fill="outline"
+      (click)="configuracion()">
+
+      ⚙ Configuración
+
+    </ion-button>
+
+  </div>
+
+  <!-- Noticias -->
+
+  <div class="news">
+
+    <h3>🔥 Evento Especial</h3>
+
+    <p>
+
+      Esta semana todas las partidas otorgan
+
+      <b>doble experiencia</b>.
+
+    </p>
+
+  </div>
+
+  <!-- Panel administrador -->
+
+  <ion-button
+
+    *ngIf="esAdministrador"
+
+    expand="block"
+
+    color="warning"
+
+    class="admin"
+
+    (click)="admin()">
+
+    🛡 Panel Administrador
+
+  </ion-button>
+
+  <!-- Pacman -->
+
+  <div class="pacman-run">
+
+    <div class="pacman"></div>
+
+    <div class="dots">
+
+      <span></span>
+
+      <span></span>
+
+      <span></span>
+
+      <span></span>
+
+      <span></span>
+
+      <span></span>
+
+    </div>
+
+  </div>
+
+</ion-content>

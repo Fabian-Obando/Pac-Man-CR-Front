@@ -1,0 +1,7 @@
+{
+  "name": "Pac-Man-Front",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

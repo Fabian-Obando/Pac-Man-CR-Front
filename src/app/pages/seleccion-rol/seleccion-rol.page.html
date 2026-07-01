@@ -1,0 +1,57 @@
+<ion-content fullscreen class="rol-page">
+
+  <div class="maze-background"></div>
+
+  <section class="header">
+    <h1>ELIGE TU PERSONAJE</h1>
+    <p>Selecciona tu rol para la partida</p>
+  </section>
+
+  <section class="cards">
+
+    <div
+      class="role-card"
+      *ngFor="let rol of roles"
+      [ngClass]="[rol.clase, rolSeleccionado === rol.nombre ? 'selected' : '']"
+      (click)="seleccionarRol(rol.nombre)">
+
+      <div class="slot">
+        {{ rol.cupos }}
+      </div>
+
+      <div class="character">
+        {{ rol.icono }}
+      </div>
+
+      <h2>{{ rol.nombre }}</h2>
+
+      <p>{{ rol.descripcion }}</p>
+
+      <div class="check" *ngIf="rolSeleccionado === rol.nombre">
+        ✓ SELECCIONADO
+      </div>
+
+    </div>
+
+  </section>
+
+  <section class="actions">
+
+    <ion-button expand="block" class="btn-confirmar" (click)="confirmar()">
+      CONFIRMAR SELECCIÓN
+    </ion-button>
+
+    <ion-button expand="block" fill="clear" color="danger" (click)="volver()">
+      VOLVER AL LOBBY
+    </ion-button>
+
+  </section>
+
+  <div class="pacman-run">
+    <div class="pacman"></div>
+    <div class="dots">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+
+</ion-content>

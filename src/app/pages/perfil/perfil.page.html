@@ -1,0 +1,194 @@
+<ion-content fullscreen class="perfil-page">
+
+  <!-- Fondo -->
+  <div class="background-grid"></div>
+
+  <div class="perfil-container">
+
+    <!-- FOTO -->
+
+    <div class="perfil-card">
+
+      <div class="avatar">
+        🟡
+      </div>
+
+      <h1>{{ jugador.nombre }}</h1>
+
+      <h3>{{ jugador.titulo }}</h3>
+
+      <span class="online">
+        🟢 {{ jugador.estado }}
+      </span>
+
+    </div>
+
+    <!-- NIVEL -->
+
+    <div class="nivel-card">
+
+      <div class="nivel-top">
+
+        <span>Nivel {{ jugador.nivel }}</span>
+
+        <span>{{ jugador.xp }}/{{ jugador.xpMax }} XP</span>
+
+      </div>
+
+      <div class="barra">
+
+        <div
+          class="barra-fill"
+          [style.width.%]="jugador.porcentaje">
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RESUMEN -->
+
+    <div class="stats-grid">
+
+      <div class="stat">
+        <h2>🪙</h2>
+        <span>{{ jugador.oro }}</span>
+        <small>Oro</small>
+      </div>
+
+      <div class="stat">
+        <h2>🏆</h2>
+        <span>{{ jugador.victorias }}</span>
+        <small>Victorias</small>
+      </div>
+
+      <div class="stat">
+        <h2>❌</h2>
+        <span>{{ jugador.derrotas }}</span>
+        <small>Derrotas</small>
+      </div>
+
+      <div class="stat">
+        <h2>🎮</h2>
+        <span>{{ jugador.partidas }}</span>
+        <small>Partidas</small>
+      </div>
+
+    </div>
+
+    <!-- INFORMACIÓN -->
+
+    <div class="info-card">
+
+      <h2>Información del jugador</h2>
+
+      <div class="info-row">
+
+        <label>Rol favorito</label>
+
+        <span>{{ jugador.rolFavorito }}</span>
+
+      </div>
+
+      <div class="info-row">
+
+        <label>Mapa favorito</label>
+
+        <span>{{ jugador.mapaFavorito }}</span>
+
+      </div>
+
+      <div class="info-row">
+
+        <label>País</label>
+
+        <span>{{ jugador.pais }}</span>
+
+      </div>
+
+    </div>
+
+    <!-- ESTADÍSTICAS -->
+
+    <div class="info-card">
+
+      <h2>Dominio por personaje</h2>
+
+      <div
+        *ngFor="let item of estadisticas"
+        class="skill">
+
+        <div class="skill-top">
+
+          <span>{{ item.titulo }}</span>
+
+          <span>{{ item.porcentaje }}%</span>
+
+        </div>
+
+        <div class="skill-bar">
+
+          <div
+            class="skill-fill"
+            [style.width.%]="item.porcentaje">
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- LOGROS -->
+
+    <div class="info-card">
+
+      <h2>Logros</h2>
+
+      <div class="logros">
+
+        <div
+          class="logro"
+          *ngFor="let logro of logros">
+
+          <div class="icono">
+
+            {{ logro.icono }}
+
+          </div>
+
+          <div>
+
+            <strong>{{ logro.nombre }}</strong>
+
+            <p>{{ logro.descripcion }}</p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- BOTONES -->
+
+    <div class="botones">
+
+      <button class="btn-editar">
+
+        ✏ Editar Perfil
+
+      </button>
+
+      <button class="btn-volver" routerLink="/menu">
+
+        ← Volver al menú
+
+      </button>
+
+    </div>
+
+  </div>
+
+</ion-content>

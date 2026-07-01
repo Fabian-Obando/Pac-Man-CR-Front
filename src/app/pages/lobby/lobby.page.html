@@ -1,0 +1,78 @@
+<ion-content fullscreen class="lobby-page">
+
+  <div class="maze-background"></div>
+
+  <section class="lobby-header">
+    <h1>LOBBY</h1>
+    <p>Sala multijugador</p>
+  </section>
+
+  <section class="room-card">
+
+    <div class="room-top">
+      <div>
+        <span class="label">Código de sala</span>
+        <h2>{{ codigoSala }}</h2>
+      </div>
+
+      <div class="status">
+        {{ jugadoresListos }}/{{ maxJugadores }}
+      </div>
+    </div>
+
+    <div class="players">
+
+      <div class="player-card" *ngFor="let jugador of jugadores">
+
+        <div class="player-avatar" [ngClass]="jugador.color">
+          <span *ngIf="jugador.rol === 'Pac-Man'">🟡</span>
+          <span *ngIf="jugador.rol === 'Fantasma'">👻</span>
+          <span *ngIf="jugador.rol === 'Monstruo'">😈</span>
+          <span *ngIf="jugador.rol === 'Vacío'">?</span>
+        </div>
+
+        <div class="player-info">
+          <h3>{{ jugador.nombre }}</h3>
+          <p>{{ jugador.rol }}</p>
+          <small>{{ jugador.estado }}</small>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <section class="actions">
+
+    <ion-button expand="block" class="btn-main" (click)="elegirPersonaje()">
+      🎮 Elegir personaje
+    </ion-button>
+
+    <ion-button expand="block" fill="outline" (click)="invitarAmigo()">
+      👥 Invitar amigo
+    </ion-button>
+
+    <ion-button
+      *ngIf="soyCreador"
+      expand="block"
+      color="warning"
+      class="btn-start"
+      (click)="iniciarPartida()">
+      ▶ Iniciar partida
+    </ion-button>
+
+    <ion-button expand="block" fill="clear" color="danger" (click)="salir()">
+      Salir de la sala
+    </ion-button>
+
+  </section>
+
+  <div class="pacman-run">
+    <div class="pacman"></div>
+    <div class="dots">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </div>
+
+</ion-content>

@@ -1,0 +1,210 @@
+.rol-page {
+  --background: #000;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+}
+
+.maze-background {
+  position: fixed;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 120px, rgba(0, 90, 255, .85) 120px 124px),
+    repeating-linear-gradient(transparent 0 120px, rgba(0, 90, 255, .85) 120px 124px),
+    radial-gradient(circle, #ffd54f 2px, transparent 3px);
+  background-size: 124px 124px, 124px 124px, 40px 40px;
+  opacity: .85;
+  z-index: -2;
+}
+
+.header {
+  text-align: center;
+  padding-top: 35px;
+}
+
+.header h1 {
+  margin: 0;
+  color: #ffd500;
+  font-size: 50px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 15px gold, 0 0 30px orange;
+}
+
+.header p {
+  color: #00ffff;
+  font-size: 20px;
+  margin-top: 8px;
+}
+
+.cards {
+  width: 92%;
+  max-width: 1100px;
+  margin: 40px auto 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.role-card {
+  position: relative;
+  min-height: 330px;
+  padding: 25px;
+  background: rgba(0, 0, 0, .92);
+  border: 3px solid #0059ff;
+  border-radius: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: .25s ease;
+  box-shadow: 0 0 22px rgba(0, 89, 255, .55);
+}
+
+.role-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  filter: brightness(1.2);
+}
+
+.role-card.selected {
+  border-color: #ffd500;
+  box-shadow: 0 0 35px gold;
+  transform: scale(1.04);
+}
+
+.slot {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: #ffd500;
+  color: #000;
+  font-weight: 900;
+  padding: 7px 12px;
+  border-radius: 20px;
+}
+
+.character {
+  font-size: 80px;
+  margin-top: 28px;
+  animation: floatCharacter 1.8s infinite alternate;
+}
+
+.role-card h2 {
+  color: #ffd500;
+  font-size: 30px;
+  margin: 18px 0 8px;
+}
+
+.role-card p {
+  color: #fff;
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.check {
+  margin-top: 18px;
+  color: #00ffff;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.pacman {
+  filter: drop-shadow(0 0 20px gold);
+}
+
+.pacman.role-card,
+.role-card.pacman {
+  border-color: #ffd500;
+}
+
+.role-card.fantasma {
+  border-color: #00ffff;
+}
+
+.role-card.monstruo {
+  border-color: #ff2d2d;
+}
+
+.role-card.monstruo.selected {
+  box-shadow: 0 0 35px red;
+}
+
+.actions {
+  width: 90%;
+  max-width: 620px;
+  margin: 25px auto 90px;
+}
+
+.btn-confirmar {
+  height: 62px;
+  --background: linear-gradient(90deg, #ffd500, #ffae00);
+  --color: #000;
+  font-size: 20px;
+  font-weight: 900;
+  filter: drop-shadow(0 0 18px gold);
+}
+
+.pacman-run {
+  position: fixed;
+  bottom: 22px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.pacman-run .pacman {
+  width: 55px;
+  height: 55px;
+  background: #ffd500;
+  border-radius: 50%;
+  animation: runPacman 10s linear infinite, chomp .25s infinite;
+}
+
+.dots {
+  display: flex;
+  gap: 35px;
+  margin-left: 25px;
+}
+
+.dots span {
+  width: 10px;
+  height: 10px;
+  background: #ffd500;
+  border-radius: 50%;
+  animation: dotBlink 1s infinite;
+}
+
+@keyframes floatCharacter {
+  from { transform: translateY(0); }
+  to { transform: translateY(-12px); }
+}
+
+@keyframes runPacman {
+  from { transform: translateX(-120px); }
+  to { transform: translateX(calc(100vw + 150px)); }
+}
+
+@keyframes chomp {
+  0% {
+    clip-path: polygon(100% 50%, 55% 0, 0 0, 0 100%, 55% 100%);
+  }
+  50% {
+    clip-path: polygon(100% 50%, 80% 18%, 0 0, 0 100%, 80% 82%);
+  }
+  100% {
+    clip-path: polygon(100% 50%, 55% 0, 0 0, 0 100%, 55% 100%);
+  }
+}
+
+@keyframes dotBlink {
+  50% { opacity: .25; }
+}
+
+@media (max-width: 850px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .header h1 {
+    font-size: 36px;
+  }
+}

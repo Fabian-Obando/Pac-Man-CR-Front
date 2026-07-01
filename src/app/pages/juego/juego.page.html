@@ -1,0 +1,144 @@
+<ion-content fullscreen class="game-page">
+
+  <section *ngIf="vista === 'seleccion'" class="select-screen">
+
+    <h1>PAC-MAN CR</h1>
+    <p>Selecciona un mapa</p>
+
+    <div class="map-cards">
+      <div
+        class="map-card"
+        *ngFor="let mapa of mapas"
+        [class.active]="mapaActual === mapa.id"
+        (click)="seleccionarMapa(mapa.id)">
+
+        <div class="map-number">{{ mapa.id }}</div>
+        <h2>{{ mapa.nombre }}</h2>
+        <span>{{ mapa.dificultad }}</span>
+        <small>Bots: {{ mapa.bots }}</small>
+
+      </div>
+    </div>
+
+    <button class="start-btn" (click)="iniciarMapa()">
+      ▶ JUGAR MAPA {{ mapaActual }}
+    </button>
+
+    <button class="back-btn" (click)="salir()">
+      Volver al lobby
+    </button>
+
+  </section>
+
+  <section *ngIf="vista === 'juego'" class="play-screen">
+
+    <div class="mini-hud">
+      <div>🟡 {{ rolJugador }}</div>
+      <div>⭐ {{ puntaje }}</div>
+      <div>🪙 {{ oro }}</div>
+      <div>❤️ {{ vidas }}</div>
+      <div>⏱ {{ tiempoTexto }}</div>
+
+      <button (click)="mostrarInfo = !mostrarInfo">
+        INFO
+      </button>
+
+      <button (click)="volverSeleccion()">
+        MAPAS
+      </button>
+    </div>
+
+    <div
+      class="game-board"
+      [style.gridTemplateColumns]="'repeat(' + mapaSeleccionado.layout[0].length + ', 1fr)'"
+      [style.gridTemplateRows]="'repeat(' + mapaSeleccionado.layout.length + ', 1fr)'">
+
+      <div
+        *ngFor="let celda of celdas"
+        class="cell"
+        [ngClass]="celda.type">
+
+        <span
+          *ngIf="pacman.x === celda.x && pacman.y === celda.y"
+          class="pacman"
+          [ngClass]="claseDireccionPacman()">
+        </span>
+
+        <span
+          class="eat-effect"
+          *ngIf="celda.efecto">
+          {{ celda.efecto }}
+        </span>
+
+        <span
+          *ngFor="let ghost of fantasmas"
+          class="ghost"
+          [ngClass]="[ghost.color, ghost.tipo, ghost.direccion]"
+          [style.display]="ghost.x === celda.x && ghost.y === celda.y ? 'block' : 'none'">
+        </span>
+
+      </div>
+
+    </div>
+
+    <div class="mobile-controls">
+      <button (click)="mover('arriba')">▲</button>
+
+      <div>
+        <button (click)="mover('izquierda')">◀</button>
+        <button (click)="mover('abajo')">▼</button>
+        <button (click)="mover('derecha')">▶</button>
+      </div>
+    </div>
+
+    <div class="info-panel" *ngIf="mostrarInfo">
+      <h3>Estado de partida</h3>
+
+      <p>Mapa: {{ mapaSeleccionado.nombre }}</p>
+      <p>Dificultad: {{ mapaSeleccionado.dificultad }}</p>
+      <p>Bots activos: {{ mapaSeleccionado.bots }}</p>
+      <p>Objetivo: come todas las bolitas.</p>
+      <p>🍒 Fruta Pac-Man: suma oro.</p>
+      <p>☠️ Fruta villano: quita vida.</p>
+    </div>
+
+  </section>
+
+  <section *ngIf="vista === 'victoria'" class="result-screen victory">
+  <div class="result-card">
+    <h1>¡VICTORIA!</h1>
+    <h2>{{ mensajeFinal }}</h2>
+
+    <p>⭐ Puntaje: {{ puntaje }}</p>
+    <p>🪙 Oro ganado: {{ oroGanado }}</p>
+    <p>❤️ Vidas restantes: {{ vidas }}</p>
+
+    <button class="start-btn" (click)="siguienteMapa()">
+      SIGUIENTE MAPA
+    </button>
+
+    <button class="back-btn" (click)="volverSeleccion()">
+      VOLVER A MAPAS
+    </button>
+  </div>
+</section>
+
+<section *ngIf="vista === 'derrota'" class="result-screen defeat">
+  <div class="result-card">
+    <h1>GAME OVER</h1>
+    <h2>{{ mensajeFinal }}</h2>
+
+    <p>⭐ Puntaje final: {{ puntaje }}</p>
+    <p>🪙 Oro actual: {{ oro }}</p>
+
+    <button class="start-btn" (click)="reintentar()">
+      REINTENTAR
+    </button>
+
+    <button class="back-btn" (click)="volverSeleccion()">
+      VOLVER A MAPAS
+    </button>
+  </div>
+</section>
+
+</ion-content>
