@@ -228,3 +228,232 @@ ion-button {
     gap: 15px;
   }
 }
+/*=========================================
+LOBBY BACKEND
+=========================================*/
+
+.loading{
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+
+  padding:40px 20px;
+
+  color:#ffd500;
+
+}
+
+.loading ion-spinner{
+
+  transform:scale(1.5);
+
+  margin-bottom:20px;
+
+}
+
+.loading p{
+
+  font-size:18px;
+
+  font-weight:bold;
+
+}
+
+.datos{
+
+  margin-top:18px;
+
+  background:rgba(255,255,255,.04);
+
+  border:2px solid rgba(255,213,0,.4);
+
+  border-radius:16px;
+
+  padding:14px;
+
+}
+
+.datos p{
+
+  margin:8px 0;
+
+  font-size:16px;
+
+  color:#ffffff;
+
+}
+
+.datos strong{
+
+  color:#ffd500;
+
+}
+
+.player-card{
+
+  transition:.25s;
+
+}
+
+.player-card:hover{
+
+  transform:scale(1.02);
+
+  box-shadow:0 0 18px #00ffff;
+
+}
+
+.player-avatar{
+
+  background:#111;
+
+  border:2px solid #ffd500;
+
+}
+
+.player-avatar span{
+
+  font-size:34px;
+
+}
+
+.player-info{
+
+  flex:1;
+
+}
+
+.player-info h3{
+
+  color:#ffffff;
+
+}
+
+.player-info p{
+
+  color:#ffd500;
+
+  font-weight:bold;
+
+}
+
+.player-info small{
+
+  color:#00ffff;
+
+}
+
+.actions ion-button{
+
+  height:55px;
+
+  margin-top:12px;
+
+  font-size:17px;
+
+  font-weight:700;
+
+}
+
+.actions ion-button[color="secondary"]{
+
+  --background:#00bcd4;
+
+  --color:#fff;
+
+}
+
+.actions ion-button[color="tertiary"]{
+
+  --background:#8e24aa;
+
+  --color:#fff;
+
+}
+
+.actions ion-button[color="success"]{
+
+  --background:#2ecc71;
+
+  --color:#fff;
+
+}
+
+.actions ion-button[color="warning"]{
+
+  --background:#ffc107;
+
+  --color:#000;
+
+}
+
+.actions ion-button[color="danger"]{
+
+  --color:#ff5252;
+
+}
+
+@media(max-width:768px){
+
+  .room-card{
+
+    width:95%;
+
+    padding:18px;
+
+  }
+
+  .player-card{
+
+    padding:12px;
+
+  }
+
+  .player-avatar{
+
+    width:60px;
+    height:60px;
+
+  }
+
+  .player-avatar span{
+
+    font-size:28px;
+
+  }
+
+  .player-info h3{
+
+    font-size:18px;
+
+  }
+
+  .player-info p{
+
+    font-size:14px;
+
+  }
+
+  .player-info small{
+
+    font-size:13px;
+
+  }
+
+  .actions{
+
+    width:94%;
+
+  }
+
+  .actions ion-button{
+
+    height:52px;
+
+    font-size:15px;
+
+  }
+
+}

@@ -54,16 +54,22 @@
       [(ngModel)]="password">
       </ion-input>
 
-      <ion-button
-      fill="clear"
-      slot="end"
-      (click)="mostrarPassword=!mostrarPassword">
+<ion-button
+  expand="block"
+  class="btn-pacman"
+  [disabled]="cargando"
+  (click)="login()">
 
-      <ion-icon
-      [name]="mostrarPassword ? 'eye-off-outline':'eye-outline'">
-      </ion-icon>
+  <ion-spinner
+    *ngIf="cargando"
+    name="crescent">
+  </ion-spinner>
 
-      </ion-button>
+  <span *ngIf="!cargando">
+    Iniciar sesión
+  </span>
+
+</ion-button>
 
     </ion-item>
 
@@ -93,5 +99,9 @@
   </div>
 
   <div class="pacman"></div>
+
+  <p class="error-message" *ngIf="mensajeError">
+  {{ mensajeError }}
+</p>
 
 </ion-content>

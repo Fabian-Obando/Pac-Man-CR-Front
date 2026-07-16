@@ -1,144 +1,784 @@
-<ion-content fullscreen class="game-page">
+<ion-content
+  fullscreen
+  class="game-page"
+  [scrollY]="true">
 
-  <section *ngIf="vista === 'seleccion'" class="select-screen">
+  <div class="maze-background"></div>
 
-    <h1>PAC-MAN CR</h1>
-    <p>Selecciona un mapa</p>
+  <!-- ==================================================
+       CARGANDO
+  =================================================== -->
 
-    <div class="map-cards">
-      <div
-        class="map-card"
-        *ngFor="let mapa of mapas"
-        [class.active]="mapaActual === mapa.id"
-        (click)="seleccionarMapa(mapa.id)">
+  <section
+    *ngIf="vista === 'cargando'"
+    class="loading-screen">
 
-        <div class="map-number">{{ mapa.id }}</div>
-        <h2>{{ mapa.nombre }}</h2>
-        <span>{{ mapa.dificultad }}</span>
-        <small>Bots: {{ mapa.bots }}</small>
+    <div class="loading-card">
 
+      <div class="loading-pacman">
+        🟡
       </div>
+
+      <h1>PAC-MAN CR</h1>
+
+      <ion-spinner name="crescent"></ion-spinner>
+
+      <p>Cargando partida...</p>
+
+      <small>
+        Preparando el laberinto y sincronizando jugadores
+      </small>
+
     </div>
-
-    <button class="start-btn" (click)="iniciarMapa()">
-      ▶ JUGAR MAPA {{ mapaActual }}
-    </button>
-
-    <button class="back-btn" (click)="salir()">
-      Volver al lobby
-    </button>
 
   </section>
 
-  <section *ngIf="vista === 'juego'" class="play-screen">
+  <!-- ==================================================
+       ERROR
+  =================================================== -->
 
-    <div class="mini-hud">
-      <div>🟡 {{ rolJugador }}</div>
-      <div>⭐ {{ puntaje }}</div>
-      <div>🪙 {{ oro }}</div>
-      <div>❤️ {{ vidas }}</div>
-      <div>⏱ {{ tiempoTexto }}</div>
+  <section
+    *ngIf="vista === 'error'"
+    class="result-screen error-screen">
 
-      <button (click)="mostrarInfo = !mostrarInfo">
-        INFO
+    <div class="result-card">
+
+      <div class="result-icon">
+        ⚠️
+      </div>
+
+      <h1>NO SE PUDO CARGAR</h1>
+
+      <p class="result-message">
+        {{ mensaje }}
+      </p>
+
+      <button
+        type="button"
+        class="start-btn"
+        (click)="cargarPartida()">
+
+        🔄 INTENTAR DE NUEVO
+
       </button>
 
-      <button (click)="volverSeleccion()">
-        MAPAS
+      <button
+        type="button"
+        class="back-btn"
+        [routerLink]="['/salas']">
+
+        ← VOLVER A SALAS
+
       </button>
+
     </div>
 
-    <div
-      class="game-board"
-      [style.gridTemplateColumns]="'repeat(' + mapaSeleccionado.layout[0].length + ', 1fr)'"
-      [style.gridTemplateRows]="'repeat(' + mapaSeleccionado.layout.length + ', 1fr)'">
+  </section>
 
-      <div
-        *ngFor="let celda of celdas"
-        class="cell"
-        [ngClass]="celda.type">
+  <!-- ==================================================
+       JUEGO
+  =================================================== -->
 
-        <span
-          *ngIf="pacman.x === celda.x && pacman.y === celda.y"
-          class="pacman"
-          [ngClass]="claseDireccionPacman()">
-        </span>
+  <section
+    *ngIf="vista === 'jugando'"
+    class="play-screen"
+    (touchstart)="iniciarDeslizamiento($event)"
+    (touchend)="finalizarDeslizamiento($event)">
 
-        <span
-          class="eat-effect"
-          *ngIf="celda.efecto">
-          {{ celda.efecto }}
-        </span>
+    <!-- CABECERA -->
 
-        <span
-          *ngFor="let ghost of fantasmas"
-          class="ghost"
-          [ngClass]="[ghost.color, ghost.tipo, ghost.direccion]"
-          [style.display]="ghost.x === celda.x && ghost.y === celda.y ? 'block' : 'none'">
+    <header class="game-header">
+
+      <div class="game-title">
+
+        <h1>PAC-MAN CR</h1>
+
+        <span>
+          {{ mapaSeleccionado.nombre }}
         </span>
 
       </div>
 
-    </div>
+      <div class="connection-status">
 
-    <div class="mobile-controls">
-      <button (click)="mover('arriba')">▲</button>
+        <span
+          class="status-dot"
+          [class.syncing]="sincronizando">
+        </span>
+
+        {{ sincronizando ? 'Sincronizando...' : 'En línea' }}
+
+      </div>
+
+    </header>
+
+    <!-- HUD PRINCIPAL -->
+
+    <section class="mini-hud">
+
+      <div class="hud-item player-hud">
+
+        <span class="hud-icon">
+
+          <ng-container *ngIf="esPacManLocal()">
+            🟡
+          </ng-container>
+
+          <ng-container *ngIf="esFantasmaLocal()">
+            👻
+          </ng-container>
+
+          <ng-container *ngIf="esMonstruoLocal()">
+            😈
+          </ng-container>
+
+        </span>
+
+        <div>
+
+          <small>Jugador</small>
+
+          <strong>{{ nombreJugador }}</strong>
+
+        </div>
+
+      </div>
+
+      <div class="hud-item">
+
+        <span class="hud-icon">🎭</span>
+
+        <div>
+
+          <small>Rol</small>
+
+          <strong>{{ rolJugador }}</strong>
+
+        </div>
+
+      </div>
+
+      <div class="hud-item">
+
+        <span class="hud-icon">⭐</span>
+
+        <div>
+
+          <small>Puntos</small>
+
+          <strong>{{ puntaje }}</strong>
+
+        </div>
+
+      </div>
+
+      <div class="hud-item">
+
+        <span class="hud-icon">🪙</span>
+
+        <div>
+
+          <small>Oro</small>
+
+          <strong>{{ oro }}</strong>
+
+        </div>
+
+      </div>
+
+      <div class="hud-item">
+
+        <span class="hud-icon">❤️</span>
+
+        <div>
+
+          <small>Vidas</small>
+
+          <strong>{{ vidas }}</strong>
+
+        </div>
+
+      </div>
+
+      <div class="hud-item timer-hud">
+
+        <span class="hud-icon">⏱️</span>
+
+        <div>
+
+          <small>Tiempo</small>
+
+          <strong>{{ tiempoTexto }}</strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+<!-- EFECTOS ACTIVOS -->
+
+<ng-container *ngIf="personajeLocal as jugadorLocal">
+
+  <section
+    class="effects-bar"
+    *ngIf="
+      jugadorLocal.powerActivo ||
+      jugadorLocal.escudoActivo ||
+      jugadorLocal.doblePuntajeActivo ||
+      jugadorLocal.velocidadExtraActiva ||
+      jugadorLocal.fuerzaActiva ||
+      jugadorLocal.congelado
+    ">
+
+    <span
+      class="effect power-effect"
+      *ngIf="jugadorLocal.powerActivo">
+
+      🔵 POWER
+
+    </span>
+
+    <span
+      class="effect shield-effect"
+      *ngIf="jugadorLocal.escudoActivo">
+
+      🛡️ ESCUDO
+
+    </span>
+
+    <span
+      class="effect points-effect"
+      *ngIf="jugadorLocal.doblePuntajeActivo">
+
+      ✨ PUNTOS X2
+
+    </span>
+
+    <span
+      class="effect speed-effect"
+      *ngIf="jugadorLocal.velocidadExtraActiva">
+
+      ⚡ VELOCIDAD
+
+    </span>
+
+    <span
+      class="effect strength-effect"
+      *ngIf="jugadorLocal.fuerzaActiva">
+
+      💥 FUERZA
+
+    </span>
+
+    <span
+      class="effect frozen-effect"
+      *ngIf="jugadorLocal.congelado">
+
+      ❄️ CONGELADO
+
+    </span>
+
+  </section>
+
+</ng-container>
+
+    <!-- INFORMACIÓN DEL MAPA -->
+
+    <section class="map-status">
 
       <div>
-        <button (click)="mover('izquierda')">◀</button>
-        <button (click)="mover('abajo')">▼</button>
-        <button (click)="mover('derecha')">▶</button>
+
+        <span>🗺️</span>
+
+        <strong>
+          Mapa {{ mapaActual }}:
+          {{ mapaSeleccionado.nombre }}
+        </strong>
+
       </div>
-    </div>
 
-    <div class="info-panel" *ngIf="mostrarInfo">
-      <h3>Estado de partida</h3>
+      <div>
 
-      <p>Mapa: {{ mapaSeleccionado.nombre }}</p>
-      <p>Dificultad: {{ mapaSeleccionado.dificultad }}</p>
-      <p>Bots activos: {{ mapaSeleccionado.bots }}</p>
-      <p>Objetivo: come todas las bolitas.</p>
-      <p>🍒 Fruta Pac-Man: suma oro.</p>
-      <p>☠️ Fruta villano: quita vida.</p>
+        <span>🔥</span>
+
+        <strong>
+          {{ mapaSeleccionado.dificultad }}
+        </strong>
+
+      </div>
+
+      <div>
+
+        <span>⚪</span>
+
+        <strong>
+          {{ puntosRestantes() }} restantes
+        </strong>
+
+      </div>
+
+      <button
+        type="button"
+        class="info-btn"
+        (click)="mostrarInfo = !mostrarInfo">
+
+        {{ mostrarInfo ? 'CERRAR INFO' : 'INFO' }}
+
+      </button>
+
+    </section>
+
+    <!-- TABLERO -->
+
+    <main class="board-wrapper">
+
+      <div
+        class="game-board"
+        [style.gridTemplateColumns]="
+          'repeat(' +
+          mapaSeleccionado.layout[0].length +
+          ', minmax(0, 1fr))'
+        "
+        [style.gridTemplateRows]="
+          'repeat(' +
+          mapaSeleccionado.layout.length +
+          ', minmax(0, 1fr))'
+        ">
+
+        <div
+          *ngFor="let celda of celdas"
+          class="cell"
+          [ngClass]="claseCelda(celda)">
+
+          <!-- PUNTO NORMAL -->
+
+          <span
+            *ngIf="celda.tipo === 'punto'"
+            class="pellet">
+
+            •
+          </span>
+
+          <!-- POWER PELLET Y FRUTAS -->
+
+          <span
+            *ngIf="
+              celda.tipo === 'poder' ||
+              celda.tipo === 'fruta' ||
+              celda.tipo === 'frutaVillana'
+            "
+            class="cell-content"
+            [ngClass]="{
+              'power-pellet': celda.tipo === 'poder',
+              'pacman-fruit': celda.tipo === 'fruta',
+              'villain-fruit': celda.tipo === 'frutaVillana'
+            }">
+
+            {{ contenidoCelda(celda) }}
+
+          </span>
+
+          <!-- EFECTO DE PUNTOS O PODER -->
+
+          <span
+            class="eat-effect"
+            *ngIf="celda.efecto">
+
+            {{ celda.efecto }}
+
+          </span>
+
+          <!-- PERSONAJES -->
+
+          <ng-container
+            *ngFor="let personaje of personajes">
+
+            <span
+              *ngIf="
+                personaje.vivo &&
+                personaje.x === celda.x &&
+                personaje.y === celda.y
+              "
+              class="game-character"
+              [ngClass]="[
+                personaje.direccion,
+                personaje.esLocal ? 'local-character' : 'remote-character',
+                personaje.esBot ? 'bot-character' : 'human-character',
+                personaje.powerActivo ? 'power-character' : '',
+                personaje.escudoActivo ? 'shield-character' : '',
+                personaje.congelado ? 'frozen-character' : '',
+                'skin-' + personaje.skin
+              ]">
+
+              <!-- PAC-MAN -->
+
+              <span
+                *ngIf="esRolPacMan(personaje.nombreRol)"
+                class="pacman-character">
+
+                🟡
+
+              </span>
+
+              <!-- FANTASMA -->
+
+              <span
+                *ngIf="esRolFantasma(personaje.nombreRol)"
+                class="ghost-character">
+
+                👻
+
+              </span>
+
+              <!-- MONSTRUO -->
+
+              <span
+                *ngIf="esRolMonstruo(personaje.nombreRol)"
+                class="monster-character">
+
+                😈
+
+              </span>
+
+              <!-- INDICADOR DE BOT -->
+
+              <span
+                *ngIf="personaje.esBot"
+                class="bot-badge">
+
+                🤖
+
+              </span>
+
+              <!-- INDICADOR DEL JUGADOR LOCAL -->
+
+              <span
+                *ngIf="personaje.esLocal"
+                class="local-indicator">
+
+                ▼
+
+              </span>
+
+            </span>
+
+          </ng-container>
+
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- CONTROLES PARA CELULAR -->
+
+    <section class="mobile-controls">
+
+      <button
+        type="button"
+        class="control-btn control-up"
+        aria-label="Mover arriba"
+        (click)="cambiarDireccion('arriba')">
+
+        ▲
+
+      </button>
+
+      <div class="control-middle">
+
+        <button
+          type="button"
+          class="control-btn control-left"
+          aria-label="Mover a la izquierda"
+          (click)="cambiarDireccion('izquierda')">
+
+          ◀
+
+        </button>
+
+        <div class="control-center">
+
+          <span>🎮</span>
+
+        </div>
+
+        <button
+          type="button"
+          class="control-btn control-right"
+          aria-label="Mover a la derecha"
+          (click)="cambiarDireccion('derecha')">
+
+          ▶
+
+        </button>
+
+      </div>
+
+      <button
+        type="button"
+        class="control-btn control-down"
+        aria-label="Mover abajo"
+        (click)="cambiarDireccion('abajo')">
+
+        ▼
+
+      </button>
+
+      <small>
+        También puedes deslizar sobre el tablero
+      </small>
+
+    </section>
+
+    <!-- PANEL DE INFORMACIÓN -->
+
+    <aside
+      class="info-panel"
+      *ngIf="mostrarInfo">
+
+      <div class="info-header">
+
+        <h3>INFORMACIÓN DE PARTIDA</h3>
+
+        <button
+          type="button"
+          (click)="mostrarInfo = false">
+
+          ✕
+
+        </button>
+
+      </div>
+
+      <div class="info-grid">
+
+        <p>
+          🗺️ <strong>Mapa:</strong>
+          {{ mapaSeleccionado.nombre }}
+        </p>
+
+        <p>
+          🔥 <strong>Dificultad:</strong>
+          {{ mapaSeleccionado.dificultad }}
+        </p>
+
+        <p>
+          👥 <strong>Jugadores:</strong>
+          {{ personajes.length }}/4
+        </p>
+
+        <p>
+          ⚪ <strong>Puntos restantes:</strong>
+          {{ puntosRestantes() }}
+        </p>
+
+        <p>
+          🟡 <strong>Equipo Pac-Man:</strong>
+          consume todos los puntos.
+        </p>
+
+        <p>
+          👻 <strong>Equipo villano:</strong>
+          elimina a los Pac-Man o resiste hasta terminar el tiempo.
+        </p>
+
+        <p>
+          🍒 <strong>Fruta Pac-Man:</strong>
+          entrega velocidad, escudo, puntos dobles o vida.
+        </p>
+
+        <p>
+          🫐 <strong>Fruta villana:</strong>
+          entrega velocidad, fuerza, congelación o visión.
+        </p>
+
+        <p>
+          🔵 <strong>Power Pellet:</strong>
+          permite a Pac-Man derrotar temporalmente a los villanos.
+        </p>
+
+        <p>
+          🌀 <strong>Túneles:</strong>
+          permiten cruzar rápidamente de un extremo al otro.
+        </p>
+
+      </div>
+
+    </aside>
+
+    <!-- MENSAJE GENERAL -->
+
+    <div
+      class="game-message"
+      *ngIf="mensaje">
+
+      {{ mensaje }}
+
     </div>
 
   </section>
 
-  <section *ngIf="vista === 'victoria'" class="result-screen victory">
-  <div class="result-card">
-    <h1>¡VICTORIA!</h1>
-    <h2>{{ mensajeFinal }}</h2>
+  <!-- ==================================================
+       VICTORIA
+  =================================================== -->
 
-    <p>⭐ Puntaje: {{ puntaje }}</p>
-    <p>🪙 Oro ganado: {{ oroGanado }}</p>
-    <p>❤️ Vidas restantes: {{ vidas }}</p>
+  <section
+    *ngIf="vista === 'victoria'"
+    class="result-screen victory">
 
-    <button class="start-btn" (click)="siguienteMapa()">
-      SIGUIENTE MAPA
-    </button>
+    <div class="result-card">
 
-    <button class="back-btn" (click)="volverSeleccion()">
-      VOLVER A MAPAS
-    </button>
-  </div>
-</section>
+      <div class="result-icon">
+        🏆
+      </div>
 
-<section *ngIf="vista === 'derrota'" class="result-screen defeat">
-  <div class="result-card">
-    <h1>GAME OVER</h1>
-    <h2>{{ mensajeFinal }}</h2>
+      <h1>¡VICTORIA!</h1>
 
-    <p>⭐ Puntaje final: {{ puntaje }}</p>
-    <p>🪙 Oro actual: {{ oro }}</p>
+      <h2>
+        {{ mensajeFinal }}
+      </h2>
 
-    <button class="start-btn" (click)="reintentar()">
-      REINTENTAR
-    </button>
+      <div class="result-stats">
 
-    <button class="back-btn" (click)="volverSeleccion()">
-      VOLVER A MAPAS
-    </button>
-  </div>
-</section>
+        <div>
+
+          <span>⭐</span>
+
+          <small>Puntaje</small>
+
+          <strong>{{ puntaje }}</strong>
+
+        </div>
+
+        <div>
+
+          <span>🪙</span>
+
+          <small>Oro ganado</small>
+
+          <strong>{{ oroGanado }}</strong>
+
+        </div>
+
+        <div>
+
+          <span>❤️</span>
+
+          <small>Vidas</small>
+
+          <strong>{{ vidas }}</strong>
+
+        </div>
+
+        <div>
+
+          <span>🎭</span>
+
+          <small>Equipo</small>
+
+          <strong>{{ equipoJugador }}</strong>
+
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        class="start-btn"
+        [routerLink]="['/salas']">
+
+        🎮 VOLVER A SALAS
+
+      </button>
+
+      <button
+        type="button"
+        class="back-btn"
+        [routerLink]="['/menu']">
+
+        ← MENÚ PRINCIPAL
+
+      </button>
+
+    </div>
+
+  </section>
+
+  <!-- ==================================================
+       DERROTA
+  =================================================== -->
+
+  <section
+    *ngIf="vista === 'derrota'"
+    class="result-screen defeat">
+
+    <div class="result-card">
+
+      <div class="result-icon">
+        💀
+      </div>
+
+      <h1>GAME OVER</h1>
+
+      <h2>
+        {{ mensajeFinal }}
+      </h2>
+
+      <div class="result-stats">
+
+        <div>
+
+          <span>⭐</span>
+
+          <small>Puntaje final</small>
+
+          <strong>{{ puntaje }}</strong>
+
+        </div>
+
+        <div>
+
+          <span>🪙</span>
+
+          <small>Oro ganado</small>
+
+          <strong>{{ oroGanado }}</strong>
+
+        </div>
+
+        <div>
+
+          <span>🎭</span>
+
+          <small>Ganador</small>
+
+          <strong>{{ equipoGanador }}</strong>
+
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        class="start-btn"
+        [routerLink]="['/salas']">
+
+        🔄 BUSCAR OTRA PARTIDA
+
+      </button>
+
+      <button
+        type="button"
+        class="back-btn"
+        [routerLink]="['/menu']">
+
+        ← MENÚ PRINCIPAL
+
+      </button>
+
+    </div>
+
+  </section>
 
 </ion-content>

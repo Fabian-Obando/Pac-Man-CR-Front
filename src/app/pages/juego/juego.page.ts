@@ -1,33 +1,104 @@
-import { Component, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import {
+  Component,
+  HostListener,
+  OnDestroy,
+  OnInit
+} from '@angular/core';
 
-type CellType = 'wall' | 'pellet' | 'power' | 'fruit' | 'villainFruit' | 'empty';
-type Direccion = 'derecha' | 'izquierda' | 'arriba' | 'abajo';
+import {
+  ActivatedRoute,
+  Router
+} from '@angular/router';
 
-interface Cell {
+import {
+  Auth,
+  UsuarioSesion
+} from '../../services/auth';
+
+import {
+  Juego,
+  JugadorJuego,
+  JuegoService
+} from '../../services/juego.service';
+
+import {
+  CeldaJuego,
+  Direccion,
+  GameEngineService,
+  MapaJuego,
+  PersonajeMotor,
+  Posicion,
+  TipoFrutaPacMan,
+  TipoFrutaVillano
+} from '../../services/game-engine.service';
+
+/*======================================================
+  TIPOS DE LA PÁGINA
+======================================================*/
+
+type VistaJuego =
+  | 'cargando'
+  | 'jugando'
+  | 'victoria'
+  | 'derrota'
+  | 'error';
+
+type EquipoJuego =
+  | 'pacman'
+  | 'villanos'
+  | '';
+
+/*======================================================
+  PERSONAJE UTILIZADO POR LA PÁGINA
+======================================================*/
+
+interface PersonajeJuego {
+
+  participanteId: number;
+
+  usuarioId: number | null;
+
+  nombreUsuario: string;
+
+  nombreRol: string;
+
+  esBot: boolean;
+
+  esLocal: boolean;
+
   x: number;
-  y: number;
-  type: CellType;
-  efecto?: string;
-}
 
-interface Ghost {
-  x: number;
   y: number;
-  color: string;
-  tipo: 'fantasma' | 'monstruo';
+
   direccion: Direccion;
+
+  siguienteDireccion: Direccion;
+
+  puntos: number;
+
+  vidas: number;
+
+  vivo: boolean;
+
+  powerActivo: boolean;
+
+  escudoActivo: boolean;
+
+  doblePuntajeActivo: boolean;
+
+  velocidadExtraActiva: boolean;
+
+  fuerzaActiva: boolean;
+
+  congelado: boolean;
+
+  skin: string;
+
 }
 
-interface GameMap {
-  id: number;
-  nombre: string;
-  dificultad: string;
-  bots: number;
-  velocidadPacman: number;
-  velocidadBots: number;
-  layout: string[];
-}
+/*======================================================
+  COMPONENTE
+======================================================*/
 
 @Component({
   selector: 'app-juego',
@@ -35,535 +106,2218 @@ interface GameMap {
   styleUrls: ['./juego.page.scss'],
   standalone: false
 })
-export class JuegoPage implements OnDestroy {
+export class JuegoPage implements OnInit, OnDestroy {
 
-vista: 'seleccion' | 'juego' | 'victoria' | 'derrota' = 'seleccion';
+  /*====================================================
+    SESIÓN
+  ====================================================*/
 
-  rolJugador = localStorage.getItem('rolSeleccionado') || 'Pac-Man';
+  usuario!: UsuarioSesion;
+
+  nombreJugador = '';
+
+  oro = 0;
+
+  skinJugador = 'clasica';
+
+  /*====================================================
+    NAVEGACIÓN
+  ====================================================*/
+
+  salaId = 0;
+
+  partidaId = 0;
+
+  /*====================================================
+    BACKEND
+  ====================================================*/
+
+  juego?: Juego;
+
+  jugadoresServidor: JugadorJuego[] = [];
+
+  /*====================================================
+    PANTALLA
+  ====================================================*/
+
+  vista: VistaJuego = 'cargando';
+
+  cargando = true;
+
+  sincronizando = false;
+
+  enviandoMovimiento = false;
+
+  finalizando = false;
+
+  mensaje = '';
+
+  mensajeFinal = '';
+
+  equipoGanador: EquipoJuego = '';
+
+  /*====================================================
+    DATOS DEL JUGADOR
+  ====================================================*/
+
+  rolJugador = '';
+
+  equipoJugador: EquipoJuego = '';
 
   puntaje = 0;
-  oro = 1500;
+
   vidas = 3;
-  tiempo = 180;
-  mostrarInfo = false;
-  powerActivo = false;
-  mensajeFinal = '';
+
   oroGanado = 0;
 
+  powerActivo = false;
+
+  mostrarInfo = false;
+
+  /*====================================================
+    PARTIDA
+  ====================================================*/
+
   mapaActual = 1;
+
+  tiempo = 180;
+
+  movimientoActivo = false;
+
+  /*====================================================
+    TABLERO Y PERSONAJES
+  ====================================================*/
+
+  celdas: CeldaJuego[] = [];
+
+  personajes: PersonajeJuego[] = [];
+
+  personajeLocal?: PersonajeJuego;
+
+  /*====================================================
+    MOVIMIENTO ESTILO PAC-MAN
+  ====================================================*/
+
   direccionActual: Direccion = 'derecha';
+
   siguienteDireccion: Direccion = 'derecha';
 
-  pacmanInicio = { x: 1, y: 1 };
-  casaBots = { x: 10, y: 5 };
-  pacman = { x: 1, y: 1 };
+  direccionPendiente: Direccion = 'derecha';
 
-  celdas: Cell[] = [];
-  fantasmas: Ghost[] = [];
+  /*====================================================
+    CONTROL TÁCTIL
+  ====================================================*/
 
-  pacmanLoop: any;
-  botsLoop: any;
-  timerLoop: any;
+  inicioToqueX = 0;
 
-  mapas: GameMap[] = [
-    {
-      id: 1,
-      nombre: 'Clásico',
-      dificultad: 'Fácil',
-      bots: 1,
-      velocidadPacman: 160,
-      velocidadBots: 550,
-      layout: [
-        '#####################',
-        '#.........#.........#',
-        '#.###.###.#.###.###.#',
-        '#o#.....#...#.....#o#',
-        '#.###.#.#####.#.###.#',
-        '#.....#...f...#.....#',
-        '###.#.###.#.###.#.###',
-        '#...#.....#.....#...#',
-        '#.#####.#####.#####.#',
-        '#.................v.#',
-        '#####################'
-      ]
-    },
-    {
-      id: 2,
-      nombre: 'Cruces',
-      dificultad: 'Fácil',
-      bots: 2,
-      velocidadPacman: 150,
-      velocidadBots: 470,
-      layout: [
-        '#####################',
-        '#o......#...#......o#',
-        '#.#######.#.#######.#',
-        '#.......#.#.#.......#',
-        '###.###.#.#.#.###.###',
-        '#...#...f...v...#...#',
-        '#.###.#######.###.#.#',
-        '#.....#.....#.....#.#',
-        '#.###.#.###.#.###.#.#',
-        '#.....#.....#.......#',
-        '#####################'
-      ]
-    },
-    {
-      id: 3,
-      nombre: 'Túneles',
-      dificultad: 'Medio',
-      bots: 3,
-      velocidadPacman: 140,
-      velocidadBots: 390,
-      layout: [
-        '#######################',
-        '#o....#.......#....f.o#',
-        '#.###.#.#####.#.###.#.#',
-        '#...#.#...#...#.#...#.#',
-        '###.#.###.#.###.#.###.#',
-        '#...#.....v.....#.....#',
-        '#.#####.#####.#####.#.#',
-        '#.......#...#.......#.#',
-        '#.###.#.#.#.#.#.###.#.#',
-        '#...#.#...#...#.#...#.#',
-        '#.###.#########.###.#.#',
-        '#.....f.......v.....o.#',
-        '#######################'
-      ]
-    },
-    {
-      id: 4,
-      nombre: 'Encierro',
-      dificultad: 'Difícil',
-      bots: 4,
-      velocidadPacman: 130,
-      velocidadBots: 310,
-      layout: [
-        '#########################',
-        '#o....#.....#.....#....o#',
-        '#.###.#.###.#.###.#.###.#',
-        '#...#.#...#...#...#.#...#',
-        '###.#.###.#####.###.#.###',
-        '#...#.....#...#.....#...#',
-        '#.#####.#.#v#.#.#.#####.#',
-        '#.......#.....#.......f.#',
-        '#.#####.#######.#####.#.#',
-        '#...#.....f.v.....#...#.#',
-        '###.#.###.#####.###.#.###',
-        '#...#.#...#...#...#.#...#',
-        '#.###.#.###.#.###.#.###.#',
-        '#o....#.....#.....#....o#',
-        '#########################'
-      ]
-    },
-    {
-      id: 5,
-      nombre: 'Final',
-      dificultad: 'Extremo',
-      bots: 6,
-      velocidadPacman: 120,
-      velocidadBots: 240,
-      layout: [
-        '###########################',
-        '#o....#.....#...#.....#..o#',
-        '#.###.#.###.#.#.#.###.#.###',
-        '#...#.#...#...#...#...#...#',
-        '###.#.###.#######.###.#.###',
-        '#...#.....#.....#.....#...#',
-        '#.#####.#.#.###.#.#.#####.#',
-        '#.......#...v.v...#.......#',
-        '#.#####.###.#.#.###.#####.#',
-        '#...f.....#.#.#.#.....f...#',
-        '###.#.###.#.#.#.#.###.#.###',
-        '#...#.#...#...#...#.#...#.#',
-        '#.###.#.###########.#.###.#',
-        '#o....#.....v.....#....o..#',
-        '###########################'
-      ]
+  inicioToqueY = 0;
+
+  finToqueX = 0;
+
+  finToqueY = 0;
+
+  private readonly distanciaMinimaDeslizamiento = 35;
+
+  /*====================================================
+    INTERVALOS
+  ====================================================*/
+
+  intervaloMovimiento?: ReturnType<typeof setInterval>;
+
+  intervaloSincronizacion?: ReturnType<typeof setInterval>;
+
+  intervaloTiempo?: ReturnType<typeof setInterval>;
+
+  intervaloBots?: ReturnType<typeof setInterval>;
+
+  /*====================================================
+    CONFIGURACIÓN
+  ====================================================*/
+
+  private readonly tiempoSincronizacion = 250;
+
+  private readonly ROL_PACMAN = 'pacman';
+
+  private readonly ROL_FANTASMA = 'fantasma';
+
+  private readonly ROL_MONSTRUO = 'monstruo';
+
+  /*====================================================
+    CONSTRUCTOR
+  ====================================================*/
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private auth: Auth,
+    private juegoService: JuegoService,
+    private gameEngine: GameEngineService
+  ) {}
+
+  /*====================================================
+    INICIAR COMPONENTE
+  ====================================================*/
+
+  ngOnInit(): void {
+
+    const sesion =
+      this.auth.obtenerSesion();
+
+    if (!sesion) {
+
+      this.router.navigate(['/login']);
+
+      return;
+
     }
-  ];
 
-  constructor(private router: Router) {}
+    this.usuario = sesion;
+
+    this.nombreJugador =
+      sesion.nombreUsuario;
+
+    this.oro =
+      sesion.oroActual;
+
+    this.skinJugador =
+      localStorage.getItem(
+        'skinSeleccionada'
+      ) ??
+      localStorage.getItem(
+        'skinJugador'
+      ) ??
+      'clasica';
+
+    const partidaRecibida =
+      Number(
+        this.route.snapshot
+          .queryParamMap
+          .get('partidaId')
+      );
+
+    const salaRecibida =
+      Number(
+        this.route.snapshot
+          .queryParamMap
+          .get('salaId')
+      );
+
+    if (
+      !Number.isInteger(partidaRecibida) ||
+      partidaRecibida <= 0 ||
+      !Number.isInteger(salaRecibida) ||
+      salaRecibida <= 0
+    ) {
+
+      this.mensaje =
+        'No se recibió correctamente la información de la partida.';
+
+      this.vista = 'error';
+
+      this.cargando = false;
+
+      return;
+
+    }
+
+    this.partidaId =
+      partidaRecibida;
+
+    this.salaId =
+      salaRecibida;
+
+    this.cargarPartida();
+
+  }
+
+  /*====================================================
+    DESTRUIR COMPONENTE
+  ====================================================*/
 
   ngOnDestroy(): void {
-    this.detenerLoops();
+
+    this.detenerTodosLosIntervalos();
+
   }
 
-  get mapaSeleccionado(): GameMap {
-    return this.mapas.find(m => m.id === this.mapaActual) || this.mapas[0];
+  /*====================================================
+    CARGAR PARTIDA DESDE EL BACKEND
+  ====================================================*/
+
+  cargarPartida(): void {
+
+    this.cargando = true;
+    this.vista = 'cargando';
+    this.mensaje = '';
+
+    this.juegoService
+      .obtenerJuego(this.partidaId)
+      .subscribe({
+
+        next: (respuesta: Juego) => {
+
+          this.aplicarEstadoServidor(
+            respuesta,
+            true
+          );
+
+          if (!this.personajeLocal) {
+
+            this.cargando = false;
+            this.vista = 'error';
+
+            this.mensaje =
+              'Tu usuario no aparece como participante de esta partida.';
+
+            return;
+
+          }
+
+          this.prepararMapa();
+
+          this.cargando = false;
+          this.vista = 'jugando';
+
+          this.iniciarMovimientoContinuo();
+          this.iniciarSincronizacion();
+          this.iniciarTemporizador();
+          this.iniciarBots();
+
+        },
+
+        error: (error: unknown) => {
+
+          console.error(
+            'Error al cargar la partida:',
+            error
+          );
+
+          this.cargando = false;
+          this.vista = 'error';
+
+          this.mensaje =
+            this.obtenerMensajeError(
+              error,
+              'No fue posible cargar la partida.'
+            );
+
+        }
+
+      });
+
   }
+
+
+  /*====================================================
+    APLICAR ESTADO RECIBIDO DEL SERVIDOR
+  ====================================================*/
+
+  private aplicarEstadoServidor(
+    respuesta: Juego,
+    cargaInicial: boolean = false
+  ): void {
+
+    this.juego = respuesta;
+
+    this.jugadoresServidor =
+      respuesta.jugadores ?? [];
+
+    const personajesAnteriores =
+      new Map<number, PersonajeJuego>();
+
+    for (const personaje of this.personajes) {
+
+      personajesAnteriores.set(
+        personaje.participanteId,
+        personaje
+      );
+
+    }
+
+    this.personajes =
+      this.jugadoresServidor.map(
+        (jugador: JugadorJuego) => {
+
+          const anterior =
+            personajesAnteriores.get(
+              jugador.participanteId
+            );
+
+          const esLocal =
+            jugador.usuarioId ===
+            this.usuario.usuarioId;
+
+          return {
+
+            participanteId:
+              jugador.participanteId,
+
+            usuarioId:
+              jugador.usuarioId,
+
+            nombreUsuario:
+              jugador.nombreUsuario,
+
+            nombreRol:
+              jugador.nombreRol,
+
+            esBot:
+              jugador.esBot,
+
+            esLocal,
+
+            x:
+              esLocal &&
+              !cargaInicial &&
+              this.personajeLocal
+                ? this.personajeLocal.x
+                : jugador.posicionX,
+
+            y:
+              esLocal &&
+              !cargaInicial &&
+              this.personajeLocal
+                ? this.personajeLocal.y
+                : jugador.posicionY,
+
+            direccion:
+              anterior?.direccion ??
+              'derecha',
+
+            siguienteDireccion:
+              anterior?.siguienteDireccion ??
+              'derecha',
+
+            puntos:
+              jugador.puntos,
+
+            vidas:
+              anterior?.vidas ??
+              3,
+
+            vivo:
+              jugador.vivo,
+
+            powerActivo:
+              anterior?.powerActivo ??
+              false,
+
+            escudoActivo:
+              anterior?.escudoActivo ??
+              false,
+
+            doblePuntajeActivo:
+              anterior?.doblePuntajeActivo ??
+              false,
+
+            velocidadExtraActiva:
+              anterior?.velocidadExtraActiva ??
+              false,
+
+            fuerzaActiva:
+              anterior?.fuerzaActiva ??
+              false,
+
+            congelado:
+              anterior?.congelado ??
+              false,
+
+            skin:
+              esLocal
+                ? this.skinJugador
+                : anterior?.skin ??
+                  'clasica'
+
+          };
+
+        }
+      );
+
+    this.personajeLocal =
+      this.personajes.find(
+        personaje =>
+          personaje.esLocal
+      );
+
+    if (this.personajeLocal) {
+
+      this.nombreJugador =
+        this.personajeLocal.nombreUsuario;
+
+      this.rolJugador =
+        this.personajeLocal.nombreRol;
+
+      this.puntaje =
+        this.personajeLocal.puntos;
+
+      this.vidas =
+        this.personajeLocal.vidas;
+
+      this.powerActivo =
+        this.personajeLocal.powerActivo;
+
+      this.direccionActual =
+        this.personajeLocal.direccion;
+
+      this.siguienteDireccion =
+        this.personajeLocal
+          .siguienteDireccion;
+
+      this.direccionPendiente =
+        this.personajeLocal
+          .siguienteDireccion;
+
+      this.equipoJugador =
+        this.esRolPacMan(
+          this.personajeLocal.nombreRol
+        )
+          ? 'pacman'
+          : 'villanos';
+
+    }
+
+    if (!cargaInicial) {
+
+      this.actualizarPersonajesRemotos(
+        this.jugadoresServidor
+      );
+
+    }
+
+    if (
+      respuesta.partidaFinalizada ||
+      respuesta.estadoPartida === 'Finalizada'
+    ) {
+
+      this.detenerTodosLosIntervalos();
+
+      this.resolverFinalDesdeServidor();
+
+    }
+
+  }
+
+
+  /*====================================================
+    NORMALIZAR NOMBRE DEL ROL
+  ====================================================*/
+
+  private normalizarRol(
+    rol: string | null | undefined
+  ): string {
+
+    return (rol ?? '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(
+        /[\u0300-\u036f]/g,
+        ''
+      )
+      .replace(
+        /[\s_-]/g,
+        ''
+      );
+
+  }
+
+  /*====================================================
+    VALIDACIONES DE ROLES
+  ====================================================*/
+
+  esRolPacMan(
+    rol: string | null | undefined
+  ): boolean {
+
+    return (
+      this.normalizarRol(rol) ===
+      this.ROL_PACMAN
+    );
+
+  }
+
+  esRolFantasma(
+    rol: string | null | undefined
+  ): boolean {
+
+    return (
+      this.normalizarRol(rol) ===
+      this.ROL_FANTASMA
+    );
+
+  }
+
+  esRolMonstruo(
+    rol: string | null | undefined
+  ): boolean {
+
+    return (
+      this.normalizarRol(rol) ===
+      this.ROL_MONSTRUO
+    );
+
+  }
+
+  esPacManLocal(): boolean {
+
+    return this.esRolPacMan(
+      this.rolJugador
+    );
+
+  }
+
+  esFantasmaLocal(): boolean {
+
+    return this.esRolFantasma(
+      this.rolJugador
+    );
+
+  }
+
+  esMonstruoLocal(): boolean {
+
+    return this.esRolMonstruo(
+      this.rolJugador
+    );
+
+  }
+
+  esVillanoLocal(): boolean {
+
+    return (
+      this.esFantasmaLocal() ||
+      this.esMonstruoLocal()
+    );
+
+  }
+
+  /*====================================================
+    MAPA SELECCIONADO
+  ====================================================*/
+
+  get mapaSeleccionado(): MapaJuego {
+
+    return this.gameEngine.obtenerMapa(
+      this.mapaActual
+    );
+
+  }
+
+  /*====================================================
+    FORMATO DEL TIEMPO
+  ====================================================*/
 
   get tiempoTexto(): string {
-    const min = Math.floor(this.tiempo / 60);
-    const sec = this.tiempo % 60;
-    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+    const minutos =
+      Math.floor(this.tiempo / 60);
+
+    const segundos =
+      this.tiempo % 60;
+
+    return (
+      `${minutos}:` +
+      `${segundos < 10 ? '0' : ''}` +
+      `${segundos}`
+    );
+
   }
 
-  seleccionarMapa(id: number) {
-    this.mapaActual = id;
-  }
+  /*====================================================
+    PREPARAR MAPA
+  ====================================================*/
 
-  iniciarMapa() {
-    this.vista = 'juego';
-    this.cargarMapa(this.mapaActual);
-    this.iniciarLoops();
-  }
+  private prepararMapa(): void {
 
-  volverSeleccion() {
-    this.detenerLoops();
-    this.vista = 'seleccion';
-    this.mostrarInfo = false;
-  }
+    if (
+      this.mapaActual < 1 ||
+      this.mapaActual > 5
+    ) {
 
-  cargarMapa(id: number) {
-    this.detenerLoops();
+      this.mapaActual = 1;
 
-    this.mapaActual = id;
-    this.puntaje = 0;
-    this.vidas = 3;
-    this.tiempo = 180;
+    }
+
+    this.celdas =
+      this.gameEngine.crearTablero(
+        this.mapaActual
+      );
+
+    this.tiempo =
+      this.mapaSeleccionado.duracion;
+
     this.powerActivo = false;
-    this.direccionActual = 'derecha';
-    this.siguienteDireccion = 'derecha';
-    this.pacman = { ...this.pacmanInicio };
-    this.celdas = [];
 
-    this.mapaSeleccionado.layout.forEach((fila, y) => {
-      fila.split('').forEach((char, x) => {
-        this.celdas.push({ x, y, type: this.convertirCelda(char) });
-      });
-    });
+    this.direccionActual =
+      'derecha';
 
-    this.casaBots = {
-      x: Math.floor(this.mapaSeleccionado.layout[0].length / 2),
-      y: Math.floor(this.mapaSeleccionado.layout.length / 2)
-    };
+    this.siguienteDireccion =
+      'derecha';
 
-    this.crearBots(this.mapaSeleccionado.bots);
+    this.direccionPendiente =
+      'derecha';
+
+    this.asignarPosicionesIniciales();
+
   }
 
-  iniciarLoops() {
-    this.detenerLoops();
+  /*====================================================
+    ASIGNAR POSICIONES INICIALES
+  ====================================================*/
 
-    this.pacmanLoop = setInterval(() => {
-      this.avanzarPacman();
-    }, this.mapaSeleccionado.velocidadPacman);
+  private asignarPosicionesIniciales(): void {
 
-    this.botsLoop = setInterval(() => {
-      this.moverBots();
-      this.verificarChoque();
-    }, this.mapaSeleccionado.velocidadBots);
+    const posiciones =
+      this.gameEngine
+        .obtenerPosicionesIniciales(
+          this.mapaActual
+        );
 
-    this.timerLoop = setInterval(() => {
-      this.tiempo--;
+    let indicePacMan = 0;
+    let indiceVillano = 0;
 
-      if (this.tiempo <= 0) {
-        this.perderPartida('Se acabó el tiempo.');
-      }
-    }, 1000);
-  }
+    this.personajes =
+      this.personajes.map(
+        personaje => {
 
-  detenerLoops() {
-    clearInterval(this.pacmanLoop);
-    clearInterval(this.botsLoop);
-    clearInterval(this.timerLoop);
-  }
+          const posicion =
+            this.esRolPacMan(
+              personaje.nombreRol
+            )
+              ? (
+                  posiciones.pacman[
+                    indicePacMan++
+                  ] ??
+                  posiciones.pacman[0]
+                )
+              : (
+                  posiciones.villanos[
+                    indiceVillano++
+                  ] ??
+                  posiciones.villanos[0]
+                );
 
-  convertirCelda(char: string): CellType {
-    if (char === '#') return 'wall';
-    if (char === '.') return 'pellet';
-    if (char === 'o') return 'power';
-    if (char === 'f') return 'fruit';
-    if (char === 'v') return 'villainFruit';
-    return 'empty';
-  }
+          return {
 
-  crearBots(cantidad: number) {
-    const colores = ['red', 'cyan', 'pink', 'orange', 'purple', 'white'];
+            ...personaje,
 
-    this.fantasmas = [];
+            x:
+              posicion.x,
 
-    for (let i = 0; i < cantidad; i++) {
-      this.fantasmas.push({
-        x: this.casaBots.x + (i % 3) - 1,
-        y: this.casaBots.y + Math.floor(i / 3),
-        color: colores[i],
-        tipo: i === cantidad - 1 && cantidad >= 4 ? 'monstruo' : 'fantasma',
-        direccion: 'derecha'
-      });
-    }
-  }
+            y:
+              posicion.y,
 
-  mover(direccion: Direccion) {
-    this.siguienteDireccion = direccion;
-  }
+            direccion:
+              'derecha',
 
-  avanzarPacman() {
-    if (this.puedeMover(this.siguienteDireccion)) {
-      this.direccionActual = this.siguienteDireccion;
-    }
+            siguienteDireccion:
+              'derecha'
 
-    if (!this.puedeMover(this.direccionActual)) {
-      return;
-    }
+          };
 
-    const nuevaPos = this.obtenerNuevaPosicion(
-      this.pacman.x,
-      this.pacman.y,
-      this.direccionActual
-    );
-
-    this.pacman = nuevaPos;
-
-    const celda = this.obtenerCelda(nuevaPos.x, nuevaPos.y);
-
-    if (celda) {
-      this.comerCelda(celda);
-    }
-
-    this.verificarChoque();
-    this.verificarVictoria();
-  }
-
-  puedeMover(direccion: Direccion): boolean {
-    const pos = this.obtenerNuevaPosicion(this.pacman.x, this.pacman.y, direccion);
-    const celda = this.obtenerCelda(pos.x, pos.y);
-    return !!celda && celda.type !== 'wall';
-  }
-
-  obtenerNuevaPosicion(x: number, y: number, direccion: Direccion) {
-    if (direccion === 'arriba') return { x, y: y - 1 };
-    if (direccion === 'abajo') return { x, y: y + 1 };
-    if (direccion === 'izquierda') return { x: x - 1, y };
-    return { x: x + 1, y };
-  }
-
-  obtenerCelda(x: number, y: number): Cell | undefined {
-    return this.celdas.find(c => c.x === x && c.y === y);
-  }
-
-  comerCelda(celda: Cell) {
-    if (celda.type === 'pellet') {
-      this.puntaje += 10;
-      celda.efecto = '+10';
-      celda.type = 'empty';
-    }
-
-    if (celda.type === 'power') {
-      this.puntaje += 50;
-      this.powerActivo = true;
-      celda.efecto = 'POWER';
-      celda.type = 'empty';
-
-      setTimeout(() => {
-        this.powerActivo = false;
-      }, 7000);
-    }
-
-    if (celda.type === 'fruit') {
-      this.puntaje += 100;
-      this.oro += 25;
-      celda.efecto = '+100';
-      celda.type = 'empty';
-    }
-
-    if (celda.type === 'villainFruit') {
-      this.vidas--;
-      celda.efecto = '-1';
-      celda.type = 'empty';
-
-      if (this.vidas <= 0) {
-        this.perderPartida('Pac-Man cayó en una fruta villana.');
-      }
-    }
-
-    if (celda.efecto) {
-      setTimeout(() => celda.efecto = '', 450);
-    }
-  }
-
-  moverBots() {
-    const posicionesOcupadas: string[] = [];
-
-    this.fantasmas = this.fantasmas.map((bot, index) => {
-      const opciones = [
-        { x: bot.x + 1, y: bot.y },
-        { x: bot.x - 1, y: bot.y },
-        { x: bot.x, y: bot.y + 1 },
-        { x: bot.x, y: bot.y - 1 }
-      ];
-
-      let libres = opciones.filter(pos => {
-        const celda = this.obtenerCelda(pos.x, pos.y);
-        const ocupada = posicionesOcupadas.includes(`${pos.x}-${pos.y}`);
-        return celda && celda.type !== 'wall' && !ocupada;
-      });
-
-      if (libres.length === 0) {
-        return bot;
-      }
-
-      const objetivo = this.obtenerObjetivoBot(bot, index);
-
-      libres.sort((a, b) => {
-        const distA = Math.abs(a.x - objetivo.x) + Math.abs(a.y - objetivo.y);
-        const distB = Math.abs(b.x - objetivo.x) + Math.abs(b.y - objetivo.y);
-        return distA - distB;
-      });
-
-      const agresividad = bot.tipo === 'monstruo'
-        ? 0.95
-        : this.mapaActual >= 4
-          ? 0.82
-          : this.mapaActual === 3
-            ? 0.70
-            : 0.55;
-
-      const destino = Math.random() < agresividad
-        ? libres[0]
-        : libres[Math.floor(Math.random() * libres.length)];
-
-      const direccion: Direccion =
-        destino.x > bot.x ? 'derecha' :
-        destino.x < bot.x ? 'izquierda' :
-        destino.y > bot.y ? 'abajo' :
-        'arriba';
-
-      posicionesOcupadas.push(`${destino.x}-${destino.y}`);
-
-      return {
-        ...bot,
-        x: destino.x,
-        y: destino.y,
-        direccion
-      };
-    });
-  }
-
-  obtenerObjetivoBot(bot: Ghost, index: number) {
-    if (bot.tipo === 'monstruo') {
-      return this.pacman;
-    }
-
-    if (bot.color === 'red') {
-      return this.pacman;
-    }
-
-    if (bot.color === 'pink') {
-      return this.obtenerNuevaPosicion(
-        this.pacman.x,
-        this.pacman.y,
-        this.direccionActual
-      );
-    }
-
-    if (bot.color === 'cyan') {
-      return {
-        x: Math.max(1, this.pacman.x - 3),
-        y: this.pacman.y
-      };
-    }
-
-    if (bot.color === 'orange') {
-      const esquinas = [
-        { x: 1, y: 1 },
-        { x: this.mapaSeleccionado.layout[0].length - 2, y: 1 },
-        { x: 1, y: this.mapaSeleccionado.layout.length - 2 },
-        {
-          x: this.mapaSeleccionado.layout[0].length - 2,
-          y: this.mapaSeleccionado.layout.length - 2
         }
-      ];
-
-      return esquinas[index % esquinas.length];
-    }
-
-    return {
-      x: this.casaBots.x,
-      y: this.casaBots.y
-    };
-  }
-
-  verificarChoque() {
-    const bot = this.fantasmas.find(f => f.x === this.pacman.x && f.y === this.pacman.y);
-
-    if (!bot) return;
-
-    if (this.powerActivo && bot.tipo === 'fantasma') {
-      this.puntaje += 200;
-      bot.x = this.casaBots.x;
-      bot.y = this.casaBots.y;
-      bot.direccion = 'derecha';
-      return;
-    }
-
-    const daño = bot.tipo === 'monstruo' ? 2 : 1;
-    this.vidas -= daño;
-
-    if (this.vidas <= 0) {
-      this.perderPartida(
-        bot.tipo === 'monstruo'
-          ? 'El monstruo atrapó a Pac-Man.'
-          : 'Un fantasma atrapó a Pac-Man.'
       );
+
+    this.personajeLocal =
+      this.personajes.find(
+        personaje =>
+          personaje.esLocal
+      );
+
+    if (!this.personajeLocal) {
+
       return;
+
     }
 
-    this.reiniciarPosiciones();
+    this.direccionActual =
+      this.personajeLocal.direccion;
+
+    this.siguienteDireccion =
+      this.personajeLocal
+        .siguienteDireccion;
+
+    this.direccionPendiente =
+      this.personajeLocal
+        .siguienteDireccion;
+
+    this.enviarMovimientoServidor();
+
   }
 
-  reiniciarPosiciones() {
-    this.pacman = { ...this.pacmanInicio };
-    this.direccionActual = 'derecha';
-    this.siguienteDireccion = 'derecha';
-    this.crearBots(this.mapaSeleccionado.bots);
-  }
+  /*====================================================
+    CONTROLES DE TECLADO
+  ====================================================*/
 
-  verificarVictoria() {
-    const quedanBolitas = this.celdas.some(
-      c => c.type === 'pellet' || c.type === 'power'
+  @HostListener(
+    'window:keydown',
+    ['$event']
+  )
+  manejarTeclado(
+    event: KeyboardEvent
+  ): void {
+
+    const tecla =
+      event.key.toLowerCase();
+
+    const direcciones:
+      Record<string, Direccion> = {
+
+      arrowup:
+        'arriba',
+
+      w:
+        'arriba',
+
+      arrowdown:
+        'abajo',
+
+      s:
+        'abajo',
+
+      arrowleft:
+        'izquierda',
+
+      a:
+        'izquierda',
+
+      arrowright:
+        'derecha',
+
+      d:
+        'derecha'
+
+    };
+
+    const direccion =
+      direcciones[tecla];
+
+    if (!direccion) {
+
+      return;
+
+    }
+
+    event.preventDefault();
+
+    this.cambiarDireccion(
+      direccion
     );
 
-    if (!quedanBolitas) {
-      this.ganarPartida();
+  }
+
+  /*====================================================
+    INICIAR DESLIZAMIENTO TÁCTIL
+  ====================================================*/
+
+  iniciarDeslizamiento(
+    event: TouchEvent
+  ): void {
+
+    const toque =
+      event.changedTouches[0];
+
+    if (!toque) {
+
+      return;
+
     }
+
+    this.inicioToqueX =
+      toque.clientX;
+
+    this.inicioToqueY =
+      toque.clientY;
+
   }
 
-ganarPartida() {
-  this.detenerLoops();
+  /*====================================================
+    FINALIZAR DESLIZAMIENTO TÁCTIL
+  ====================================================*/
 
-  this.oroGanado = 100 + (this.mapaActual * 50);
-  this.oro += this.oroGanado;
-  this.mensajeFinal = `Mapa ${this.mapaActual} completado`;
+  finalizarDeslizamiento(
+    event: TouchEvent
+  ): void {
 
-  this.vista = 'victoria';
-}
+    const toque =
+      event.changedTouches[0];
 
-perderPartida(mensaje: string) {
-  this.detenerLoops();
+    if (!toque) {
 
-  this.mensajeFinal = mensaje;
-  this.vista = 'derrota';
-}
-reintentar() {
-  this.cargarMapa(this.mapaActual);
-  this.vista = 'juego';
-  this.iniciarLoops();
-}
-siguienteMapa() {
-  if (this.mapaActual < 5) {
-    this.mapaActual++;
-    this.iniciarMapa();
-  } else {
-    this.vista = 'seleccion';
+      return;
+
+    }
+
+    this.finToqueX =
+      toque.clientX;
+
+    this.finToqueY =
+      toque.clientY;
+
+    const diferenciaX =
+      this.finToqueX -
+      this.inicioToqueX;
+
+    const diferenciaY =
+      this.finToqueY -
+      this.inicioToqueY;
+
+    const distanciaHorizontal =
+      Math.abs(diferenciaX);
+
+    const distanciaVertical =
+      Math.abs(diferenciaY);
+
+    if (
+      distanciaHorizontal <
+        this.distanciaMinimaDeslizamiento &&
+      distanciaVertical <
+        this.distanciaMinimaDeslizamiento
+    ) {
+
+      return;
+
+    }
+
+    if (
+      distanciaHorizontal >
+      distanciaVertical
+    ) {
+
+      this.cambiarDireccion(
+        diferenciaX > 0
+          ? 'derecha'
+          : 'izquierda'
+      );
+
+      return;
+
+    }
+
+    this.cambiarDireccion(
+      diferenciaY > 0
+        ? 'abajo'
+        : 'arriba'
+    );
+
   }
-}
-  claseDireccionPacman(): string {
-    return `dir-${this.direccionActual}`;
+
+  /*====================================================
+    CAMBIAR DIRECCIÓN
+  ====================================================*/
+
+  cambiarDireccion(
+    direccion: Direccion
+  ): void {
+
+    if (
+      this.vista !== 'jugando' ||
+      !this.personajeLocal ||
+      this.finalizando ||
+      !this.personajeLocal.vivo
+    ) {
+
+      return;
+
+    }
+
+    this.direccionPendiente =
+      direccion;
+
+    this.siguienteDireccion =
+      direccion;
+
+    this.personajeLocal
+      .siguienteDireccion =
+      direccion;
+
   }
 
-  salir() {
-    this.detenerLoops();
-    this.router.navigate(['/lobby']);
+  /*====================================================
+    INICIAR SINCRONIZACIÓN CON BACKEND
+  ====================================================*/
+
+  private iniciarSincronizacion(): void {
+
+    if (
+      this.intervaloSincronizacion
+    ) {
+
+      clearInterval(
+        this.intervaloSincronizacion
+      );
+
+    }
+
+    this.intervaloSincronizacion =
+      setInterval(
+        () => {
+
+          this.incronizarPartida();
+
+        },
+        this.tiempoSincronizacion
+      );
+
   }
+
+  /*====================================================
+    SINCRONIZAR PARTIDA
+  ====================================================*/
+
+  private soyControladorBots(): boolean {
+
+  const humanos =
+    this.personajes
+      .filter(
+        personaje =>
+          !personaje.esBot &&
+          personaje.usuarioId !== null
+      )
+      .sort(
+        (a, b) =>
+          Number(a.usuarioId) -
+          Number(b.usuarioId)
+      );
+
+  return (
+    humanos.length > 0 &&
+    humanos[0].usuarioId ===
+    this.usuario.usuarioId
+  );
+
+}
+  
+  incronizarPartida(): void {
+
+    if (
+      this.sincronizando ||
+      this.finalizando ||
+      this.vista !== 'jugando'
+    ) {
+
+      return;
+
+    }
+
+    this.sincronizando = true;
+
+    this.juegoService
+      .obtenerEstado(
+        this.partidaId
+      )
+      .subscribe({
+
+        next: (respuesta: Juego) => {
+
+          this.aplicarEstadoServidor(
+            respuesta,
+            false
+          );
+
+          this.sincronizando = false;
+
+        },
+
+        error: (error: unknown) => {
+
+          console.error(
+            'Error al sincronizar la partida:',
+            error
+          );
+
+          this.sincronizando = false;
+
+        }
+
+      });
+
+  }
+
+  /*====================================================
+    ACTUALIZAR PERSONAJES REMOTOS
+  ====================================================*/
+
+  private actualizarPersonajesRemotos(
+    jugadores: JugadorJuego[]
+  ): void {
+
+    for (
+      const jugadorServidor
+      of jugadores
+    ) {
+
+      if (
+        jugadorServidor.usuarioId ===
+        this.usuario.usuarioId
+      ) {
+
+        continue;
+
+      }
+
+      const personaje =
+        this.personajes.find(
+          actual =>
+            actual.participanteId ===
+            jugadorServidor.participanteId
+        );
+
+      if (!personaje) {
+
+        continue;
+
+      }
+
+      personaje.x =
+        jugadorServidor.posicionX;
+
+      personaje.y =
+        jugadorServidor.posicionY;
+
+      personaje.puntos =
+        jugadorServidor.puntos;
+
+      personaje.vivo =
+        jugadorServidor.vivo;
+
+    }
+
+  }
+
+  /*====================================================
+    ENVIAR POSICIÓN AL BACKEND
+  ====================================================*/
+
+  private enviarMovimientoServidor(): void {
+
+    if (
+      !this.personajeLocal ||
+      this.enviandoMovimiento ||
+      this.finalizando ||
+      !this.partidaId
+    ) {
+
+      return;
+
+    }
+
+    this.enviandoMovimiento = true;
+
+    this.juegoService
+      .actualizarEstado(
+        this.partidaId,
+        {
+
+          usuarioId:
+            this.usuario.usuarioId,
+
+          posicionX:
+            this.personajeLocal.x,
+
+          posicionY:
+            this.personajeLocal.y,
+
+          direccion:
+            this.personajeLocal.direccion
+
+        }
+      )
+      .subscribe({
+
+        next: (respuesta: Juego) => {
+
+          this.aplicarEstadoServidor(
+            respuesta,
+            false
+          );
+
+          this.enviandoMovimiento =
+            false;
+
+        },
+
+        error: (error: unknown) => {
+
+          console.error(
+            'Error al enviar movimiento:',
+            error
+          );
+
+          this.enviandoMovimiento =
+            false;
+
+        }
+
+      });
+
+  }
+/*====================================================
+    OBTENER VELOCIDAD BASE
+  ====================================================*/
+
+  private obtenerVelocidadLocal(): number {
+
+    if (this.esPacManLocal()) {
+
+      return this.mapaSeleccionado
+        .velocidadPacman;
+
+    }
+
+    if (this.esRolMonstruo(this.rolJugador)) {
+
+      return this.mapaSeleccionado
+        .velocidadMonstruo;
+
+    }
+
+    return this.mapaSeleccionado
+      .velocidadFantasma;
+
+  }
+
+  /*====================================================
+    VELOCIDAD CON EFECTOS
+  ====================================================*/
+
+  private obtenerVelocidadConEfectos(): number {
+
+    let velocidad =
+      this.obtenerVelocidadLocal();
+
+    if (
+      this.personajeLocal?.velocidadExtraActiva
+    ) {
+
+      velocidad = Math.max(
+        70,
+        Math.floor(velocidad * 0.65)
+      );
+
+    }
+
+    if (
+      this.personajeLocal?.congelado
+    ) {
+
+      velocidad *= 3;
+
+    }
+
+    return velocidad;
+
+  }
+
+  /*====================================================
+    INICIAR MOVIMIENTO
+  ====================================================*/
+
+  private iniciarMovimientoContinuo(): void {
+
+    if (this.intervaloMovimiento) {
+
+      clearInterval(
+        this.intervaloMovimiento
+      );
+
+    }
+
+    this.movimientoActivo = true;
+
+    this.intervaloMovimiento =
+      setInterval(
+        () => {
+
+          if (
+            this.vista !== 'jugando' ||
+            this.finalizando ||
+            !this.movimientoActivo
+          ) {
+
+            return;
+
+          }
+
+          this.avanzarPersonajeLocal();
+
+        },
+        this.obtenerVelocidadConEfectos()
+      );
+
+  }
+
+  /*====================================================
+    REINICIAR VELOCIDAD
+  ====================================================*/
+
+  private reiniciarMovimientoPorVelocidad(): void {
+
+    if (!this.movimientoActivo) {
+
+      return;
+
+    }
+
+    this.iniciarMovimientoContinuo();
+
+  }
+
+  /*====================================================
+    AVANZAR PERSONAJE
+  ====================================================*/
+
+  private avanzarPersonajeLocal(): void {
+
+    if (
+      !this.personajeLocal ||
+      !this.personajeLocal.vivo ||
+      this.personajeLocal.congelado
+    ) {
+
+      return;
+
+    }
+
+    this.personajeLocal.siguienteDireccion =
+      this.direccionPendiente;
+
+    const personajeMotor: PersonajeMotor = {
+
+      participanteId:
+        this.personajeLocal.participanteId,
+
+      usuarioId:
+        this.personajeLocal.usuarioId,
+
+      nombreUsuario:
+        this.personajeLocal.nombreUsuario,
+
+      nombreRol:
+        this.personajeLocal.nombreRol,
+
+      esBot:
+        this.personajeLocal.esBot,
+
+      esLocal:
+        this.personajeLocal.esLocal,
+
+      x:
+        this.personajeLocal.x,
+
+      y:
+        this.personajeLocal.y,
+
+      direccion:
+        this.personajeLocal.direccion,
+
+      siguienteDireccion:
+        this.personajeLocal.siguienteDireccion,
+
+      puntos:
+        this.personajeLocal.puntos,
+
+      vidas:
+        this.personajeLocal.vidas,
+
+      vivo:
+        this.personajeLocal.vivo,
+
+      powerActivo:
+        this.personajeLocal.powerActivo,
+
+      escudoActivo:
+        this.personajeLocal.escudoActivo,
+
+      doblePuntajeActivo:
+        this.personajeLocal.doblePuntajeActivo,
+
+      velocidadExtraActiva:
+        this.personajeLocal.velocidadExtraActiva,
+
+      skin:
+        this.personajeLocal.skin
+
+    };
+
+    const resultado =
+      this.gameEngine.moverPersonaje(
+        personajeMotor,
+        this.celdas
+      );
+
+    const seMovio =
+      resultado.x !== this.personajeLocal.x ||
+      resultado.y !== this.personajeLocal.y;
+
+    this.personajeLocal.x =
+      resultado.x;
+
+    this.personajeLocal.y =
+      resultado.y;
+
+    this.personajeLocal.direccion =
+      resultado.direccion;
+
+    this.personajeLocal.siguienteDireccion =
+      resultado.siguienteDireccion;
+
+    this.direccionActual =
+      resultado.direccion;
+
+    this.siguienteDireccion =
+      resultado.siguienteDireccion;
+
+    if (!seMovio) {
+
+      return;
+
+    }
+
+    this.consumirCeldaLocal();
+
+    this.verificarColisiones();
+
+    this.enviarMovimientoServidor();
+
+  }
+
+
+
+    /*====================================================
+    CONSUMIR CELDA
+  ====================================================*/
+
+  private consumirCeldaLocal(): void {
+
+    if (
+      !this.personajeLocal ||
+      !this.personajeLocal.vivo
+    ) {
+
+      return;
+
+    }
+
+    const celda =
+      this.gameEngine.obtenerCelda(
+
+        this.celdas,
+
+        this.personajeLocal.x,
+
+        this.personajeLocal.y
+
+      );
+
+    if (!celda) {
+
+      return;
+
+    }
+
+    const resultado =
+      this.gameEngine.consumirCelda(
+
+        celda,
+
+        this.esPacManLocal(),
+
+        this.personajeLocal
+          .doblePuntajeActivo
+
+      );
+
+    if (!resultado.consumio) {
+
+      return;
+
+    }
+
+    this.personajeLocal.puntos +=
+      resultado.puntosGanados;
+
+    this.puntaje =
+      this.personajeLocal.puntos;
+
+    this.oro +=
+      resultado.oroGanado;
+
+    this.oroGanado +=
+      resultado.oroGanado;
+
+    this.personajeLocal.vidas +=
+      resultado.vidasGanadas;
+
+    this.personajeLocal.vidas -=
+      resultado.vidasPerdidas;
+
+    this.vidas =
+      this.personajeLocal.vidas;
+
+    celda.efecto =
+      resultado.mensaje;
+
+    setTimeout(() => {
+
+      celda.efecto = '';
+
+    }, 700);
+
+    if (
+      resultado.powerActivado
+    ) {
+
+      this.activarPowerPacMan();
+
+    }
+
+    if (
+      resultado.frutaPacMan
+    ) {
+
+      this.aplicarFrutaPacMan(
+
+        resultado.frutaPacMan
+
+      );
+
+    }
+
+    if (
+      resultado.frutaVillano
+    ) {
+
+      this.aplicarFrutaVillano(
+
+        resultado.frutaVillano
+
+      );
+
+    }
+
+    this.actualizarMonedasRestantes();
+
+    this.verificarVictoriaPorPuntos();
+
+  }
+
+
+  /*====================================================
+    POWER PELLET
+  ====================================================*/
+
+  private activarPowerPacMan(): void {
+
+    if (
+      !this.personajeLocal ||
+      !this.esPacManLocal()
+    ) {
+
+      return;
+
+    }
+
+    this.personajeLocal.powerActivo =
+      true;
+
+    this.powerActivo = true;
+
+    setTimeout(() => {
+
+      if (!this.personajeLocal) {
+
+        return;
+
+      }
+
+      this.personajeLocal.powerActivo =
+        false;
+
+      this.powerActivo = false;
+
+    }, 8000);
+
+  }
+
+  /*====================================================
+    FRUTAS PACMAN
+  ====================================================*/
+
+  private aplicarFrutaPacMan(
+    fruta: TipoFrutaPacMan
+  ): void {
+
+    if (
+      !this.personajeLocal
+    ) {
+
+      return;
+
+    }
+
+    switch (fruta) {
+
+      case 'velocidad':
+
+        this.personajeLocal
+          .velocidadExtraActiva =
+          true;
+
+        this.reiniciarMovimientoPorVelocidad();
+
+        setTimeout(() => {
+
+          if (!this.personajeLocal) {
+
+            return;
+
+          }
+
+          this.personajeLocal
+            .velocidadExtraActiva =
+            false;
+
+          this.reiniciarMovimientoPorVelocidad();
+
+        }, 7000);
+
+        break;
+
+      case 'escudo':
+
+        this.personajeLocal
+          .escudoActivo =
+          true;
+
+        setTimeout(() => {
+
+          if (!this.personajeLocal) {
+
+            return;
+
+          }
+
+          this.personajeLocal
+            .escudoActivo =
+            false;
+
+        }, 8000);
+
+        break;
+
+      case 'doblePuntaje':
+
+        this.personajeLocal
+          .doblePuntajeActivo =
+          true;
+
+        setTimeout(() => {
+
+          if (!this.personajeLocal) {
+
+            return;
+
+          }
+
+          this.personajeLocal
+            .doblePuntajeActivo =
+            false;
+
+        }, 10000);
+
+        break;
+
+      case 'vida':
+
+        this.personajeLocal.vidas++;
+
+        this.vidas =
+          this.personajeLocal.vidas;
+
+        break;
+
+    }
+    
+
+  }
+  /*====================================================
+    FRUTAS DE LOS VILLANOS
+  ====================================================*/
+
+  private aplicarFrutaVillano(
+    fruta: TipoFrutaVillano
+  ): void {
+
+    if (
+      !this.personajeLocal ||
+      !this.esVillanoLocal()
+    ) {
+
+      return;
+
+    }
+
+    switch (fruta) {
+
+      case 'velocidad':
+
+        this.personajeLocal
+          .velocidadExtraActiva = true;
+
+        this.reiniciarMovimientoPorVelocidad();
+
+        setTimeout(() => {
+
+          if (!this.personajeLocal) {
+
+            return;
+
+          }
+
+          this.personajeLocal
+            .velocidadExtraActiva = false;
+
+          this.reiniciarMovimientoPorVelocidad();
+
+        }, 7000);
+
+        break;
+
+      case 'fuerza':
+
+        this.personajeLocal
+          .fuerzaActiva = true;
+
+        setTimeout(() => {
+
+          if (!this.personajeLocal) {
+
+            return;
+
+          }
+
+          this.personajeLocal
+            .fuerzaActiva = false;
+
+        }, 8000);
+
+        break;
+
+      case 'congelar':
+
+        this.congelarPacMan();
+
+        break;
+
+      case 'vision':
+
+        this.mostrarInfo = true;
+
+        setTimeout(() => {
+
+          this.mostrarInfo = false;
+
+        }, 8000);
+
+        break;
+
+    }
+
+  }
+
+  /*====================================================
+    CONGELAR PACMAN
+  ====================================================*/
+
+  private congelarPacMan(): void {
+
+    const pacmans =
+      this.personajes.filter(
+
+        personaje =>
+
+          personaje.vivo &&
+          this.esRolPacMan(
+            personaje.nombreRol
+          )
+
+      );
+
+    for (const pacman of pacmans) {
+
+      pacman.congelado = true;
+
+    }
+
+    setTimeout(() => {
+
+      for (const pacman of pacmans) {
+
+        pacman.congelado = false;
+
+      }
+
+    }, 3000);
+
+  }
+
+  /*====================================================
+    ACTUALIZAR PUNTOS RESTANTES
+  ====================================================*/
+
+  private actualizarMonedasRestantes(): void {
+
+    if (!this.juego) {
+
+      return;
+
+    }
+
+    this.juego.monedasRestantes =
+      this.gameEngine
+        .contarPuntosRestantes(
+          this.celdas
+        );
+
+  }
+
+  /*====================================================
+    VICTORIA POR PUNTOS
+  ====================================================*/
+
+  private verificarVictoriaPorPuntos(): void {
+
+    const restantes =
+      this.gameEngine
+        .contarPuntosRestantes(
+          this.celdas
+        );
+
+    if (restantes > 0) {
+
+      return;
+
+    }
+
+    this.finalizarPartidaLocal(
+
+      'pacman',
+
+      'Los Pac-Man consumieron todos los puntos.'
+
+    );
+
+  }
+ 
+
+  /*====================================================
+    COLISIONES
+  ====================================================*/
+
+  private verificarColisiones(): void {
+
+    if (!this.personajeLocal) {
+
+      return;
+
+    }
+
+    const enemigos =
+      this.personajes.filter(
+
+        personaje =>
+
+          personaje.vivo &&
+          personaje.participanteId !==
+            this.personajeLocal!.participanteId &&
+          this.esRolPacMan(
+            personaje.nombreRol
+          ) !==
+          this.esRolPacMan(
+            this.personajeLocal!.nombreRol
+          )
+
+      );
+
+    for (const enemigo of enemigos) {
+
+      if (
+
+        enemigo.x !==
+          this.personajeLocal.x ||
+
+        enemigo.y !==
+          this.personajeLocal.y
+
+      ) {
+
+        continue;
+
+      }
+
+      /*
+       * Pac-Man con POWER
+       */
+
+      if (
+
+        this.personajeLocal.powerActivo &&
+        this.esPacManLocal()
+
+      ) {
+
+        enemigo.vivo = false;
+
+        continue;
+
+      }
+
+      /*
+       * Escudo
+       */
+
+      if (
+
+        this.personajeLocal
+          .escudoActivo
+
+      ) {
+
+        this.personajeLocal
+          .escudoActivo = false;
+
+        continue;
+
+      }
+
+      /*
+       * Fuerza del villano
+       */
+
+      const dano =
+        enemigo.fuerzaActiva
+          ? 2
+          : 1;
+
+      this.personajeLocal.vidas -=
+        dano;
+
+      this.vidas =
+        this.personajeLocal.vidas;
+
+      if (
+
+        this.personajeLocal.vidas <= 0
+
+      ) {
+
+        this.personajeLocal.vivo =
+          false;
+
+        this.finalizarPartidaLocal(
+
+          'villanos',
+
+          'Los villanos eliminaron a Pac-Man.'
+
+        );
+
+      }
+
+    }
+
+  }
+  /*====================================================
+    TEMPORIZADOR
+  ====================================================*/
+
+  private iniciarTemporizador(): void {
+
+    if (this.intervaloTiempo) {
+
+      clearInterval(
+        this.intervaloTiempo
+      );
+
+    }
+
+    this.intervaloTiempo =
+      setInterval(() => {
+
+        if (
+          this.vista !== 'jugando' ||
+          this.finalizando
+        ) {
+
+          return;
+
+        }
+
+        this.tiempo--;
+
+        if (this.tiempo <= 0) {
+
+          this.finalizarPartidaLocal(
+
+            'villanos',
+
+            'Se terminó el tiempo.'
+
+          );
+
+        }
+
+      }, 1000);
+
+  }
+
+  /*====================================================
+    INICIAR IA DE BOTS
+  ====================================================*/
+
+  private iniciarBots(): void {
+
+    if (!this.soyControladorBots()) {
+
+      return;
+
+    }
+
+    if (this.intervaloBots) {
+
+      clearInterval(
+        this.intervaloBots
+      );
+
+    }
+
+    this.intervaloBots =
+      setInterval(() => {
+
+        if (
+          this.vista !== 'jugando' ||
+          this.finalizando
+        ) {
+
+          return;
+
+        }
+
+        this.moverBots();
+
+      }, Math.min(
+
+        this.mapaSeleccionado
+          .velocidadFantasma,
+
+        this.mapaSeleccionado
+          .velocidadMonstruo
+
+      ));
+
+  }
+    moverBots() {
+        throw new Error('Method not implemented.');
+    }
+
+
+  /*====================================================
+    FINALIZAR PARTIDA
+  ====================================================*/
+
+  private finalizarPartidaLocal(
+    ganador: EquipoJuego,
+    mensaje: string
+  ): void {
+
+    if (this.finalizando) {
+
+      return;
+
+    }
+
+    this.finalizando = true;
+
+    this.detenerTodosLosIntervalos();
+
+    this.equipoGanador =
+      ganador;
+
+    this.mensajeFinal =
+      mensaje;
+
+    this.vista =
+      ganador === this.equipoJugador
+        ? 'victoria'
+        : 'derrota';
+
+  }
+
+  /*====================================================
+    FINAL RECIBIDO DEL SERVIDOR
+  ====================================================*/
+
+  private resolverFinalDesdeServidor(): void {
+
+    if (!this.juego) {
+
+      return;
+
+    }
+
+    this.finalizarPartidaLocal(
+
+      this.juego.ganador === 'PacMan'
+        ? 'pacman'
+        : 'villanos',
+
+      this.juego.mensajeFinal ??
+      'La partida terminó.'
+
+    );
+
+  }
+
+  /*====================================================
+    MENSAJE DE ERROR
+  ====================================================*/
+
+  private obtenerMensajeError(
+    error: any,
+    defecto: string
+  ): string {
+
+    if (
+      error?.error?.mensaje
+    ) {
+
+      return error.error.mensaje;
+
+    }
+
+    if (
+      error?.error?.Message
+    ) {
+
+      return error.error.Message;
+
+    }
+
+    if (
+      error?.message
+    ) {
+
+      return error.message;
+
+    }
+
+    return defecto;
+
+  }
+
+  /*====================================================
+    CLASE CSS CELDA
+  ====================================================*/
+
+  claseCelda(
+    celda: CeldaJuego
+  ): string {
+
+    return `celda-${celda.tipo}`;
+
+  }
+
+  /*====================================================
+    CONTENIDO CELDA
+  ====================================================*/
+
+  contenidoCelda(
+    celda: CeldaJuego
+  ): string {
+
+    switch (celda.tipo) {
+
+      case 'poder':
+        return '●';
+
+      case 'fruta':
+        return '🍒';
+
+      case 'frutaVillana':
+        return '🫐';
+
+      default:
+        return '';
+
+    }
+
+  }
+
+  /*====================================================
+    PUNTOS RESTANTES
+  ====================================================*/
+
+  puntosRestantes(): number {
+
+    return this.gameEngine
+      .contarPuntosRestantes(
+        this.celdas
+      );
+
+  }
+
+  /*====================================================
+    DETENER INTERVALOS
+  ====================================================*/
+
+  private detenerTodosLosIntervalos(): void {
+
+    this.movimientoActivo = false;
+
+    if (this.intervaloMovimiento) {
+
+      clearInterval(
+        this.intervaloMovimiento
+      );
+
+      this.intervaloMovimiento =
+        undefined;
+
+    }
+
+    if (this.intervaloSincronizacion) {
+
+      clearInterval(
+        this.intervaloSincronizacion
+      );
+
+      this.intervaloSincronizacion =
+        undefined;
+
+    }
+
+    if (this.intervaloTiempo) {
+
+      clearInterval(
+        this.intervaloTiempo
+      );
+
+      this.intervaloTiempo =
+        undefined;
+
+    }
+
+    if (this.intervaloBots) {
+
+      clearInterval(
+        this.intervaloBots
+      );
+
+      this.intervaloBots =
+        undefined;
+
+    }
+
+  }
+
 }

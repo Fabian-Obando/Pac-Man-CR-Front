@@ -2,39 +2,184 @@
 
   <div class="maze-background"></div>
 
+  <!-- CABECERA -->
+
   <section class="lobby-header">
-    <h1>LOBBY</h1>
-    <p>Sala multijugador</p>
+
+    <h1>VESTÍBULO</h1>
+
+    <p>Pac-Man CR Online</p>
+
   </section>
 
-  <section class="room-card">
+  <!-- MENSAJE -->
+
+  <div
+    class="mensaje"
+    *ngIf="mensaje">
+
+    {{ mensaje }}
+
+  </div>
+
+  <!-- CARGANDO -->
+
+  <div
+    class="loading"
+    *ngIf="cargando">
+
+    <ion-spinner name="crescent"></ion-spinner>
+
+    <p>Cargando lobby...</p>
+
+  </div>
+
+  <!-- LOBBY -->
+
+  <section
+    class="room-card"
+    *ngIf="!cargando && lobby">
 
     <div class="room-top">
+
       <div>
-        <span class="label">Código de sala</span>
-        <h2>{{ codigoSala }}</h2>
+
+        <span class="label">
+
+          Código de Sala
+
+        </span>
+
+        <h2>
+
+          {{ lobby.codigoSala }}
+
+        </h2>
+
       </div>
 
       <div class="status">
-        {{ jugadoresListos }}/{{ maxJugadores }}
+
+        {{ totalJugadores() }}/{{ lobby.maxJugadores }}
+
       </div>
+
     </div>
+
+    <div class="datos">
+
+      <p>
+
+        👑 Creador:
+
+        <strong>
+
+          {{ esCreador() ? usuario.nombreUsuario : ('Jugador #' + lobby.jugadorCreadorId) }}
+
+        </strong>
+
+      </p>
+
+      <p>
+
+        🗺️ Mapa:
+
+        <strong>
+
+          {{ lobby.nombreMapa || 'Sin seleccionar' }}
+
+        </strong>
+
+      </p>
+
+      <p>
+
+        ⚡ Dificultad:
+
+        <strong>
+
+          {{ lobby.nombreDificultad || 'Sin seleccionar' }}
+
+        </strong>
+
+      </p>
+
+      <p>
+
+        📡 Estado:
+
+        <strong>
+
+          {{ lobby.estadoSala }}
+
+        </strong>
+
+      </p>
+
+    </div>
+
+    <!-- JUGADORES -->
 
     <div class="players">
 
-      <div class="player-card" *ngFor="let jugador of jugadores">
+      <div
+        class="player-card"
+        *ngFor="let jugador of lobby.jugadores">
 
-        <div class="player-avatar" [ngClass]="jugador.color">
-          <span *ngIf="jugador.rol === 'Pac-Man'">🟡</span>
-          <span *ngIf="jugador.rol === 'Fantasma'">👻</span>
-          <span *ngIf="jugador.rol === 'Monstruo'">😈</span>
-          <span *ngIf="jugador.rol === 'Vacío'">?</span>
+        <div class="player-avatar">
+
+          <span *ngIf="jugador.esBot">
+
+            🤖
+
+          </span>
+
+          <span *ngIf="!jugador.esBot && esRolPacMan(jugador)">
+
+            🟡
+
+          </span>
+
+          <span *ngIf="!jugador.esBot && esRolFantasma(jugador)">
+
+            👻
+
+          </span>
+
+          <span *ngIf="!jugador.esBot && esRolMonstruo(jugador)">
+
+            😈
+
+          </span>
+
         </div>
 
         <div class="player-info">
-          <h3>{{ jugador.nombre }}</h3>
-          <p>{{ jugador.rol }}</p>
-          <small>{{ jugador.estado }}</small>
+
+          <h3>
+
+            {{ jugador.nombreUsuario }}
+
+            <span *ngIf="jugador.esCreador">
+
+              👑
+
+            </span>
+
+          </h3>
+
+          <p>
+
+            {{ jugador.nombreRol }}
+
+          </p>
+
+          <small>
+
+            {{ jugador.estadoJugador }}
+
+          </small>
+
         </div>
 
       </div>
@@ -43,36 +188,162 @@
 
   </section>
 
-  <section class="actions">
+  <!-- ACCIONES -->
 
-    <ion-button expand="block" class="btn-main" (click)="elegirPersonaje()">
-      🎮 Elegir personaje
-    </ion-button>
+  <section
+    class="actions"
+    *ngIf="!cargando && lobby">
 
-    <ion-button expand="block" fill="outline" (click)="invitarAmigo()">
-      👥 Invitar amigo
+    <ion-button
+
+      expand="block"
+
+      class="btn-main"
+
+      [disabled]="!rolDisponibleParaUsuario(ROL_PACMAN)"
+
+      (click)="cambiarRol(ROL_PACMAN)">
+
+      🟡 Elegir Pac-Man
+
     </ion-button>
 
     <ion-button
-      *ngIf="soyCreador"
+
       expand="block"
-      color="warning"
-      class="btn-start"
-      (click)="iniciarPartida()">
-      ▶ Iniciar partida
+
+      color="secondary"
+
+      [disabled]="!rolDisponibleParaUsuario(ROL_FANTASMA)"
+
+      (click)="cambiarRol(ROL_FANTASMA)">
+
+      👻 Elegir Fantasma
+
     </ion-button>
 
-    <ion-button expand="block" fill="clear" color="danger" (click)="salir()">
-      Salir de la sala
+    <ion-button
+
+      expand="block"
+
+      color="tertiary"
+
+      [disabled]="!rolDisponibleParaUsuario(ROL_MONSTRUO)"
+
+      (click)="cambiarRol(ROL_MONSTRUO)">
+
+      😈 Elegir Monstruo
+
+    </ion-button>
+
+    <ion-button
+
+      *ngIf="esCreador()"
+
+      expand="block"
+
+      fill="outline"
+
+      (click)="invitarAmigo()">
+
+      👥 Invitar amigo
+
+    </ion-button>
+
+    <ion-button
+
+      *ngIf="esCreador()"
+
+      expand="block"
+
+      color="success"
+
+      fill="outline"
+
+      [disabled]="salaCompleta()"
+
+      (click)="agregarBot()">
+
+      🤖 Agregar Bot
+
+    </ion-button>
+
+    <ion-button
+
+      expand="block"
+
+      color="{{ estaListo() ? 'medium' : 'success' }}"
+
+      (click)="alternarListo()">
+
+      {{ estaListo() ? '❎ Quitar Listo' : '✅ Estoy Listo' }}
+
+    </ion-button>
+
+    <ion-button
+
+      *ngIf="esCreador()"
+
+      expand="block"
+
+      color="warning"
+
+      [disabled]="!puedeIniciar()"
+
+      (click)="iniciarPartida()">
+
+      ▶️ Iniciar Partida
+
+    </ion-button>
+
+    <ion-button
+
+      *ngIf="esCreador()"
+
+      expand="block"
+
+      color="danger"
+
+      (click)="cerrarSala()">
+
+      ❌ Cerrar Sala
+
+    </ion-button>
+
+    <ion-button
+
+      *ngIf="!esCreador()"
+
+      expand="block"
+
+      fill="clear"
+
+      color="danger"
+
+      (click)="salir()">
+
+      🚪 Salir del Lobby
+
     </ion-button>
 
   </section>
 
+  <!-- PACMAN -->
+
   <div class="pacman-run">
+
     <div class="pacman"></div>
+
     <div class="dots">
-      <span></span><span></span><span></span><span></span><span></span>
+
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+
     </div>
+
   </div>
 
 </ion-content>
