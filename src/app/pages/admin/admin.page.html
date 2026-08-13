@@ -1,13 +1,3780 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>admin</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content
+  [fullscreen]="true"
+  class="admin-page"
+>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">admin</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- =========================================================
+       PANTALLA DE CARGA
+  ========================================================== -->
+
+  <div
+    class="admin-loading"
+    *ngIf="cargando"
+  >
+
+    <div class="loading-brand">
+
+      <div class="brand-characters">
+
+        <div class="mini-pacman"></div>
+
+        <div class="mini-ghost">
+          👻
+        </div>
+
+        <div class="mini-monster">
+          😈
+        </div>
+
+      </div>
+
+      <h1>
+        PAC-MAN CR
+      </h1>
+
+      <p>
+        Cargando Centro de Administración...
+      </p>
+
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       APLICACIÓN ADMINISTRATIVA
+  ========================================================== -->
+
+  <div
+    class="admin-shell"
+    *ngIf="!cargando"
+  >
+
+
+    <!-- =======================================================
+         OVERLAY MÓVIL
+    ======================================================== -->
+
+    <div
+      class="mobile-overlay"
+      *ngIf="menuAbierto"
+      (click)="cerrarMenu()"
+    ></div>
+
+
+    <!-- =======================================================
+         MENÚ LATERAL
+    ======================================================== -->
+
+    <aside
+      class="admin-sidebar"
+      [class.abierto]="menuAbierto"
+    >
+
+      <!-- LOGO -->
+
+      <div class="sidebar-brand">
+
+        <div class="logo-game">
+
+          <div class="logo-pacman"></div>
+
+          <div class="logo-ghost">
+            👻
+          </div>
+
+          <div class="logo-monster">
+            😈
+          </div>
+
+        </div>
+
+
+        <div class="brand-text">
+
+          <h1>
+            PAC-MAN CR
+          </h1>
+
+          <span>
+            ADMIN CENTER
+          </span>
+
+        </div>
+
+
+        <ion-button
+          fill="clear"
+          class="btn-close-menu"
+          (click)="cerrarMenu()"
+        >
+
+          <ion-icon
+            slot="icon-only"
+            name="close-outline"
+          ></ion-icon>
+
+        </ion-button>
+
+      </div>
+
+
+      <!-- ADMINISTRADOR -->
+
+      <div class="admin-profile">
+
+        <div class="admin-avatar">
+
+          <ion-icon
+            name="shield-checkmark"
+          ></ion-icon>
+
+        </div>
+
+
+        <div class="admin-profile-info">
+
+          <small>
+            ADMINISTRADOR MAESTRO
+          </small>
+
+          <strong>
+            {{ nombreAdministrador }}
+          </strong>
+
+          <span>
+            {{ correoAdministrador }}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- =====================================================
+           NAVEGACIÓN
+      ====================================================== -->
+
+      <nav class="admin-navigation">
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('dashboard')"
+          (click)="cambiarSeccion('dashboard')"
+        >
+
+          <ion-icon
+            name="grid-outline"
+          ></ion-icon>
+
+          <span>
+            Dashboard
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('usuarios')"
+          (click)="cambiarSeccion('usuarios')"
+        >
+
+          <ion-icon
+            name="people-outline"
+          ></ion-icon>
+
+          <span>
+            Jugadores
+          </span>
+
+          <span
+            class="nav-counter"
+            *ngIf="resumen"
+          >
+            {{ resumen.totalUsuarios }}
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('partidas')"
+          (click)="cambiarSeccion('partidas')"
+        >
+
+          <ion-icon
+            name="game-controller-outline"
+          ></ion-icon>
+
+          <span>
+            Partidas
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('economia')"
+          (click)="cambiarSeccion('economia')"
+        >
+
+          <ion-icon
+            name="cash-outline"
+          ></ion-icon>
+
+          <span>
+            Economía
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('skins')"
+          (click)="cambiarSeccion('skins')"
+        >
+
+          <ion-icon
+            name="color-palette-outline"
+          ></ion-icon>
+
+          <span>
+            Skins
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('ranking')"
+          (click)="cambiarSeccion('ranking')"
+        >
+
+          <ion-icon
+            name="trophy-outline"
+          ></ion-icon>
+
+          <span>
+            Ranking
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('moderacion')"
+          (click)="cambiarSeccion('moderacion')"
+        >
+
+          <ion-icon
+            name="flag-outline"
+          ></ion-icon>
+
+          <span>
+            Moderación
+          </span>
+
+          <span
+            class="nav-alert"
+            *ngIf="
+              resumen &&
+              resumen.reportesPendientes > 0
+            "
+          >
+            {{ resumen.reportesPendientes }}
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('accesos')"
+          (click)="cambiarSeccion('accesos')"
+        >
+
+          <ion-icon
+            name="finger-print-outline"
+          ></ion-icon>
+
+          <span>
+            Accesos
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('reportes')"
+          (click)="cambiarSeccion('reportes')"
+        >
+
+          <ion-icon
+            name="document-text-outline"
+          ></ion-icon>
+
+          <span>
+            Reportes
+          </span>
+
+        </button>
+
+
+        <div class="nav-divider"></div>
+
+
+        <button
+          type="button"
+          class="nav-item"
+          [class.activo]="esSeccion('seguridad')"
+          (click)="cambiarSeccion('seguridad')"
+        >
+
+          <ion-icon
+            name="lock-closed-outline"
+          ></ion-icon>
+
+          <span>
+            Seguridad
+          </span>
+
+        </button>
+
+      </nav>
+
+
+      <!-- CERRAR SESIÓN -->
+
+      <div class="sidebar-footer">
+
+        <button
+          type="button"
+          class="logout-button"
+          (click)="cerrarSesion()"
+        >
+
+          <ion-icon
+            name="log-out-outline"
+          ></ion-icon>
+
+          <span>
+            Cerrar sesión
+          </span>
+
+        </button>
+
+      </div>
+
+    </aside>
+
+
+    <!-- =======================================================
+         CONTENIDO PRINCIPAL
+    ======================================================== -->
+
+    <main class="admin-main">
+
+
+      <!-- =====================================================
+           HEADER
+      ====================================================== -->
+
+      <header class="admin-header">
+
+        <div class="header-left">
+
+          <ion-button
+            fill="clear"
+            class="menu-mobile"
+            (click)="alternarMenu()"
+          >
+
+            <ion-icon
+              slot="icon-only"
+              name="menu-outline"
+            ></ion-icon>
+
+          </ion-button>
+
+
+          <div>
+
+            <small class="header-label">
+              PAC-MAN CR
+            </small>
+
+            <h2>
+
+              <ng-container
+                *ngIf="esSeccion('dashboard')"
+              >
+                Panel general
+              </ng-container>
+
+              <ng-container
+                *ngIf="esSeccion('usuarios')"
+              >
+                Gestión de jugadores
+              </ng-container>
+
+              <ng-container
+                *ngIf="esSeccion('partidas')"
+              >
+                Historial de partidas
+              </ng-container>
+
+              <ng-container
+                *ngIf="esSeccion('economia')"
+              >
+                Economía del juego
+              </ng-container>
+
+              <ng-container
+                *ngIf="esSeccion('skins')"
+              >
+                Control de skins
+              </ng-container>
+
+              <ng-container
+                *ngIf="esSeccion('ranking')"
+              >
+                Ranking global
+              </ng-container>
+
+              <ng-container
+                *ngIf="esSeccion('moderacion')"
+              >
+                Moderación
+              </ng-container>
+
+              <ng-container
+                *ngIf="esSeccion('accesos')"
+              >
+                Historial de accesos
+              </ng-container>
+
+              <ng-container
+                *ngIf="esSeccion('reportes')"
+              >
+                Centro de reportes
+              </ng-container>
+
+              <ng-container
+                *ngIf="esSeccion('seguridad')"
+              >
+                Seguridad administrativa
+              </ng-container>
+
+            </h2>
+
+          </div>
+
+        </div>
+
+
+        <div class="header-actions">
+
+          <div class="online-indicator">
+
+            <span class="online-dot"></span>
+
+            <span>
+              Sistema activo
+            </span>
+
+          </div>
+
+
+          <ion-button
+            fill="clear"
+            class="refresh-button"
+            [disabled]="actualizando"
+            (click)="actualizarTodo()"
+          >
+
+            <ion-icon
+              slot="icon-only"
+              name="refresh-outline"
+              [class.rotando]="actualizando"
+            ></ion-icon>
+
+          </ion-button>
+
+
+          <div class="header-admin">
+
+            <div class="header-admin-icon">
+
+              <ion-icon
+                name="shield-checkmark"
+              ></ion-icon>
+
+            </div>
+
+            <div>
+
+              <strong>
+                Administrador
+              </strong>
+
+              <small>
+                Control total
+              </small>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </header>
+
+
+      <!-- =====================================================
+           MENSAJES
+      ====================================================== -->
+
+      <div
+        class="admin-message"
+        *ngIf="mensaje"
+        [class.mensaje-exito]="tipoMensaje === 'exito'"
+        [class.mensaje-error]="tipoMensaje === 'error'"
+        [class.mensaje-warning]="tipoMensaje === 'advertencia'"
+        [class.mensaje-info]="tipoMensaje === 'info'"
+      >
+
+        <ion-icon
+          [name]="
+            tipoMensaje === 'exito'
+              ? 'checkmark-circle-outline'
+              : tipoMensaje === 'error'
+                ? 'close-circle-outline'
+                : tipoMensaje === 'advertencia'
+                  ? 'warning-outline'
+                  : 'information-circle-outline'
+          "
+        ></ion-icon>
+
+        <span>
+          {{ mensaje }}
+        </span>
+
+
+        <button
+          type="button"
+          (click)="limpiarMensaje()"
+        >
+
+          <ion-icon
+            name="close-outline"
+          ></ion-icon>
+
+        </button>
+
+      </div>
+
+
+      <!-- =====================================================
+           CONTENIDO
+      ====================================================== -->
+
+      <div class="admin-content">
+
+
+        <!-- ===================================================
+             DASHBOARD
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('dashboard')"
+          class="admin-section"
+        >
+
+          <div class="welcome-banner">
+
+            <div class="welcome-info">
+
+              <span class="section-kicker">
+                CENTRO DE CONTROL
+              </span>
+
+              <h1>
+                Bienvenido,
+                {{ nombreAdministrador }}
+              </h1>
+
+              <p>
+                Supervise jugadores, partidas, economía,
+                seguridad y actividad general de PAC-MAN CR
+                desde un único panel.
+              </p>
+
+            </div>
+
+
+            <div
+              class="welcome-characters"
+              aria-hidden="true"
+            >
+
+              <div class="hero-pacman"></div>
+
+              <div class="hero-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+
+              <div class="hero-ghost">
+                👻
+              </div>
+
+              <div class="hero-monster">
+                😈
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- KPI -->
+
+          <div
+            class="stats-grid"
+            *ngIf="resumen"
+          >
+
+
+            <article class="stat-card yellow">
+
+              <div class="stat-icon">
+
+                <ion-icon
+                  name="people-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div class="stat-data">
+
+                <span>
+                  Jugadores registrados
+                </span>
+
+                <strong>
+                  {{
+                    formatearNumero(
+                      resumen.totalUsuarios
+                    )
+                  }}
+                </strong>
+
+                <small>
+                  +{{ resumen.nuevosUsuariosHoy }}
+                  registrados hoy
+                </small>
+
+              </div>
+
+            </article>
+
+
+            <article class="stat-card cyan">
+
+              <div class="stat-icon">
+
+                <ion-icon
+                  name="person-circle-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div class="stat-data">
+
+                <span>
+                  Jugadores activos
+                </span>
+
+                <strong>
+                  {{
+                    formatearNumero(
+                      resumen.usuariosActivos
+                    )
+                  }}
+                </strong>
+
+                <small>
+                  {{ porcentajeUsuariosActivos }}%
+                  de las cuentas
+                </small>
+
+              </div>
+
+            </article>
+
+
+            <article class="stat-card blue">
+
+              <div class="stat-icon">
+
+                <ion-icon
+                  name="game-controller-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div class="stat-data">
+
+                <span>
+                  Partidas
+                </span>
+
+                <strong>
+                  {{
+                    formatearNumero(
+                      resumen.totalPartidas
+                    )
+                  }}
+                </strong>
+
+                <small>
+                  {{ resumen.partidasEnCurso }}
+                  en curso
+                </small>
+
+              </div>
+
+            </article>
+
+
+            <article class="stat-card green">
+
+              <div class="stat-icon">
+
+                <ion-icon
+                  name="checkmark-done-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div class="stat-data">
+
+                <span>
+                  Partidas finalizadas
+                </span>
+
+                <strong>
+                  {{
+                    formatearNumero(
+                      resumen.partidasFinalizadas
+                    )
+                  }}
+                </strong>
+
+                <small>
+                  {{ porcentajePartidasFinalizadas }}%
+                  completadas
+                </small>
+
+              </div>
+
+            </article>
+
+
+            <article class="stat-card gold">
+
+              <div class="stat-icon">
+
+                <ion-icon
+                  name="cash-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div class="stat-data">
+
+                <span>
+                  Oro actual
+                </span>
+
+                <strong>
+                  {{
+                    formatearNumero(
+                      resumen.oroActualJugadores
+                    )
+                  }}
+                </strong>
+
+                <small>
+                  En manos de jugadores
+                </small>
+
+              </div>
+
+            </article>
+
+
+            <article class="stat-card purple">
+
+              <div class="stat-icon">
+
+                <ion-icon
+                  name="color-palette-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div class="stat-data">
+
+                <span>
+                  Skins obtenidas
+                </span>
+
+                <strong>
+                  {{
+                    formatearNumero(
+                      resumen.totalSkinsCompradas
+                    )
+                  }}
+                </strong>
+
+                <small>
+                  Compras y recompensas
+                </small>
+
+              </div>
+
+            </article>
+
+
+            <article class="stat-card red">
+
+              <div class="stat-icon">
+
+                <ion-icon
+                  name="flag-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div class="stat-data">
+
+                <span>
+                  Reportes pendientes
+                </span>
+
+                <strong>
+                  {{
+                    formatearNumero(
+                      resumen.reportesPendientes
+                    )
+                  }}
+                </strong>
+
+                <small>
+                  Requieren revisión
+                </small>
+
+              </div>
+
+            </article>
+
+
+            <article class="stat-card orange">
+
+              <div class="stat-icon">
+
+                <ion-icon
+                  name="log-in-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div class="stat-data">
+
+                <span>
+                  Accesos 24 horas
+                </span>
+
+                <strong>
+                  {{
+                    formatearNumero(
+                      resumen.accesosUltimas24Horas
+                    )
+                  }}
+                </strong>
+
+                <small>
+                  Actividad reciente
+                </small>
+
+              </div>
+
+            </article>
+
+          </div>
+
+
+          <!-- ECONOMÍA + PARTIDAS -->
+
+          <div class="dashboard-columns">
+
+
+            <article class="panel-card">
+
+              <div class="panel-header">
+
+                <div>
+
+                  <span class="panel-eyebrow">
+                    ECONOMÍA
+                  </span>
+
+                  <h3>
+                    Flujo de oro
+                  </h3>
+
+                </div>
+
+                <ion-icon
+                  name="wallet-outline"
+                ></ion-icon>
+
+              </div>
+
+
+              <div
+                class="economy-summary"
+                *ngIf="resumen"
+              >
+
+                <div>
+
+                  <span>
+                    Oro ganado
+                  </span>
+
+                  <strong class="positive">
+                    +
+                    {{
+                      formatearNumero(
+                        resumen.oroGanadoHistorico
+                      )
+                    }}
+                  </strong>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Oro gastado
+                  </span>
+
+                  <strong class="negative">
+                    -
+                    {{
+                      formatearNumero(
+                        resumen.oroGastadoHistorico
+                      )
+                    }}
+                  </strong>
+
+                </div>
+
+
+                <div>
+
+                  <span>
+                    Balance
+                  </span>
+
+                  <strong>
+                    {{
+                      formatearNumero(
+                        balanceEconomicoGlobal
+                      )
+                    }}
+                  </strong>
+
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="panel-link"
+                (click)="cambiarSeccion('economia')"
+              >
+
+                Ver economía completa
+
+                <ion-icon
+                  name="arrow-forward-outline"
+                ></ion-icon>
+
+              </button>
+
+            </article>
+
+
+            <article class="panel-card">
+
+              <div class="panel-header">
+
+                <div>
+
+                  <span class="panel-eyebrow">
+                    ACTIVIDAD
+                  </span>
+
+                  <h3>
+                    Partidas recientes
+                  </h3>
+
+                </div>
+
+                <ion-icon
+                  name="game-controller-outline"
+                ></ion-icon>
+
+              </div>
+
+
+              <div class="mini-list">
+
+                <div
+                  class="mini-row"
+                  *ngFor="
+                    let partida of partidas | slice:0:5
+                  "
+                >
+
+                  <div>
+
+                    <strong>
+                      Sala {{ partida.codigoSala }}
+                    </strong>
+
+                    <span>
+                      {{ partida.nombreMapa }}
+                      •
+                      {{ partida.nombreDificultad }}
+                    </span>
+
+                  </div>
+
+
+                  <span
+                    class="status-pill"
+                    [ngClass]="
+                      claseEstadoPartida(
+                        partida.estadoPartida
+                      )
+                    "
+                  >
+                    {{ partida.estadoPartida }}
+                  </span>
+
+                </div>
+
+
+                <div
+                  class="empty-mini"
+                  *ngIf="partidas.length === 0"
+                >
+                  No hay partidas registradas.
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="panel-link"
+                (click)="cambiarSeccion('partidas')"
+              >
+
+                Ver todas las partidas
+
+                <ion-icon
+                  name="arrow-forward-outline"
+                ></ion-icon>
+
+              </button>
+
+            </article>
+
+          </div>
+
+
+          <!-- TOP RANKING -->
+
+          <article class="panel-card ranking-preview">
+
+            <div class="panel-header">
+
+              <div>
+
+                <span class="panel-eyebrow">
+                  COMPETENCIA
+                </span>
+
+                <h3>
+                  Mejores jugadores
+                </h3>
+
+              </div>
+
+              <ion-icon
+                name="trophy-outline"
+              ></ion-icon>
+
+            </div>
+
+
+            <div class="ranking-podium">
+
+              <div
+                class="podium-player"
+                *ngFor="
+                  let jugador of ranking | slice:0:3;
+                  let i = index
+                "
+                [class.first]="i === 0"
+              >
+
+                <div class="podium-position">
+
+                  <ion-icon
+                    *ngIf="i === 0"
+                    name="trophy"
+                  ></ion-icon>
+
+                  <span *ngIf="i !== 0">
+                    #{{ i + 1 }}
+                  </span>
+
+                </div>
+
+
+                <strong>
+                  {{ jugador.nombreUsuario }}
+                </strong>
+
+                <span>
+                  {{
+                    formatearNumero(
+                      jugador.puntos
+                    )
+                  }}
+                  pts
+                </span>
+
+              </div>
+
+            </div>
+
+          </article>
+
+        </section>
+
+
+        <!-- ===================================================
+             JUGADORES
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('usuarios')"
+          class="admin-section"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                CUENTAS
+              </span>
+
+              <h1>
+                Jugadores registrados
+              </h1>
+
+              <p>
+                Consulte perfiles, historial, oro,
+                estadísticas y estado de cada cuenta.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- FILTROS -->
+
+          <div class="filters-card">
+
+            <div class="search-box">
+
+              <ion-icon
+                name="search-outline"
+              ></ion-icon>
+
+              <input
+                type="text"
+                placeholder="Buscar jugador o correo..."
+                [(ngModel)]="buscarUsuario"
+                (keyup.enter)="buscarUsuarios()"
+              >
+
+            </div>
+
+
+            <select
+              [(ngModel)]="filtroEstadoUsuario"
+              class="admin-select"
+            >
+
+              <option value="">
+                Todos los estados
+              </option>
+
+              <option value="Activo">
+                Activos
+              </option>
+
+              <option value="Inactivo">
+                Inactivos
+              </option>
+
+              <option value="Bloqueado">
+                Bloqueados
+              </option>
+
+            </select>
+
+
+            <button
+              type="button"
+              class="primary-button"
+              (click)="buscarUsuarios()"
+            >
+
+              <ion-icon
+                name="search-outline"
+              ></ion-icon>
+
+              Buscar
+
+            </button>
+
+
+            <button
+              type="button"
+              class="secondary-button"
+              (click)="limpiarFiltrosUsuario()"
+            >
+
+              Limpiar
+
+            </button>
+
+          </div>
+
+
+          <div class="table-card">
+
+            <div class="table-responsive">
+
+              <table class="admin-table">
+
+                <thead>
+
+                  <tr>
+
+                    <th>
+                      ID
+                    </th>
+
+                    <th>
+                      Jugador
+                    </th>
+
+                    <th>
+                      Correo
+                    </th>
+
+                    <th>
+                      Nivel
+                    </th>
+
+                    <th>
+                      Oro
+                    </th>
+
+                    <th>
+                      Estado
+                    </th>
+
+                    <th>
+                      Registro
+                    </th>
+
+                    <th>
+                      Acciones
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  <tr
+                    *ngFor="let usuario of usuarios"
+                  >
+
+                    <td>
+                      #{{ usuario.usuarioId }}
+                    </td>
+
+
+                    <td>
+
+                      <div class="user-cell">
+
+                        <div class="user-avatar">
+
+                          <ion-icon
+                            name="person-outline"
+                          ></ion-icon>
+
+                        </div>
+
+                        <strong>
+                          {{ usuario.nombreUsuario }}
+                        </strong>
+
+                      </div>
+
+                    </td>
+
+
+                    <td>
+                      {{ usuario.correo }}
+                    </td>
+
+
+                    <td>
+                      {{ usuario.nivel }}
+                    </td>
+
+
+                    <td>
+
+                      <span class="gold-value">
+                        🟡
+                        {{
+                          formatearNumero(
+                            usuario.oroActual
+                          )
+                        }}
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      <span
+                        class="status-pill"
+                        [ngClass]="
+                          claseEstadoUsuario(
+                            usuario.estadoCuenta
+                          )
+                        "
+                      >
+                        {{ usuario.estadoCuenta }}
+                      </span>
+
+                    </td>
+
+
+                    <td>
+                      {{
+                        formatearFecha(
+                          usuario.fechaRegistro
+                        )
+                      }}
+                    </td>
+
+
+                    <td>
+
+                      <button
+                        type="button"
+                        class="table-action"
+                        (click)="abrirUsuario(usuario)"
+                      >
+
+                        <ion-icon
+                          name="eye-outline"
+                        ></ion-icon>
+
+                        Ver
+
+                      </button>
+
+                    </td>
+
+                  </tr>
+
+
+                  <tr *ngIf="usuarios.length === 0">
+
+                    <td
+                      colspan="8"
+                      class="empty-table"
+                    >
+
+                      <ion-icon
+                        name="people-outline"
+                      ></ion-icon>
+
+                      No se encontraron jugadores.
+
+                    </td>
+
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================
+             PARTIDAS
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('partidas')"
+          class="admin-section"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                ACTIVIDAD
+              </span>
+
+              <h1>
+                Historial de partidas
+              </h1>
+
+              <p>
+                Monitoreo de salas, mapas,
+                dificultad y estado de las partidas.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-card">
+
+            <div class="table-responsive">
+
+              <table class="admin-table">
+
+                <thead>
+
+                  <tr>
+                    <th>Partida</th>
+                    <th>Sala</th>
+                    <th>Mapa</th>
+                    <th>Dificultad</th>
+                    <th>Estado</th>
+                    <th>Inicio</th>
+                    <th>Finalización</th>
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  <tr
+                    *ngFor="let partida of partidas"
+                  >
+
+                    <td>
+                      #{{ partida.partidaId }}
+                    </td>
+
+                    <td>
+                      {{ partida.codigoSala }}
+                    </td>
+
+                    <td>
+                      {{ partida.nombreMapa }}
+                    </td>
+
+                    <td>
+                      {{ partida.nombreDificultad }}
+                    </td>
+
+                    <td>
+
+                      <span
+                        class="status-pill"
+                        [ngClass]="
+                          claseEstadoPartida(
+                            partida.estadoPartida
+                          )
+                        "
+                      >
+                        {{ partida.estadoPartida }}
+                      </span>
+
+                    </td>
+
+                    <td>
+                      {{
+                        formatearFecha(
+                          partida.fechaInicio
+                        )
+                      }}
+                    </td>
+
+                    <td>
+                      {{
+                        formatearFecha(
+                          partida.fechaFin
+                        )
+                      }}
+                    </td>
+
+                  </tr>
+
+
+                  <tr *ngIf="partidas.length === 0">
+
+                    <td
+                      colspan="7"
+                      class="empty-table"
+                    >
+                      No existen partidas registradas.
+                    </td>
+
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================
+             ECONOMÍA
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('economia')"
+          class="admin-section"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                ECONOMÍA INTERNA
+              </span>
+
+              <h1>
+                Movimientos de oro
+              </h1>
+
+              <p>
+                Control del oro obtenido y utilizado
+                honestamente por los jugadores dentro del juego.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="economy-kpis"
+            *ngIf="resumen"
+          >
+
+            <div class="economy-kpi">
+
+              <span>
+                Oro actual
+              </span>
+
+              <strong>
+                🟡
+                {{
+                  formatearNumero(
+                    resumen.oroActualJugadores
+                  )
+                }}
+              </strong>
+
+            </div>
+
+
+            <div class="economy-kpi positive-card">
+
+              <span>
+                Oro ganado históricamente
+              </span>
+
+              <strong>
+                +
+                {{
+                  formatearNumero(
+                    resumen.oroGanadoHistorico
+                  )
+                }}
+              </strong>
+
+            </div>
+
+
+            <div class="economy-kpi negative-card">
+
+              <span>
+                Oro gastado
+              </span>
+
+              <strong>
+                -
+                {{
+                  formatearNumero(
+                    resumen.oroGastadoHistorico
+                  )
+                }}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-card">
+
+            <div class="table-responsive">
+
+              <table class="admin-table">
+
+                <thead>
+
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Jugador</th>
+                    <th>Movimiento</th>
+                    <th>Cantidad</th>
+                    <th>Descripción</th>
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  <tr
+                    *ngFor="let movimiento of transacciones"
+                  >
+
+                    <td>
+                      {{
+                        formatearFecha(
+                          movimiento.fechaMovimiento
+                        )
+                      }}
+                    </td>
+
+                    <td>
+                      {{ movimiento.nombreUsuario }}
+                    </td>
+
+                    <td>
+                      {{ movimiento.tipoMovimiento }}
+                    </td>
+
+                    <td>
+
+                      <strong
+                        [class.positive]="
+                          esMovimientoPositivo(
+                            movimiento
+                          )
+                        "
+                        [class.negative]="
+                          !esMovimientoPositivo(
+                            movimiento
+                          )
+                        "
+                      >
+
+                        {{
+                          movimiento.cantidad > 0
+                            ? '+'
+                            : ''
+                        }}
+
+                        {{
+                          formatearNumero(
+                            movimiento.cantidad
+                          )
+                        }}
+
+                      </strong>
+
+                    </td>
+
+                    <td>
+                      {{
+                        movimiento.descripcion
+                        || 'Sin descripción'
+                      }}
+                    </td>
+
+                  </tr>
+
+
+                  <tr
+                    *ngIf="transacciones.length === 0"
+                  >
+
+                    <td
+                      colspan="5"
+                      class="empty-table"
+                    >
+                      No existen movimientos de oro.
+                    </td>
+
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================
+             SKINS
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('skins')"
+          class="admin-section"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                PERSONALIZACIÓN
+              </span>
+
+              <h1>
+                Skins obtenidas
+              </h1>
+
+              <p>
+                Historial de skins adquiridas
+                o entregadas a los jugadores.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-card">
+
+            <div class="table-responsive">
+
+              <table class="admin-table">
+
+                <thead>
+
+                  <tr>
+                    <th>Jugador</th>
+                    <th>Skin</th>
+                    <th>Personaje</th>
+                    <th>Valor</th>
+                    <th>Equipada</th>
+                    <th>Fecha</th>
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  <tr
+                    *ngFor="let skin of skinsCompradas"
+                  >
+
+                    <td>
+                      {{ skin.nombreUsuario }}
+                    </td>
+
+                    <td>
+
+                      <strong>
+                        {{ skin.nombreSkin }}
+                      </strong>
+
+                    </td>
+
+                    <td>
+                      {{ skin.tipoPersonaje }}
+                    </td>
+
+                    <td>
+
+                      <span class="gold-value">
+                        🟡
+                        {{
+                          formatearNumero(
+                            skin.precioOro
+                          )
+                        }}
+                      </span>
+
+                    </td>
+
+                    <td>
+
+                      <span
+                        class="status-pill"
+                        [class.estado-activo]="skin.equipada"
+                        [class.estado-inactivo]="!skin.equipada"
+                      >
+
+                        {{
+                          skin.equipada
+                            ? 'Equipada'
+                            : 'Guardada'
+                        }}
+
+                      </span>
+
+                    </td>
+
+                    <td>
+                      {{
+                        formatearFecha(
+                          skin.fechaObtencion
+                        )
+                      }}
+                    </td>
+
+                  </tr>
+
+
+                  <tr
+                    *ngIf="skinsCompradas.length === 0"
+                  >
+
+                    <td
+                      colspan="6"
+                      class="empty-table"
+                    >
+                      No existen skins registradas.
+                    </td>
+
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================
+             RANKING
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('ranking')"
+          class="admin-section"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                CLASIFICACIÓN
+              </span>
+
+              <h1>
+                Ranking global
+              </h1>
+
+              <p>
+                Clasificación general de jugadores
+                según sus puntos acumulados.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="ranking-list">
+
+            <article
+              class="ranking-card"
+              *ngFor="
+                let jugador of ranking;
+                let i = index
+              "
+              [class.champion]="i === 0"
+            >
+
+              <div class="ranking-number">
+
+                <ion-icon
+                  *ngIf="i === 0"
+                  name="trophy"
+                ></ion-icon>
+
+                <span *ngIf="i !== 0">
+                  #{{ i + 1 }}
+                </span>
+
+              </div>
+
+
+              <div class="ranking-user">
+
+                <div class="ranking-avatar">
+
+                  <ion-icon
+                    name="person-outline"
+                  ></ion-icon>
+
+                </div>
+
+                <div>
+
+                  <strong>
+                    {{ jugador.nombreUsuario }}
+                  </strong>
+
+                  <span>
+                    Jugador #{{ jugador.usuarioId }}
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <div class="ranking-points">
+
+                <strong>
+                  {{
+                    formatearNumero(
+                      jugador.puntos
+                    )
+                  }}
+                </strong>
+
+                <span>
+                  puntos
+                </span>
+
+              </div>
+
+            </article>
+
+
+            <div
+              class="empty-state"
+              *ngIf="ranking.length === 0"
+            >
+
+              <ion-icon
+                name="trophy-outline"
+              ></ion-icon>
+
+              <h3>
+                Sin ranking
+              </h3>
+
+              <p>
+                Todavía no existen posiciones registradas.
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================
+             MODERACIÓN
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('moderacion')"
+          class="admin-section"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                SEGURIDAD DE LA COMUNIDAD
+              </span>
+
+              <h1>
+                Reportes de jugadores
+              </h1>
+
+              <p>
+                Revise incidencias reportadas
+                y gestione su estado.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="reports-grid">
+
+            <article
+              class="report-card"
+              *ngFor="let reporte of reportesJugadores"
+            >
+
+              <div class="report-top">
+
+                <span
+                  class="status-pill"
+                  [ngClass]="
+                    claseEstadoReporte(
+                      reporte.estado
+                    )
+                  "
+                >
+                  {{ reporte.estado }}
+                </span>
+
+                <span>
+                  #{{ reporte.reporteId }}
+                </span>
+
+              </div>
+
+
+              <h3>
+                {{ reporte.usuarioReportado }}
+              </h3>
+
+
+              <p class="report-reason">
+                {{ reporte.motivo }}
+              </p>
+
+
+              <div class="report-meta">
+
+                <span>
+                  Reportado por:
+                  <strong>
+                    {{ reporte.usuarioReporta }}
+                  </strong>
+                </span>
+
+                <span>
+                  {{
+                    formatearFecha(
+                      reporte.fechaReporte
+                    )
+                  }}
+                </span>
+
+              </div>
+
+
+              <div class="report-actions">
+
+                <button
+                  type="button"
+                  (click)="
+                    cambiarEstadoReporte(
+                      reporte,
+                      'Revisado'
+                    )
+                  "
+                >
+                  Revisado
+                </button>
+
+                <button
+                  type="button"
+                  class="success-action"
+                  (click)="
+                    cambiarEstadoReporte(
+                      reporte,
+                      'Resuelto'
+                    )
+                  "
+                >
+                  Resolver
+                </button>
+
+                <button
+                  type="button"
+                  class="muted-action"
+                  (click)="
+                    cambiarEstadoReporte(
+                      reporte,
+                      'Descartado'
+                    )
+                  "
+                >
+                  Descartar
+                </button>
+
+              </div>
+
+            </article>
+
+
+            <div
+              class="empty-state"
+              *ngIf="reportesJugadores.length === 0"
+            >
+
+              <ion-icon
+                name="shield-checkmark-outline"
+              ></ion-icon>
+
+              <h3>
+                Todo tranquilo
+              </h3>
+
+              <p>
+                No existen reportes de jugadores.
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================
+             ACCESOS
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('accesos')"
+          class="admin-section"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                AUDITORÍA
+              </span>
+
+              <h1>
+                Historial de accesos
+              </h1>
+
+              <p>
+                Registro de actividad y entradas
+                de los jugadores al sistema.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-card">
+
+            <div class="table-responsive">
+
+              <table class="admin-table">
+
+                <thead>
+
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Jugador</th>
+                    <th>IP</th>
+                    <th>Dispositivo</th>
+                    <th>Sistema</th>
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  <tr
+                    *ngFor="let acceso of accesos"
+                  >
+
+                    <td>
+                      {{
+                        formatearFecha(
+                          acceso.fechaIngreso
+                        )
+                      }}
+                    </td>
+
+                    <td>
+                      {{ acceso.nombreUsuario }}
+                    </td>
+
+                    <td>
+
+                      <code>
+                        {{ acceso.direccionIp }}
+                      </code>
+
+                    </td>
+
+                    <td>
+                      {{ acceso.dispositivo }}
+                    </td>
+
+                    <td>
+                      {{ acceso.sistemaOperativo }}
+                    </td>
+
+                  </tr>
+
+
+                  <tr
+                    *ngIf="accesos.length === 0"
+                  >
+
+                    <td
+                      colspan="5"
+                      class="empty-table"
+                    >
+                      No existen accesos registrados.
+                    </td>
+
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ===================================================
+             REPORTES DEL SISTEMA
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('reportes')"
+          class="admin-section"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                INFORMES
+              </span>
+
+              <h1>
+                Centro de reportes
+              </h1>
+
+              <p>
+                Genere informes administrativos por período
+                sobre la actividad de PAC-MAN CR.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="report-generator">
+
+            <div class="report-generator-header">
+
+              <div class="report-icon">
+
+                <ion-icon
+                  name="document-text-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div>
+
+                <h3>
+                  Generador de reportes
+                </h3>
+
+                <p>
+                  Seleccione el tipo y período del informe.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="report-form-grid">
+
+
+              <div class="form-field">
+
+                <label>
+                  Tipo de reporte
+                </label>
+
+                <select
+                  [(ngModel)]="tipoReporte"
+                  class="admin-select full"
+                >
+
+                  <option value="mensual">
+                    Reporte mensual completo
+                  </option>
+
+                  <option value="economia">
+                    Reporte económico
+                  </option>
+
+                  <option value="partidas">
+                    Reporte de partidas
+                  </option>
+
+                  <option value="usuarios">
+                    Reporte de jugadores
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <div class="form-field">
+
+                <label>
+                  Mes
+                </label>
+
+                <select
+                  [(ngModel)]="mesReporte"
+                  class="admin-select full"
+                >
+
+                  <option
+                    *ngFor="let mes of meses"
+                    [ngValue]="mes.numero"
+                  >
+                    {{ mes.nombre }}
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <div class="form-field">
+
+                <label>
+                  Año
+                </label>
+
+                <select
+                  [(ngModel)]="anioReporte"
+                  class="admin-select full"
+                >
+
+                  <option
+                    *ngFor="let anio of aniosDisponibles"
+                    [ngValue]="anio"
+                  >
+                    {{ anio }}
+                  </option>
+
+                </select>
+
+              </div>
+
+            </div>
+
+
+            <div class="report-actions-main">
+
+              <button
+                type="button"
+                class="primary-button large"
+                [disabled]="cargandoReporte"
+                (click)="generarReporte()"
+              >
+
+                <ion-spinner
+                  *ngIf="cargandoReporte"
+                  name="crescent"
+                ></ion-spinner>
+
+                <ion-icon
+                  *ngIf="!cargandoReporte"
+                  name="analytics-outline"
+                ></ion-icon>
+
+                {{
+                  cargandoReporte
+                    ? 'Generando...'
+                    : 'Generar reporte'
+                }}
+
+              </button>
+
+
+              <button
+                type="button"
+                class="pdf-button"
+                [disabled]="!hayReporteGenerado"
+                (click)="imprimirReportePDF()"
+              >
+
+                <ion-icon
+                  name="document-outline"
+                ></ion-icon>
+
+                Imprimir / Guardar PDF
+
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- ===============================================
+               PREVISUALIZACIÓN REPORTE MENSUAL
+          ================================================ -->
+
+          <article
+            class="report-preview"
+            *ngIf="reporteMensual"
+          >
+
+            <div class="preview-header">
+
+              <div>
+
+                <span>
+                  REPORTE MENSUAL
+                </span>
+
+                <h2>
+                  {{ reporteMensual.nombrePeriodo }}
+                </h2>
+
+              </div>
+
+              <div class="preview-logo">
+                🟡 👻 😈
+              </div>
+
+            </div>
+
+
+            <div class="preview-stats">
+
+              <div>
+                <span>Usuarios nuevos</span>
+                <strong>
+                  {{ reporteMensual.totalUsuariosNuevos }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Accesos</span>
+                <strong>
+                  {{ reporteMensual.totalAccesos }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Partidas</span>
+                <strong>
+                  {{ reporteMensual.totalPartidas }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Oro ganado</span>
+                <strong>
+                  {{
+                    formatearNumero(
+                      reporteMensual.oroGanado
+                    )
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Oro gastado</span>
+                <strong>
+                  {{
+                    formatearNumero(
+                      reporteMensual.oroGastado
+                    )
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Skins</span>
+                <strong>
+                  {{ reporteMensual.totalSkinsObtenidas }}
+                </strong>
+              </div>
+
+            </div>
+
+          </article>
+
+
+          <!-- ECONOMÍA -->
+
+          <article
+            class="report-preview"
+            *ngIf="reporteEconomia"
+          >
+
+            <div class="preview-header">
+
+              <div>
+
+                <span>
+                  REPORTE ECONÓMICO
+                </span>
+
+                <h2>
+                  {{ reporteEconomia.nombrePeriodo }}
+                </h2>
+
+              </div>
+
+              <div class="preview-logo">
+                🟡 👻 😈
+              </div>
+
+            </div>
+
+
+            <div class="preview-stats">
+
+              <div>
+                <span>Movimientos</span>
+                <strong>
+                  {{ reporteEconomia.totalMovimientos }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Oro entrante</span>
+                <strong>
+                  {{
+                    formatearNumero(
+                      reporteEconomia.oroEntrante
+                    )
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Oro gastado</span>
+                <strong>
+                  {{
+                    formatearNumero(
+                      reporteEconomia.oroGastado
+                    )
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Balance</span>
+                <strong>
+                  {{
+                    formatearNumero(
+                      reporteEconomia.balanceNeto
+                    )
+                  }}
+                </strong>
+              </div>
+
+            </div>
+
+          </article>
+
+
+          <!-- PARTIDAS -->
+
+          <article
+            class="report-preview"
+            *ngIf="reportePartidas"
+          >
+
+            <div class="preview-header">
+
+              <div>
+
+                <span>
+                  REPORTE DE PARTIDAS
+                </span>
+
+                <h2>
+                  {{ reportePartidas.nombrePeriodo }}
+                </h2>
+
+              </div>
+
+              <div class="preview-logo">
+                🟡 👻 😈
+              </div>
+
+            </div>
+
+
+            <div class="preview-stats">
+
+              <div>
+                <span>Total</span>
+                <strong>
+                  {{ reportePartidas.totalPartidas }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Finalizadas</span>
+                <strong>
+                  {{ reportePartidas.partidasFinalizadas }}
+                </strong>
+              </div>
+
+              <div>
+                <span>En curso</span>
+                <strong>
+                  {{ reportePartidas.partidasEnCurso }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Puntos</span>
+                <strong>
+                  {{
+                    formatearNumero(
+                      reportePartidas.puntosGenerados
+                    )
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Oro entregado</span>
+                <strong>
+                  {{
+                    formatearNumero(
+                      reportePartidas.oroEntregado
+                    )
+                  }}
+                </strong>
+              </div>
+
+            </div>
+
+          </article>
+
+
+          <!-- USUARIOS -->
+
+          <article
+            class="report-preview"
+            *ngIf="reporteUsuarios"
+          >
+
+            <div class="preview-header">
+
+              <div>
+
+                <span>
+                  REPORTE DE JUGADORES
+                </span>
+
+                <h2>
+                  {{ reporteUsuarios.nombrePeriodo }}
+                </h2>
+
+              </div>
+
+              <div class="preview-logo">
+                🟡 👻 😈
+              </div>
+
+            </div>
+
+
+            <div class="preview-stats">
+
+              <div>
+                <span>Nuevos</span>
+                <strong>
+                  {{ reporteUsuarios.totalUsuariosNuevos }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Accesos</span>
+                <strong>
+                  {{ reporteUsuarios.totalAccesos }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Activos</span>
+                <strong>
+                  {{ reporteUsuarios.usuariosActivosActuales }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Bloqueados</span>
+                <strong>
+                  {{ reporteUsuarios.usuariosBloqueadosActuales }}
+                </strong>
+              </div>
+
+            </div>
+
+          </article>
+
+        </section>
+
+
+        <!-- ===================================================
+             SEGURIDAD
+        ==================================================== -->
+
+        <section
+          *ngIf="esSeccion('seguridad')"
+          class="admin-section"
+        >
+
+          <div class="section-heading">
+
+            <div>
+
+              <span class="section-kicker">
+                CUENTA MAESTRA
+              </span>
+
+              <h1>
+                Seguridad administrativa
+              </h1>
+
+              <p>
+                Configuración exclusiva de la cuenta
+                encargada del control interno de PAC-MAN CR.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="security-layout">
+
+
+            <article class="security-info-card">
+
+              <div class="security-shield">
+
+                <ion-icon
+                  name="shield-checkmark"
+                ></ion-icon>
+
+              </div>
+
+              <h2>
+                Administrador Maestro
+              </h2>
+
+              <p>
+                Esta cuenta administra el sistema y no forma
+                parte de las partidas ni del ranking de jugadores.
+              </p>
+
+
+              <div class="security-account">
+
+                <span>
+                  Correo administrativo
+                </span>
+
+                <strong>
+                  {{ correoAdministrador }}
+                </strong>
+
+              </div>
+
+
+              <div class="security-features">
+
+                <div>
+
+                  <ion-icon
+                    name="checkmark-circle"
+                  ></ion-icon>
+
+                  Acceso al Centro Administrativo
+
+                </div>
+
+
+                <div>
+
+                  <ion-icon
+                    name="checkmark-circle"
+                  ></ion-icon>
+
+                  No participa en partidas
+
+                </div>
+
+
+                <div>
+
+                  <ion-icon
+                    name="checkmark-circle"
+                  ></ion-icon>
+
+                  No aparece en rankings
+
+                </div>
+
+
+                <div>
+
+                  <ion-icon
+                    name="checkmark-circle"
+                  ></ion-icon>
+
+                  Contraseña modificable únicamente aquí
+
+                </div>
+
+              </div>
+
+            </article>
+
+
+            <article class="password-card">
+
+              <div class="password-header">
+
+                <ion-icon
+                  name="key-outline"
+                ></ion-icon>
+
+                <div>
+
+                  <h2>
+                    Cambiar contraseña
+                  </h2>
+
+                  <p>
+                    Utilice una contraseña administrativa segura.
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <div class="form-field">
+
+                <label>
+                  Contraseña actual
+                </label>
+
+                <div class="password-input">
+
+                  <input
+                    [type]="
+                      mostrarContrasenas
+                        ? 'text'
+                        : 'password'
+                    "
+                    [(ngModel)]="contrasenaActual"
+                    autocomplete="current-password"
+                  >
+
+                </div>
+
+              </div>
+
+
+              <div class="form-field">
+
+                <label>
+                  Nueva contraseña
+                </label>
+
+                <div class="password-input">
+
+                  <input
+                    [type]="
+                      mostrarContrasenas
+                        ? 'text'
+                        : 'password'
+                    "
+                    [(ngModel)]="nuevaContrasena"
+                    autocomplete="new-password"
+                  >
+
+                </div>
+
+                <small>
+                  Mínimo 12 caracteres.
+                </small>
+
+              </div>
+
+
+              <div class="form-field">
+
+                <label>
+                  Confirmar contraseña
+                </label>
+
+                <div class="password-input">
+
+                  <input
+                    [type]="
+                      mostrarContrasenas
+                        ? 'text'
+                        : 'password'
+                    "
+                    [(ngModel)]="confirmarContrasena"
+                    autocomplete="new-password"
+                  >
+
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="show-password-button"
+                (click)="alternarContrasenas()"
+              >
+
+                <ion-icon
+                  [name]="
+                    mostrarContrasenas
+                      ? 'eye-off-outline'
+                      : 'eye-outline'
+                  "
+                ></ion-icon>
+
+                {{
+                  mostrarContrasenas
+                    ? 'Ocultar contraseñas'
+                    : 'Mostrar contraseñas'
+                }}
+
+              </button>
+
+
+              <button
+                type="button"
+                class="primary-button security-save"
+                [disabled]="cambiandoContrasena"
+                (click)="cambiarContrasenaAdministrador()"
+              >
+
+                <ion-spinner
+                  *ngIf="cambiandoContrasena"
+                  name="crescent"
+                ></ion-spinner>
+
+                <ion-icon
+                  *ngIf="!cambiandoContrasena"
+                  name="save-outline"
+                ></ion-icon>
+
+                {{
+                  cambiandoContrasena
+                    ? 'Actualizando...'
+                    : 'Actualizar contraseña'
+                }}
+
+              </button>
+
+            </article>
+
+          </div>
+
+        </section>
+
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+  <!-- =========================================================
+       MODAL EXPEDIENTE DEL JUGADOR
+  ========================================================== -->
+
+  <div
+    class="player-modal-overlay"
+    *ngIf="modalUsuarioAbierto"
+    (click)="cerrarUsuario()"
+  >
+
+    <div
+      class="player-modal"
+      (click)="$event.stopPropagation()"
+    >
+
+
+      <!-- CARGANDO DETALLE -->
+
+      <div
+        class="modal-loading"
+        *ngIf="cargandoUsuario"
+      >
+
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+
+        <span>
+          Cargando expediente...
+        </span>
+
+      </div>
+
+
+      <!-- CONTENIDO -->
+
+      <ng-container
+        *ngIf="
+          !cargandoUsuario &&
+          usuarioSeleccionado
+        "
+      >
+
+        <div class="player-modal-header">
+
+          <div class="player-modal-identity">
+
+            <div class="large-player-avatar">
+
+              <ion-icon
+                name="person-outline"
+              ></ion-icon>
+
+            </div>
+
+
+            <div>
+
+              <span class="section-kicker">
+                EXPEDIENTE DEL JUGADOR
+              </span>
+
+              <h2>
+                {{ usuarioSeleccionado.nombreUsuario }}
+              </h2>
+
+              <p>
+                {{ usuarioSeleccionado.correo }}
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="modal-close"
+            (click)="cerrarUsuario()"
+          >
+
+            <ion-icon
+              name="close-outline"
+            ></ion-icon>
+
+          </button>
+
+        </div>
+
+
+        <!-- DATOS PRINCIPALES -->
+
+        <div class="player-profile-stats">
+
+          <div>
+
+            <span>
+              Nivel
+            </span>
+
+            <strong>
+              {{ usuarioSeleccionado.nivel }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Oro actual
+            </span>
+
+            <strong class="gold-value">
+              🟡
+              {{
+                formatearNumero(
+                  usuarioSeleccionado.oroActual
+                )
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Partidas
+            </span>
+
+            <strong>
+              {{ usuarioSeleccionado.partidasJugadas }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Victorias
+            </span>
+
+            <strong>
+              {{ usuarioSeleccionado.partidasGanadas }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              % victorias
+            </span>
+
+            <strong>
+              {{
+                porcentajeVictorias(
+                  usuarioSeleccionado
+                )
+              }}%
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Ranking
+            </span>
+
+            <strong>
+              {{
+                usuarioSeleccionado.posicionRanking
+                  ? '#' + usuarioSeleccionado.posicionRanking
+                  : 'Sin posición'
+              }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- ESTADO -->
+
+        <div class="player-account-state">
+
+          <div>
+
+            <span>
+              Estado de cuenta
+            </span>
+
+            <strong
+              class="status-pill"
+              [ngClass]="
+                claseEstadoUsuario(
+                  usuarioSeleccionado.estadoCuenta
+                )
+              "
+            >
+              {{ usuarioSeleccionado.estadoCuenta }}
+            </strong>
+
+          </div>
+
+
+          <div class="account-actions">
+
+            <button
+              type="button"
+              class="activate-button"
+              [disabled]="
+                usuarioSeleccionado.estadoCuenta === 'Activo'
+              "
+              (click)="
+                activarUsuario(
+                  usuarioSeleccionado
+                )
+              "
+            >
+
+              <ion-icon
+                name="checkmark-circle-outline"
+              ></ion-icon>
+
+              Activar
+
+            </button>
+
+
+            <button
+              type="button"
+              class="inactive-button"
+              [disabled]="
+                usuarioSeleccionado.estadoCuenta === 'Inactivo'
+              "
+              (click)="
+                inactivarUsuario(
+                  usuarioSeleccionado
+                )
+              "
+            >
+
+              <ion-icon
+                name="pause-circle-outline"
+              ></ion-icon>
+
+              Inactivar
+
+            </button>
+
+
+            <button
+              type="button"
+              class="block-button"
+              [disabled]="
+                usuarioSeleccionado.estadoCuenta === 'Bloqueado'
+              "
+              (click)="
+                bloquearUsuario(
+                  usuarioSeleccionado
+                )
+              "
+            >
+
+              <ion-icon
+                name="ban-outline"
+              ></ion-icon>
+
+              Bloquear
+
+            </button>
+
+
+            <button
+              type="button"
+              class="delete-button"
+              (click)="
+                eliminarUsuario(
+                  usuarioSeleccionado
+                )
+              "
+            >
+
+              <ion-icon
+                name="trash-outline"
+              ></ion-icon>
+
+              Eliminar
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- INFORMACIÓN DETALLADA -->
+
+        <div class="player-detail-grid">
+
+          <article>
+
+            <span>
+              Registro
+            </span>
+
+            <strong>
+              {{
+                formatearFecha(
+                  usuarioSeleccionado.fechaRegistro
+                )
+              }}
+            </strong>
+
+          </article>
+
+
+          <article>
+
+            <span>
+              Último acceso
+            </span>
+
+            <strong>
+              {{
+                formatearFecha(
+                  usuarioSeleccionado.ultimoAcceso
+                )
+              }}
+            </strong>
+
+          </article>
+
+
+          <article>
+
+            <span>
+              Oro ganado
+            </span>
+
+            <strong class="positive">
+              {{
+                formatearNumero(
+                  usuarioSeleccionado.oroGanadoHistorico
+                )
+              }}
+            </strong>
+
+          </article>
+
+
+          <article>
+
+            <span>
+              Oro gastado
+            </span>
+
+            <strong class="negative">
+              {{
+                formatearNumero(
+                  usuarioSeleccionado.oroGastadoHistorico
+                )
+              }}
+            </strong>
+
+          </article>
+
+
+          <article>
+
+            <span>
+              Frutas consumidas
+            </span>
+
+            <strong>
+              {{ usuarioSeleccionado.frutasConsumidas }}
+            </strong>
+
+          </article>
+
+
+          <article>
+
+            <span>
+              Puntos ranking
+            </span>
+
+            <strong>
+              {{
+                formatearNumero(
+                  usuarioSeleccionado.puntosRanking
+                )
+              }}
+            </strong>
+
+          </article>
+
+        </div>
+
+
+        <!-- SKINS DEL JUGADOR -->
+
+        <div class="modal-section">
+
+          <div class="modal-section-title">
+
+            <ion-icon
+              name="color-palette-outline"
+            ></ion-icon>
+
+            <h3>
+              Skins del jugador
+            </h3>
+
+          </div>
+
+
+          <div class="player-skins">
+
+            <article
+              *ngFor="
+                let skin of usuarioSeleccionado.skins
+              "
+            >
+
+              <div class="skin-symbol">
+                🎨
+              </div>
+
+              <div>
+
+                <strong>
+                  {{ skin.nombreSkin }}
+                </strong>
+
+                <span>
+                  {{ skin.tipoPersonaje }}
+                </span>
+
+              </div>
+
+
+              <span
+                class="status-pill"
+                *ngIf="skin.equipada"
+                class="estado-activo"
+              >
+                Equipada
+              </span>
+
+            </article>
+
+
+            <div
+              class="empty-inline"
+              *ngIf="
+                usuarioSeleccionado.skins.length === 0
+              "
+            >
+              Este jugador no posee skins.
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- TRANSACCIONES -->
+
+        <div class="modal-section">
+
+          <div class="modal-section-title">
+
+            <ion-icon
+              name="wallet-outline"
+            ></ion-icon>
+
+            <h3>
+              Últimos movimientos de oro
+            </h3>
+
+          </div>
+
+
+          <div class="table-responsive">
+
+            <table class="admin-table compact">
+
+              <thead>
+
+                <tr>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th>Cantidad</th>
+                  <th>Descripción</th>
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                <tr
+                  *ngFor="
+                    let movimiento of
+                    usuarioSeleccionado.transacciones
+                    | slice:0:10
+                  "
+                >
+
+                  <td>
+                    {{
+                      formatearFecha(
+                        movimiento.fechaMovimiento
+                      )
+                    }}
+                  </td>
+
+                  <td>
+                    {{ movimiento.tipoMovimiento }}
+                  </td>
+
+                  <td>
+
+                    <strong
+                      [class.positive]="movimiento.cantidad > 0"
+                      [class.negative]="movimiento.cantidad < 0"
+                    >
+
+                      {{
+                        movimiento.cantidad > 0
+                          ? '+'
+                          : ''
+                      }}
+
+                      {{
+                        formatearNumero(
+                          movimiento.cantidad
+                        )
+                      }}
+
+                    </strong>
+
+                  </td>
+
+                  <td>
+                    {{
+                      movimiento.descripcion
+                      || 'Sin descripción'
+                    }}
+                  </td>
+
+                </tr>
+
+
+                <tr
+                  *ngIf="
+                    usuarioSeleccionado.transacciones.length === 0
+                  "
+                >
+
+                  <td
+                    colspan="4"
+                    class="empty-table"
+                  >
+                    Sin movimientos.
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+
+        <!-- ACCESOS -->
+
+        <div class="modal-section">
+
+          <div class="modal-section-title">
+
+            <ion-icon
+              name="finger-print-outline"
+            ></ion-icon>
+
+            <h3>
+              Últimos accesos
+            </h3>
+
+          </div>
+
+
+          <div class="access-history">
+
+            <div
+              class="access-item"
+              *ngFor="
+                let acceso of
+                usuarioSeleccionado.accesos
+                | slice:0:8
+              "
+            >
+
+              <div class="access-icon">
+
+                <ion-icon
+                  name="log-in-outline"
+                ></ion-icon>
+
+              </div>
+
+              <div>
+
+                <strong>
+                  {{
+                    formatearFecha(
+                      acceso.fechaIngreso
+                    )
+                  }}
+                </strong>
+
+                <span>
+                  {{ acceso.dispositivo }}
+                  •
+                  {{ acceso.sistemaOperativo }}
+                </span>
+
+                <code>
+                  {{ acceso.direccionIp }}
+                </code>
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="empty-inline"
+              *ngIf="
+                usuarioSeleccionado.accesos.length === 0
+              "
+            >
+              Sin accesos registrados.
+            </div>
+
+          </div>
+
+        </div>
+
+      </ng-container>
+
+    </div>
+
+  </div>
+
 </ion-content>

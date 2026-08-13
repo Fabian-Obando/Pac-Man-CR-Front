@@ -1,0 +1,394 @@
+<ion-content
+  [fullscreen]="true"
+  class="verificar-page"
+>
+
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
+
+  <div
+    class="background"
+    aria-hidden="true"
+  ></div>
+
+
+  <!-- =====================================================
+       PERSONAJES DECORATIVOS
+  ====================================================== -->
+
+  <div
+    class="characters"
+    aria-hidden="true"
+  >
+
+    <div class="monster">
+      😈
+    </div>
+
+    <div class="ghost red"></div>
+
+    <div class="ghost pink"></div>
+
+    <div class="ghost cyan"></div>
+
+    <div class="ghost orange"></div>
+
+  </div>
+
+
+  <!-- =====================================================
+       TARJETA PRINCIPAL
+  ====================================================== -->
+
+  <main class="verificar-card">
+
+
+    <!-- ===================================================
+         CABECERA
+    ==================================================== -->
+
+    <header class="verificar-header">
+
+      <div
+        class="icono-verificar"
+        aria-hidden="true"
+      >
+        ✉️
+      </div>
+
+      <h1>
+        PAC-MAN CR
+      </h1>
+
+      <h2>
+        Verificación de correo
+      </h2>
+
+    </header>
+
+
+    <!-- ===================================================
+         ESTADO 1
+         VERIFICANDO CORREO
+    ==================================================== -->
+
+    <section
+      class="estado-verificando"
+      *ngIf="
+        cargando &&
+        !verificacionExitosa
+      "
+    >
+
+      <div class="spinner-container">
+
+        <ion-spinner
+          name="crescent"
+        ></ion-spinner>
+
+      </div>
+
+      <h3>
+        Verificando tu cuenta...
+      </h3>
+
+      <p>
+        Estamos comprobando el enlace de verificación.
+      </p>
+
+      <p class="mensaje-secundario">
+        Esto solo tomará unos segundos.
+      </p>
+
+    </section>
+
+
+    <!-- ===================================================
+         ESTADO 2
+         VERIFICACIÓN EXITOSA
+    ==================================================== -->
+
+    <section
+      class="estado-exito"
+      *ngIf="
+        !cargando &&
+        verificacionExitosa
+      "
+    >
+
+      <!-- ICONO -->
+
+      <div
+        class="icono-exito"
+        aria-hidden="true"
+      >
+        ✅
+      </div>
+
+
+      <!-- MENSAJE -->
+
+      <h3>
+        ¡Correo verificado!
+      </h3>
+
+      <p class="mensaje-principal">
+        {{ mensaje }}
+      </p>
+
+
+      <!-- INFORMACIÓN -->
+
+      <div class="info-exito">
+
+        <ion-icon
+          name="shield-checkmark-outline"
+        ></ion-icon>
+
+        <span>
+          Tu cuenta de Pac-Man CR ha sido verificada
+          correctamente.
+        </span>
+
+      </div>
+
+
+      <div class="info-exito">
+
+        <ion-icon
+          name="game-controller-outline"
+        ></ion-icon>
+
+        <span>
+          Ya puedes iniciar sesión y comenzar a jugar.
+        </span>
+
+      </div>
+
+
+      <!-- BOTÓN LOGIN -->
+
+      <ion-button
+        expand="block"
+        type="button"
+        class="btn-login"
+        (click)="irLogin()"
+      >
+
+        <ion-icon
+          slot="start"
+          name="log-in-outline"
+        ></ion-icon>
+
+        INICIAR SESIÓN
+
+      </ion-button>
+
+    </section>
+
+
+    <!-- ===================================================
+         ESTADO 3
+         VERIFICACIÓN FALLIDA
+    ==================================================== -->
+
+    <section
+      class="estado-error"
+      *ngIf="
+        !cargando &&
+        verificacionFallida
+      "
+    >
+
+      <!-- ICONO -->
+
+      <div
+        class="icono-error"
+        aria-hidden="true"
+      >
+        ⚠️
+      </div>
+
+
+      <h3>
+        No se pudo verificar
+      </h3>
+
+
+      <!-- MENSAJE BACKEND -->
+
+      <div
+        class="error-message"
+        role="alert"
+      >
+
+        <ion-icon
+          name="alert-circle-outline"
+        ></ion-icon>
+
+        <span>
+          {{ mensajeError }}
+        </span>
+
+      </div>
+
+
+      <!-- EXPLICACIÓN -->
+
+      <div class="info-error">
+
+        <ion-icon
+          name="information-circle-outline"
+        ></ion-icon>
+
+        <span>
+          El enlace puede ser inválido, haber vencido
+          o haber sido utilizado anteriormente.
+        </span>
+
+      </div>
+
+
+      <!-- =================================================
+           REINTENTAR
+      ================================================== -->
+
+      <ion-button
+        *ngIf="token"
+        expand="block"
+        type="button"
+        fill="outline"
+        class="btn-reintentar"
+        [disabled]="cargando"
+        (click)="reintentar()"
+      >
+
+        <ion-icon
+          slot="start"
+          name="refresh-outline"
+        ></ion-icon>
+
+        REINTENTAR VERIFICACIÓN
+
+      </ion-button>
+
+
+      <!-- =================================================
+           VOLVER AL LOGIN
+      ================================================== -->
+
+      <ion-button
+        expand="block"
+        type="button"
+        class="btn-login-error"
+        [disabled]="cargando"
+        (click)="irLogin()"
+      >
+
+        <ion-icon
+          slot="start"
+          name="log-in-outline"
+        ></ion-icon>
+
+        VOLVER AL LOGIN
+
+      </ion-button>
+
+
+      <!-- =================================================
+           REGISTRO
+      ================================================== -->
+
+      <button
+        type="button"
+        class="btn-registro"
+        [disabled]="cargando"
+        (click)="irRegistro()"
+      >
+
+        ¿Necesitas crear otra cuenta?
+
+      </button>
+
+    </section>
+
+
+    <!-- ===================================================
+         ESTADO INICIAL
+         
+         Se muestra durante el instante anterior a que
+         comience la petición al servidor.
+    ==================================================== -->
+
+    <section
+      class="estado-inicial"
+      *ngIf="
+        !cargando &&
+        !verificacionExitosa &&
+        !verificacionFallida
+      "
+    >
+
+      <div class="icono-correo">
+        📧
+      </div>
+
+      <h3>
+        Preparando verificación
+      </h3>
+
+      <p>
+        Estamos preparando la validación de tu correo.
+      </p>
+
+    </section>
+
+
+    <!-- ===================================================
+         SEPARADOR
+    ==================================================== -->
+
+    <div class="separator">
+
+      <span></span>
+
+      <small>
+        PAC-MAN CR
+      </small>
+
+      <span></span>
+
+    </div>
+
+
+    <!-- ===================================================
+         INFORMACIÓN DE SEGURIDAD
+    ==================================================== -->
+
+    <div class="security-info">
+
+      <ion-icon
+        name="lock-closed-outline"
+      ></ion-icon>
+
+      <span>
+        Por seguridad, los enlaces de verificación son
+        temporales y están asociados a una cuenta.
+      </span>
+
+    </div>
+
+  </main>
+
+
+  <!-- =====================================================
+       PAC-MAN DECORATIVO
+  ====================================================== -->
+
+  <div
+    class="pacman"
+    aria-hidden="true"
+  ></div>
+
+</ion-content>

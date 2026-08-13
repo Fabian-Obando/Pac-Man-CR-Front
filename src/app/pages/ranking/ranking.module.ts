@@ -1,20 +1,27 @@
 import { NgModule } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { RankingPageRoutingModule } from './ranking-routing.module';
-
 import { RankingPage } from './ranking.page';
 
+import {
+  RankingPageRoutingModule
+} from './ranking-routing.module';
+
+
 @NgModule({
+
+  declarations: [
+    RankingPage
+  ],
+
   imports: [
     CommonModule,
-    FormsModule,
     IonicModule,
     RankingPageRoutingModule
-  ],
-  declarations: [RankingPage]
+  ]
+
 })
 export class RankingPageModule {}

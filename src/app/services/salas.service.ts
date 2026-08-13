@@ -1,12 +1,21 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
 
-import { environment } from '../../environments/environment';
+import {
+  HttpClient
+} from '@angular/common/http';
 
-/*=========================================
-DTOs
-=========================================*/
+import {
+  Observable
+} from 'rxjs';
+
+import {
+  environment
+} from '../../environments/environment';
+
+
+/* =========================================================
+   MODELO DE SALA
+========================================================= */
 
 export interface Sala {
 
@@ -16,7 +25,7 @@ export interface Sala {
 
   jugadorCreadorId: number;
 
-  nombreCreador?: string;
+  nombreCreador: string;
 
   estadoSala: string;
 
@@ -24,49 +33,67 @@ export interface Sala {
 
   maxJugadores: number;
 
-  fechaCreacion: Date;
-
-}
-export interface CrearSalaRequest{
-
-nombreCreador?: string;
+  fechaCreacion: string;
 
 }
 
-/*=========================================
-SERVICE
-=========================================*/
+
+/* =========================================================
+   CREAR SALA
+========================================================= */
+
+export interface CrearSalaRequest {
+
+  jugadorCreadorId: number;
+
+}
+
 
 @Injectable({
-  providedIn:'root'
+  providedIn: 'root'
 })
-
 export class SalasService {
 
+  /*
+   * Ejemplo:
+   *
+   * WEB:
+   * http://localhost:5148/api/Salas
+   *
+   * ANDROID:
+   * se utilizará la IP configurada posteriormente
+   * en environment.
+   */
   private readonly apiUrl =
     `${environment.apiUrl}/Salas`;
 
+
   constructor(
-    private http:HttpClient
-  ){}
+    private readonly http: HttpClient
+  ) {}
 
-  /*=========================================
-  Obtener todas las salas
-  =========================================*/
 
-  obtenerSalas():Observable<Sala[]>{
+  /* =======================================================
+     LISTAR SALAS
+  ======================================================== */
 
-    return this.http.get<Sala[]>(this.apiUrl);
+  obtenerSalas():
+    Observable<Sala[]> {
+
+    return this.http.get<Sala[]>(
+      this.apiUrl
+    );
 
   }
 
-  /*=========================================
-  Obtener una sala
-  =========================================*/
+
+  /* =======================================================
+     OBTENER SALA
+  ======================================================== */
 
   obtenerSala(
-    salaId:number
-  ):Observable<Sala>{
+    salaId: number
+  ): Observable<Sala> {
 
     return this.http.get<Sala>(
       `${this.apiUrl}/${salaId}`
@@ -74,27 +101,34 @@ export class SalasService {
 
   }
 
-  /*=========================================
-  Buscar por código
-  =========================================*/
+
+  /* =======================================================
+     BUSCAR POR CÓDIGO
+  ======================================================== */
 
   obtenerPorCodigo(
-    codigo:string
-  ):Observable<Sala>{
+    codigo: string
+  ): Observable<Sala> {
+
+    const codigoSeguro =
+      encodeURIComponent(
+        codigo.trim()
+      );
 
     return this.http.get<Sala>(
-      `${this.apiUrl}/codigo/${codigo}`
+      `${this.apiUrl}/codigo/${codigoSeguro}`
     );
 
   }
 
-  /*=========================================
-  Crear sala
-  =========================================*/
+
+  /* =======================================================
+     CREAR SALA
+  ======================================================== */
 
   crearSala(
-    request:CrearSalaRequest
-  ):Observable<Sala>{
+    request: CrearSalaRequest
+  ): Observable<Sala> {
 
     return this.http.post<Sala>(
       this.apiUrl,
@@ -103,31 +137,53 @@ export class SalasService {
 
   }
 
-  /*=========================================
-  Unirse
-  =========================================*/
+
+  /* =======================================================
+     UNIRSE
+  ======================================================== */
 
   unirseSala(
-    salaId:number,
-    usuarioId:number
-  ):Observable<any>{
+    salaId: number,
+    usuarioId: number
+  ): Observable<string> {
 
     return this.http.post(
       `${this.apiUrl}/${salaId}/unirse/${usuarioId}`,
+      {},
+      {
+        responseType: 'text'
+      }
+    );
+
+  }
+
+
+  /* =======================================================
+     ABANDONAR
+  ======================================================== */
+
+  abandonarSala(
+    salaId: number,
+    usuarioId: number
+  ): Observable<void> {
+
+    return this.http.post<void>(
+      `${this.apiUrl}/${salaId}/abandonar/${usuarioId}`,
       {}
     );
 
   }
 
-  /*=========================================
-  Cerrar sala
-  =========================================*/
+
+  /* =======================================================
+     CERRAR
+  ======================================================== */
 
   cerrarSala(
-    salaId:number
-  ):Observable<any>{
+    salaId: number
+  ): Observable<void> {
 
-    return this.http.put(
+    return this.http.put<void>(
       `${this.apiUrl}/${salaId}/cerrar`,
       {}
     );

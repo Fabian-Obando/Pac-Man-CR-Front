@@ -1,218 +1,463 @@
-<ion-content fullscreen class="menu-page">
+<ion-content
+  [fullscreen]="true"
+  class="menu-page"
+>
 
-  <!-- Fondo -->
-  <div class="maze-background"></div>
+  <!-- =====================================================
+       FONDO PAC-MAN
+  ====================================================== -->
 
-  <!-- Perfil -->
-  <div class="profile">
+  <div
+    class="maze-background"
+    aria-hidden="true"
+  ></div>
 
-    <div class="avatar">
-      👤
-    </div>
 
-    <div class="info">
+  <!-- =====================================================
+       CABECERA DEL JUGADOR
+  ====================================================== -->
 
-      <h2>{{nombre}}</h2>
+  <header class="menu-header">
 
-      <span>Nivel {{nivel}}</span>
+    <!-- PERFIL -->
 
-      <div class="xp-bar">
+    <button
+      type="button"
+      class="profile"
+      (click)="perfil()"
+      aria-label="Abrir perfil"
+    >
 
-        <div class="xp-fill"></div>
+      <div class="avatar">
+
+        <img
+          *ngIf="fotoPerfil"
+          [src]="fotoPerfil"
+          [alt]="'Foto de perfil de ' + nombre"
+        >
+
+        <span
+          *ngIf="!fotoPerfil"
+          aria-hidden="true"
+        >
+          👤
+        </span>
 
       </div>
 
-      <small>180 / 500 XP</small>
+
+      <div class="info">
+
+        <h2>
+          {{ nombre }}
+        </h2>
+
+        <span class="nivel">
+          Nivel {{ nivel }}
+        </span>
+
+        <!-- BARRA DE EXPERIENCIA -->
+
+        <div
+          class="xp-bar"
+          role="progressbar"
+          [attr.aria-valuenow]="porcentajeXp"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+
+          <div
+            class="xp-fill"
+            [style.width.%]="porcentajeXp"
+          ></div>
+
+        </div>
+
+        <small>
+          {{ xpActual }} / {{ xpMaxima }} XP
+        </small>
+
+      </div>
+
+    </button>
+
+
+    <!-- ===================================================
+         ORO Y ACTUALIZACIÓN
+    ==================================================== -->
+
+    <div class="header-actions">
+
+      <!-- ORO DEL USUARIO -->
+
+      <div
+        class="coins"
+        aria-label="Oro disponible"
+      >
+
+        <span aria-hidden="true">
+          🪙
+        </span>
+
+        <strong>
+          {{ monedas }}
+        </strong>
+
+      </div>
+
+
+      <!-- ACTUALIZAR DATOS -->
+
+      <button
+        type="button"
+        class="refresh-user"
+        [disabled]="cargandoUsuario"
+        (click)="actualizarDatos()"
+        aria-label="Actualizar datos"
+      >
+
+        <ion-spinner
+          *ngIf="cargandoUsuario"
+          name="crescent"
+        ></ion-spinner>
+
+        <ion-icon
+          *ngIf="!cargandoUsuario"
+          name="refresh-outline"
+        ></ion-icon>
+
+      </button>
 
     </div>
+
+  </header>
+
+
+  <!-- =====================================================
+       ERROR DE SINCRONIZACIÓN
+  ====================================================== -->
+
+  <div
+    class="menu-error"
+    *ngIf="mensajeError"
+    role="alert"
+  >
+
+    <ion-icon
+      name="cloud-offline-outline"
+    ></ion-icon>
+
+    <span>
+      {{ mensajeError }}
+    </span>
 
   </div>
 
-  <!-- Monedas -->
 
-  <div class="coins">
+  <!-- =====================================================
+       CONTENIDO PRINCIPAL
+  ====================================================== -->
 
-    🪙 {{monedas}}
+  <main class="menu-main">
 
-  </div>
 
-  <!-- Logo -->
+    <!-- ===================================================
+         LOGO
+    ==================================================== -->
 
-  <section class="logo">
+    <section class="logo">
 
-    <h1>PAC-MAN CR</h1>
+      <h1>
+        PAC-MAN CR
+      </h1>
 
-    <h3>Multijugador Online</h3>
+      <h3>
+        Multijugador Online
+      </h3>
 
-  </section>
+    </section>
 
-  <!-- Personajes -->
 
-  <section class="characters">
+    <!-- ===================================================
+         PERSONAJES
+    ==================================================== -->
 
-    <div class="ghost red">
+    <section
+      class="characters"
+      aria-hidden="true"
+    >
 
-      <div class="eyes">
-
-        <span></span>
-
-        <span></span>
-
+      <div class="ghost red">
+        <div class="eyes">
+          <span></span>
+          <span></span>
+        </div>
       </div>
 
-    </div>
-
-    <div class="ghost pink">
-
-      <div class="eyes">
-
-        <span></span>
-
-        <span></span>
-
+      <div class="ghost pink">
+        <div class="eyes">
+          <span></span>
+          <span></span>
+        </div>
       </div>
 
-    </div>
-
-    <div class="ghost cyan">
-
-      <div class="eyes">
-
-        <span></span>
-
-        <span></span>
-
+      <div class="ghost cyan">
+        <div class="eyes">
+          <span></span>
+          <span></span>
+        </div>
       </div>
 
-    </div>
-
-    <div class="ghost orange">
-
-      <div class="eyes">
-
-        <span></span>
-
-        <span></span>
-
+      <div class="ghost orange">
+        <div class="eyes">
+          <span></span>
+          <span></span>
+        </div>
       </div>
 
-    </div>
+      <div class="monster">
+        😈
+      </div>
 
-    <div class="monster">
+    </section>
 
-      😈
 
-    </div>
-
-  </section>
-
-  <!-- Botón principal -->
-
-  <ion-button
-    expand="block"
-    class="play-btn"
-    (click)="jugar()">
-
-    ▶ JUGAR
-
-  </ion-button>
-
-  <!-- Menú -->
-
-  <div class="menu-grid">
+    <!-- ===================================================
+         JUGAR
+    ==================================================== -->
 
     <ion-button
       expand="block"
-      fill="outline"
-      (click)="amigos()">
+      class="play-btn"
+      [disabled]="!menuListo"
+      (click)="jugar()"
+    >
 
-      👥 Amigos
+      <ion-icon
+        slot="start"
+        name="play-outline"
+      ></ion-icon>
+
+      JUGAR
 
     </ion-button>
+
+
+    <!-- ===================================================
+         OPCIONES
+    ==================================================== -->
+
+    <section class="menu-section">
+
+      <div class="section-title">
+        OPCIONES
+      </div>
+
+
+      <div class="menu-grid">
+
+
+        <!-- AMIGOS -->
+
+        <ion-button
+          fill="outline"
+          class="menu-option"
+          (click)="amigos()"
+        >
+
+          <span class="option-icon">
+            👥
+          </span>
+
+          AMIGOS
+
+        </ion-button>
+
+
+        <!-- RANKING -->
+
+        <ion-button
+          fill="outline"
+          class="menu-option"
+          (click)="ranking()"
+        >
+
+          <span class="option-icon">
+            🏆
+          </span>
+
+          RANKING
+
+        </ion-button>
+
+
+        <!-- SKINS -->
+
+        <ion-button
+          fill="outline"
+          class="menu-option"
+          (click)="skins()"
+        >
+
+          <span class="option-icon">
+            🎨
+          </span>
+
+          SKINS
+
+        </ion-button>
+
+
+        <!-- CONFIGURACIÓN -->
+
+        <ion-button
+          fill="outline"
+          class="menu-option"
+          (click)="configuracion()"
+        >
+
+          <span class="option-icon">
+            ⚙️
+          </span>
+
+          CONFIG.
+
+        </ion-button>
+
+
+        <!-- PERFIL -->
+
+        <ion-button
+          fill="outline"
+          class="menu-option"
+          (click)="perfil()"
+        >
+
+          <span class="option-icon">
+            👤
+          </span>
+
+          PERFIL
+
+        </ion-button>
+
+
+        <!-- LISTA DE ESPERA -->
+
+        <ion-button
+          fill="outline"
+          class="menu-option"
+          (click)="listaEspera()"
+        >
+
+          <span class="option-icon">
+            ⌛
+          </span>
+
+          ESPERA
+
+        </ion-button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         INFORMACIÓN
+    ==================================================== -->
+
+    <section class="news">
+
+      <div class="news-icon">
+        🎮
+      </div>
+
+
+      <div>
+
+        <h3>
+          Pac-Man CR Online
+        </h3>
+
+        <p>
+          Crea una sala o únete a una partida
+          multijugador.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         PANEL ADMINISTRADOR
+    ==================================================== -->
 
     <ion-button
+      *ngIf="esAdministrador"
       expand="block"
-      fill="outline"
-      (click)="ranking()">
+      color="warning"
+      class="admin"
+      (click)="admin()"
+    >
 
-      🏆 Ranking
+      <ion-icon
+        slot="start"
+        name="shield-checkmark-outline"
+      ></ion-icon>
+
+      PANEL ADMINISTRADOR
 
     </ion-button>
 
-    <ion-button
-      expand="block"
-      fill="outline"
-      (click)="skins()">
 
-      🎨 Skins
+    <!-- ===================================================
+         CERRAR SESIÓN
+    ==================================================== -->
 
-    </ion-button>
+    <section class="session-section">
 
-    <ion-button
-      expand="block"
-      fill="outline"
-      (click)="configuracion()">
+      <ion-button
+        expand="block"
+        fill="outline"
+        color="danger"
+        class="logout-btn"
+        (click)="cerrarSesion()"
+      >
 
-      ⚙ Configuración
+        <ion-icon
+          slot="start"
+          name="log-out-outline"
+        ></ion-icon>
 
-    </ion-button>
+        CERRAR SESIÓN
 
-  </div>
+      </ion-button>
 
-  <!-- Noticias -->
+    </section>
 
-  <div class="news">
+  </main>
 
-    <h3>🔥 Evento Especial</h3>
 
-    <p>
+  <!-- =====================================================
+       PAC-MAN ANIMADO INFERIOR
+  ====================================================== -->
 
-      Esta semana todas las partidas otorgan
-
-      <b>doble experiencia</b>.
-
-    </p>
-
-  </div>
-
-  <!-- Panel administrador -->
-
-  <ion-button
-
-    *ngIf="esAdministrador"
-
-    expand="block"
-
-    color="warning"
-
-    class="admin"
-
-    (click)="admin()">
-
-    🛡 Panel Administrador
-
-  </ion-button>
-
-  <!-- Pacman -->
-
-  <div class="pacman-run">
+  <div
+    class="pacman-run"
+    aria-hidden="true"
+  >
 
     <div class="pacman"></div>
 
     <div class="dots">
-
       <span></span>
-
       <span></span>
-
       <span></span>
-
       <span></span>
-
       <span></span>
-
       <span></span>
-
     </div>
 
   </div>

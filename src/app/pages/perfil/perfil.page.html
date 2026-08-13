@@ -1,167 +1,876 @@
-<ion-content fullscreen class="perfil-page">
+<ion-content
+  [fullscreen]="true"
+  class="perfil-page"
+>
 
-  <!-- Fondo -->
-  <div class="background-grid"></div>
+  <div
+    class="background-grid"
+    aria-hidden="true"
+  ></div>
 
-  <div class="perfil-container">
 
-    <!-- FOTO -->
+  <main class="perfil-container">
 
-    <div class="perfil-card">
+
+    <!-- ===================================================
+         HEADER
+    ==================================================== -->
+
+    <header class="perfil-header">
+
+      <button
+        type="button"
+        class="btn-volver-header"
+        (click)="volverMenu()"
+      >
+        ← MENÚ
+      </button>
+
+
+      <div class="titulo-perfil">
+
+        <h1>
+          PERFIL
+        </h1>
+
+        <span>
+          PAC-MAN CR
+        </span>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="btn-refresh"
+        [disabled]="cargando"
+        (click)="actualizarPerfil()"
+      >
+
+        <ion-spinner
+          *ngIf="cargando"
+          name="crescent"
+        ></ion-spinner>
+
+        <ion-icon
+          *ngIf="!cargando"
+          name="refresh-outline"
+        ></ion-icon>
+
+      </button>
+
+    </header>
+
+
+    <!-- ===================================================
+         ERROR
+    ==================================================== -->
+
+    <div
+      class="perfil-error"
+      *ngIf="mensajeError"
+      role="alert"
+    >
+
+      <ion-icon
+        name="cloud-offline-outline"
+      ></ion-icon>
+
+      {{ mensajeError }}
+
+    </div>
+
+
+    <!-- ===================================================
+         JUGADOR
+    ==================================================== -->
+
+    <section class="player-card">
 
       <div class="avatar">
-        🟡
-      </div>
 
-      <h1>{{ jugador.nombre }}</h1>
+        <img
+          *ngIf="fotoPerfil"
+          [src]="fotoPerfil"
+          [alt]="'Foto de ' + nombre"
+        >
 
-      <h3>{{ jugador.titulo }}</h3>
-
-      <span class="online">
-        🟢 {{ jugador.estado }}
-      </span>
-
-    </div>
-
-    <!-- NIVEL -->
-
-    <div class="nivel-card">
-
-      <div class="nivel-top">
-
-        <span>Nivel {{ jugador.nivel }}</span>
-
-        <span>{{ jugador.xp }}/{{ jugador.xpMax }} XP</span>
+        <span *ngIf="!fotoPerfil">
+          👤
+        </span>
 
       </div>
 
-      <div class="barra">
 
-        <div
-          class="barra-fill"
-          [style.width.%]="jugador.porcentaje">
+      <div class="player-main">
+
+        <h2>
+          {{ nombre }}
+        </h2>
+
+        <p>
+          {{ correo }}
+        </p>
+
+
+        <div class="player-badges">
+
+          <span class="level">
+            ⭐ NIVEL {{ nivel }}
+          </span>
+
+          <span class="status">
+            ● {{ estadoCuenta }}
+          </span>
+
         </div>
 
       </div>
 
-    </div>
 
-    <!-- RESUMEN -->
+      <div class="player-gold">
 
-    <div class="stats-grid">
+        <span>
+          🪙
+        </span>
 
-      <div class="stat">
-        <h2>🪙</h2>
-        <span>{{ jugador.oro }}</span>
-        <small>Oro</small>
-      </div>
+        <strong>
+          {{ oro }}
+        </strong>
 
-      <div class="stat">
-        <h2>🏆</h2>
-        <span>{{ jugador.victorias }}</span>
-        <small>Victorias</small>
-      </div>
-
-      <div class="stat">
-        <h2>❌</h2>
-        <span>{{ jugador.derrotas }}</span>
-        <small>Derrotas</small>
-      </div>
-
-      <div class="stat">
-        <h2>🎮</h2>
-        <span>{{ jugador.partidas }}</span>
-        <small>Partidas</small>
-      </div>
-
-    </div>
-
-    <!-- INFORMACIÓN -->
-
-    <div class="info-card">
-
-      <h2>Información del jugador</h2>
-
-      <div class="info-row">
-
-        <label>Rol favorito</label>
-
-        <span>{{ jugador.rolFavorito }}</span>
+        <small>
+          Oro actual
+        </small>
 
       </div>
 
-      <div class="info-row">
+    </section>
 
-        <label>Mapa favorito</label>
 
-        <span>{{ jugador.mapaFavorito }}</span>
+    <!-- ===================================================
+         ESTADÍSTICAS
+    ==================================================== -->
 
-      </div>
+    <section class="section-card">
 
-      <div class="info-row">
+      <div class="section-header">
 
-        <label>País</label>
+        <div>
 
-        <span>{{ jugador.pais }}</span>
+          <h2>
+            🎮 Estadísticas
+          </h2>
 
-      </div>
-
-    </div>
-
-    <!-- ESTADÍSTICAS -->
-
-    <div class="info-card">
-
-      <h2>Dominio por personaje</h2>
-
-      <div
-        *ngFor="let item of estadisticas"
-        class="skill">
-
-        <div class="skill-top">
-
-          <span>{{ item.titulo }}</span>
-
-          <span>{{ item.porcentaje }}%</span>
+          <p>
+            Rendimiento general del jugador
+          </p>
 
         </div>
 
-        <div class="skill-bar">
+      </div>
+
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+
+          <span class="stat-icon">🎮</span>
+
+          <strong>
+            {{ estadisticas.partidasJugadas }}
+          </strong>
+
+          <small>
+            Partidas
+          </small>
+
+        </div>
+
+
+        <div class="stat-card victory">
+
+          <span class="stat-icon">🏆</span>
+
+          <strong>
+            {{ estadisticas.partidasGanadas }}
+          </strong>
+
+          <small>
+            Victorias
+          </small>
+
+        </div>
+
+
+        <div class="stat-card defeat">
+
+          <span class="stat-icon">💀</span>
+
+          <strong>
+            {{ estadisticas.partidasPerdidas }}
+          </strong>
+
+          <small>
+            Derrotas
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span class="stat-icon">🍒</span>
+
+          <strong>
+            {{ estadisticas.frutasConsumidas }}
+          </strong>
+
+          <small>
+            Frutas
+          </small>
+
+        </div>
+
+
+        <div class="stat-card gold-stat">
+
+          <span class="stat-icon">🪙</span>
+
+          <strong>
+            {{ estadisticas.oroGanado }}
+          </strong>
+
+          <small>
+            Oro ganado
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span class="stat-icon">📈</span>
+
+          <strong>
+            {{ porcentajeVictorias }}%
+          </strong>
+
+          <small>
+            Victorias
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="win-progress">
+
+        <div class="progress-info">
+
+          <span>
+            Porcentaje de victorias
+          </span>
+
+          <strong>
+            {{ porcentajeVictorias }}%
+          </strong>
+
+        </div>
+
+
+        <div class="progress-bar">
 
           <div
-            class="skill-fill"
-            [style.width.%]="item.porcentaje">
-          </div>
+            class="progress-fill"
+            [style.width.%]="porcentajeVictorias"
+          ></div>
 
         </div>
 
       </div>
 
-    </div>
+    </section>
 
-    <!-- LOGROS -->
 
-    <div class="info-card">
+    <!-- ===================================================
+         SKINS
+    ==================================================== -->
 
-      <h2>Logros</h2>
+    <section class="section-card">
 
-      <div class="logros">
+      <div class="section-header">
 
-        <div
-          class="logro"
-          *ngFor="let logro of logros">
+        <div>
 
-          <div class="icono">
+          <h2>
+            🎨 Skins equipadas
+          </h2>
 
-            {{ logro.icono }}
+          <p>
+            Se utilizarán automáticamente según tu rol.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="btn-skins"
+          (click)="irSkins()"
+        >
+          CAMBIAR
+        </button>
+
+      </div>
+
+
+      <div class="equipped-grid">
+
+        <div class="equipped-skin">
+
+          <div class="equipped-icon">
+            🟡
+          </div>
+
+          <small>
+            PAC-MAN
+          </small>
+
+          <strong>
+            {{
+              obtenerSkinEquipada('Pac-Man')?.nombreSkin
+              || 'Sin equipar'
+            }}
+          </strong>
+
+        </div>
+
+
+        <div class="equipped-skin">
+
+          <div class="equipped-icon">
+            👻
+          </div>
+
+          <small>
+            FANTASMA
+          </small>
+
+          <strong>
+            {{
+              obtenerSkinEquipada('Fantasma')?.nombreSkin
+              || 'Sin equipar'
+            }}
+          </strong>
+
+        </div>
+
+
+        <div class="equipped-skin">
+
+          <div class="equipped-icon">
+            😈
+          </div>
+
+          <small>
+            MONSTRUO
+          </small>
+
+          <strong>
+            {{
+              obtenerSkinEquipada('Monstruo')?.nombreSkin
+              || 'Sin equipar'
+            }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         LOGROS
+    ==================================================== -->
+
+    <section class="section-card">
+
+      <div class="section-header">
+
+        <div>
+
+          <h2>
+            🏆 Logros
+          </h2>
+
+          <p>
+            {{ logros.length }} desbloqueados
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="achievements-grid"
+        *ngIf="logros.length > 0"
+      >
+
+        <article
+          class="achievement"
+          *ngFor="let logro of logros"
+        >
+
+          <div class="achievement-icon">
+            {{ obtenerIconoLogro(logro) }}
+          </div>
+
+
+          <div class="achievement-info">
+
+            <strong>
+              {{ logro.nombreLogro }}
+            </strong>
+
+            <p>
+              {{ logro.descripcion }}
+            </p>
+
+
+            <div class="achievement-footer">
+
+              <span>
+                🪙 +{{ logro.recompensaOro }}
+              </span>
+
+              <small>
+                {{
+                  formatearFecha(
+                    logro.fechaDesbloqueo
+                  )
+                }}
+              </small>
+
+            </div>
 
           </div>
+
+        </article>
+
+      </div>
+
+
+      <div
+        class="empty-logros"
+        *ngIf="logros.length === 0"
+      >
+
+        <span>
+          🔒
+        </span>
+
+        <div>
+
+          <strong>
+            Aún no tienes logros
+          </strong>
+
+          <p>
+            Juega partidas para comenzar a desbloquearlos.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         CENTRO DE CONTACTO
+    ==================================================== -->
+
+    <section class="section-card feedback-card">
+
+
+      <div class="feedback-heading">
+
+        <div class="feedback-logo">
+
+          <span class="feedback-pacman">
+            ●
+          </span>
+
+          <span class="feedback-ghost">
+            👻
+          </span>
+
+        </div>
+
+
+        <div>
+
+          <span class="feedback-kicker">
+            COMUNIDAD PAC-MAN CR
+          </span>
+
+          <h2>
+            Habla con Administración
+          </h2>
+
+          <p>
+            Tus comentarios ayudan a mejorar el juego.
+            Puedes enviar una sugerencia, comentario o informar
+            sobre algún problema.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- TIPO -->
+
+      <div class="feedback-types">
+
+        <button
+          type="button"
+          class="feedback-type"
+          [class.active]="tipoComentario === 'Comentario'"
+          [disabled]="enviandoComentario"
+          (click)="seleccionarTipoComentario('Comentario')"
+        >
+
+          <ion-icon
+            name="chatbubble-ellipses-outline"
+          ></ion-icon>
+
+          <span>
+            Comentario
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="feedback-type suggestion"
+          [class.active]="tipoComentario === 'Sugerencia'"
+          [disabled]="enviandoComentario"
+          (click)="seleccionarTipoComentario('Sugerencia')"
+        >
+
+          <ion-icon
+            name="bulb-outline"
+          ></ion-icon>
+
+          <span>
+            Sugerencia
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          class="feedback-type problem"
+          [class.active]="tipoComentario === 'Problema'"
+          [disabled]="enviandoComentario"
+          (click)="seleccionarTipoComentario('Problema')"
+        >
+
+          <ion-icon
+            name="warning-outline"
+          ></ion-icon>
+
+          <span>
+            Problema
+          </span>
+
+        </button>
+
+      </div>
+
+
+      <!-- MENSAJE -->
+
+      <div class="feedback-editor">
+
+        <div class="feedback-user">
+
+          <div class="feedback-mini-avatar">
+
+            <img
+              *ngIf="fotoPerfil"
+              [src]="fotoPerfil"
+              [alt]="nombre"
+            >
+
+            <span *ngIf="!fotoPerfil">
+              👤
+            </span>
+
+          </div>
+
 
           <div>
 
-            <strong>{{ logro.nombre }}</strong>
+            <strong>
+              {{ nombre }}
+            </strong>
 
-            <p>{{ logro.descripcion }}</p>
+            <small>
+              Tu mensaje será enviado al administrador
+            </small>
+
+          </div>
+
+        </div>
+
+
+        <ion-textarea
+          class="feedback-textarea"
+          [(ngModel)]="comentario"
+          [disabled]="enviandoComentario"
+          [maxlength]="limiteComentario"
+          [autoGrow]="true"
+          rows="5"
+          placeholder="Cuéntanos qué piensas del juego, qué mejorarías o qué problema encontraste..."
+        ></ion-textarea>
+
+
+        <div class="feedback-counter">
+
+          <span>
+            {{ tipoComentario }}
+          </span>
+
+          <span
+            [class.limit]="
+              caracteresComentario >= limiteComentario
+            "
+          >
+            {{ caracteresComentario }}
+            /
+            {{ limiteComentario }}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- ERROR -->
+
+      <div
+        class="feedback-message error"
+        *ngIf="mensajeComentarioError"
+      >
+
+        <ion-icon
+          name="alert-circle-outline"
+        ></ion-icon>
+
+        <span>
+          {{ mensajeComentarioError }}
+        </span>
+
+      </div>
+
+
+      <!-- ÉXITO -->
+
+      <div
+        class="feedback-message success"
+        *ngIf="mensajeComentarioExito"
+      >
+
+        <ion-icon
+          name="checkmark-circle-outline"
+        ></ion-icon>
+
+        <span>
+          {{ mensajeComentarioExito }}
+        </span>
+
+      </div>
+
+
+      <!-- BOTONES -->
+
+      <div class="feedback-actions">
+
+        <ion-button
+          fill="clear"
+          class="btn-feedback-clear"
+          [disabled]="
+            enviandoComentario ||
+            comentario.length === 0
+          "
+          (click)="limpiarComentario()"
+        >
+
+          <ion-icon
+            slot="start"
+            name="trash-outline"
+          ></ion-icon>
+
+          LIMPIAR
+
+        </ion-button>
+
+
+        <ion-button
+          class="btn-feedback-send"
+          [disabled]="!puedeEnviarComentario"
+          (click)="enviarComentario()"
+        >
+
+          <ion-spinner
+            *ngIf="enviandoComentario"
+            name="crescent"
+          ></ion-spinner>
+
+
+          <ion-icon
+            *ngIf="!enviandoComentario"
+            slot="start"
+            name="send-outline"
+          ></ion-icon>
+
+
+          <span *ngIf="!enviandoComentario">
+            ENVIAR A ADMINISTRACIÓN
+          </span>
+
+
+          <span *ngIf="enviandoComentario">
+            ENVIANDO...
+          </span>
+
+        </ion-button>
+
+      </div>
+
+
+      <div class="feedback-security">
+
+        <ion-icon
+          name="shield-checkmark-outline"
+        ></ion-icon>
+
+        <span>
+          El mensaje quedará registrado con tu cuenta para que
+          Administración pueda darle seguimiento.
+        </span>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         INFORMACIÓN DE CUENTA
+    ==================================================== -->
+
+    <section class="section-card account-card">
+
+      <div class="section-header">
+
+        <div>
+
+          <h2>
+            👤 Información de cuenta
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="account-grid">
+
+        <div class="account-item">
+
+          <ion-icon
+            name="mail-outline"
+          ></ion-icon>
+
+          <div>
+
+            <small>
+              Correo
+            </small>
+
+            <strong>
+              {{ correo }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="account-item">
+
+          <ion-icon
+            name="calendar-outline"
+          ></ion-icon>
+
+          <div>
+
+            <small>
+              Registro
+            </small>
+
+            <strong>
+              {{ formatearFecha(fechaRegistro) }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="account-item">
+
+          <ion-icon
+            name="time-outline"
+          ></ion-icon>
+
+          <div>
+
+            <small>
+              Último acceso
+            </small>
+
+            <strong>
+              {{ formatearFecha(ultimoAcceso) }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="account-item">
+
+          <ion-icon
+            name="shield-checkmark-outline"
+          ></ion-icon>
+
+          <div>
+
+            <small>
+              Estado
+            </small>
+
+            <strong>
+              {{ estadoCuenta }}
+            </strong>
 
           </div>
 
@@ -169,26 +878,34 @@
 
       </div>
 
+    </section>
+
+
+    <!-- ===================================================
+         VOLVER
+    ==================================================== -->
+
+    <div class="bottom-actions">
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        class="btn-volver"
+        (click)="volverMenu()"
+      >
+
+        <ion-icon
+          slot="start"
+          name="arrow-back-outline"
+        ></ion-icon>
+
+        VOLVER AL MENÚ
+
+      </ion-button>
+
     </div>
 
-    <!-- BOTONES -->
 
-    <div class="botones">
-
-      <button class="btn-editar">
-
-        ✏ Editar Perfil
-
-      </button>
-
-      <button class="btn-volver" routerLink="/menu">
-
-        ← Volver al menú
-
-      </button>
-
-    </div>
-
-  </div>
+  </main>
 
 </ion-content>

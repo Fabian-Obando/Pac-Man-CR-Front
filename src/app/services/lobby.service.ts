@@ -1,12 +1,21 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
 
-import { environment } from '../../environments/environment';
+import {
+  HttpClient
+} from '@angular/common/http';
 
-/*======================================================
-  DTOs
-======================================================*/
+import {
+  Observable
+} from 'rxjs';
+
+import {
+  environment
+} from '../../environments/environment';
+
+
+/* =========================================================
+   JUGADOR DEL LOBBY
+========================================================= */
 
 export interface JugadorLobby {
 
@@ -29,6 +38,11 @@ export interface JugadorLobby {
   esCreador: boolean;
 
 }
+
+
+/* =========================================================
+   RESPUESTA PRINCIPAL DEL LOBBY
+========================================================= */
 
 export interface Lobby {
 
@@ -62,6 +76,11 @@ export interface Lobby {
 
 }
 
+
+/* =========================================================
+   REQUESTS
+========================================================= */
+
 export interface InicializarLobby {
 
   usuarioId: number;
@@ -72,11 +91,13 @@ export interface InicializarLobby {
 
 }
 
+
 export interface UnirseLobby {
 
   usuarioId: number;
 
 }
+
 
 export interface CambiarRol {
 
@@ -86,6 +107,7 @@ export interface CambiarRol {
 
 }
 
+
 export interface CambiarEstado {
 
   usuarioId: number;
@@ -94,13 +116,19 @@ export interface CambiarEstado {
 
 }
 
+
 export interface AgregarBot {
 
   usuarioCreadorId: number;
 
+  /*
+   * 0 permite que el Back seleccione automáticamente
+   * el rol que haga falta.
+   */
   rolId: number;
 
 }
+
 
 export interface IniciarPartida {
 
@@ -108,22 +136,50 @@ export interface IniciarPartida {
 
 }
 
-/*======================================================
-  SERVICE
-======================================================*/
+
+/* =========================================================
+   NUEVO:
+   CAMBIAR LABERINTO
+========================================================= */
+
+export interface CambiarMapaLobby {
+
+  usuarioCreadorId: number;
+
+  mapaId: number;
+
+}
+
+
+/* =========================================================
+   SERVICIO
+========================================================= */
 
 @Injectable({
   providedIn: 'root'
 })
 export class LobbyService {
 
-  private readonly apiUrl = `${environment.apiUrl}/Lobby`;
+
+  /*
+   * IMPORTANTE PARA ANDROID:
+   *
+   * No utilizamos localhost.
+   *
+   * Todo depende de environment.apiUrl.
+   */
+  private readonly apiUrl =
+    `${environment.apiUrl}/Lobby`;
+
 
   constructor(
-    private http: HttpClient
-  ) { }
+    private readonly http: HttpClient
+  ) {}
 
-  /*====================================================*/
+
+  /* =======================================================
+     OBTENER LOBBY
+  ======================================================== */
 
   obtenerLobby(
     salaId: number
@@ -135,7 +191,10 @@ export class LobbyService {
 
   }
 
-  /*====================================================*/
+
+  /* =======================================================
+     INICIALIZAR
+  ======================================================== */
 
   inicializarLobby(
     salaId: number,
@@ -149,7 +208,10 @@ export class LobbyService {
 
   }
 
-  /*====================================================*/
+
+  /* =======================================================
+     UNIRSE
+  ======================================================== */
 
   unirseLobby(
     salaId: number,
@@ -163,7 +225,10 @@ export class LobbyService {
 
   }
 
-  /*====================================================*/
+
+  /* =======================================================
+     AGREGAR BOT
+  ======================================================== */
 
   agregarBot(
     salaId: number,
@@ -177,7 +242,10 @@ export class LobbyService {
 
   }
 
-  /*====================================================*/
+
+  /* =======================================================
+     CAMBIAR ROL
+  ======================================================== */
 
   cambiarRol(
     salaId: number,
@@ -191,7 +259,10 @@ export class LobbyService {
 
   }
 
-  /*====================================================*/
+
+  /* =======================================================
+     LISTO / SELECCIONANDO
+  ======================================================== */
 
   cambiarEstado(
     salaId: number,
@@ -205,7 +276,29 @@ export class LobbyService {
 
   }
 
-  /*====================================================*/
+
+  /* =======================================================
+     CAMBIAR LABERINTO
+
+     Solo el creador puede utilizar este endpoint.
+  ======================================================== */
+
+  cambiarMapa(
+    salaId: number,
+    request: CambiarMapaLobby
+  ): Observable<void> {
+
+    return this.http.put<void>(
+      `${this.apiUrl}/${salaId}/Mapa`,
+      request
+    );
+
+  }
+
+
+  /* =======================================================
+     INICIAR PARTIDA
+  ======================================================== */
 
   iniciarPartida(
     salaId: number,
@@ -219,7 +312,10 @@ export class LobbyService {
 
   }
 
-  /*====================================================*/
+
+  /* =======================================================
+     SALIR DEL LOBBY
+  ======================================================== */
 
   salirLobby(
     salaId: number,

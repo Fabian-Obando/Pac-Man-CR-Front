@@ -1,212 +1,532 @@
-<ion-content fullscreen class="salas-page">
+<ion-content
+  [fullscreen]="true"
+  class="salas-page"
+>
 
-  <div class="background-grid"></div>
-
-  <!-- CABECERA -->
-
-  <div class="header">
-
-    <button
-      class="btn-back"
-      (click)="volver()">
-
-      ← MENÚ
-
-    </button>
-
-    <div class="titulo">
-
-      <h1>SALAS ONLINE</h1>
-
-      <small>Pac-Man CR</small>
-
-    </div>
-
-    <div class="perfil">
-
-      <span class="usuario">
-
-        👤 {{ usuario }}
-
-      </span>
-
-      <span class="oro">
-
-        🪙 {{ oro }}
-
-      </span>
-
-    </div>
-
-  </div>
-
-  <!-- BOTÓN CREAR -->
-
-  <div class="crear">
-
-    <button
-      class="crear-btn"
-      [disabled]="creandoSala"
-      (click)="crearSala()">
-
-      {{ creandoSala ? 'CREANDO SALA...' : '+ CREAR NUEVA SALA' }}
-
-    </button>
-
-  </div>
-
-  <!-- MENSAJE -->
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
 
   <div
-    class="error"
-    *ngIf="mensajeError">
+    class="background-grid"
+    aria-hidden="true"
+  ></div>
 
-    {{ mensajeError }}
 
-  </div>
+  <!-- =====================================================
+       CONTENEDOR PRINCIPAL
+  ====================================================== -->
 
-  <!-- CARGANDO -->
+  <main class="salas-container">
 
-  <div
-    class="cargando"
-    *ngIf="cargando">
 
-    Cargando salas...
+    <!-- ===================================================
+         CABECERA
+    ==================================================== -->
 
-  </div>
+    <header class="header">
 
-  <!-- LISTA -->
+      <!-- VOLVER -->
 
-  <div
-    class="lista"
-    *ngIf="!cargando">
+      <button
+        type="button"
+        class="btn-back"
+        (click)="volver()"
+        [disabled]="
+          creandoSala ||
+          procesandoSalaId !== null ||
+          cerrandoSalaId !== null
+        "
+      >
 
-    <div
-      class="card"
-      *ngFor="let sala of salas">
+        <span aria-hidden="true">
+          ←
+        </span>
 
-      <div
-        class="estado"
-        [class.ocupada]="sala.estadoSala === 'Jugando' || sala.estadoSala === 'En partida'"
-        [class.completa]="sala.estadoSala === 'Completa'">
+        MENÚ
 
-        {{ sala.estadoSala }}
+      </button>
+
+
+      <!-- TÍTULO -->
+
+      <div class="titulo">
+
+        <h1>
+          SALAS ONLINE
+        </h1>
+
+        <small>
+          PAC-MAN CR
+        </small>
 
       </div>
 
-      <div class="contenido">
 
-        <div class="icono">
+      <!-- JUGADOR -->
 
+      <div class="perfil">
+
+        <span class="usuario">
+
+          <span aria-hidden="true">
+            👤
+          </span>
+
+          {{ usuario }}
+
+        </span>
+
+
+        <span class="oro">
+
+          <span aria-hidden="true">
+            🪙
+          </span>
+
+          {{ oro }}
+
+        </span>
+
+      </div>
+
+    </header>
+
+
+    <!-- ===================================================
+         ACCIONES PRINCIPALES
+    ==================================================== -->
+
+    <section class="acciones-principales">
+
+      <!-- CREAR -->
+
+      <button
+        type="button"
+        class="crear-btn"
+        [disabled]="
+          creandoSala ||
+          procesandoSalaId !== null ||
+          cerrandoSalaId !== null
+        "
+        (click)="crearSala()"
+      >
+
+        <span
+          *ngIf="!creandoSala"
+          aria-hidden="true"
+        >
+          ＋
+        </span>
+
+
+        <span
+          *ngIf="creandoSala"
+          class="spinner-boton"
+          aria-hidden="true"
+        ></span>
+
+
+        <span>
+          {{
+            creandoSala
+              ? 'CREANDO...'
+              : 'CREAR NUEVA SALA'
+          }}
+        </span>
+
+      </button>
+
+
+      <!-- ACTUALIZAR -->
+
+      <button
+        type="button"
+        class="btn-actualizar"
+        [disabled]="
+          cargando ||
+          creandoSala ||
+          procesandoSalaId !== null ||
+          cerrandoSalaId !== null
+        "
+        (click)="actualizar()"
+      >
+
+        <span
+          [class.girando]="cargando"
+          aria-hidden="true"
+        >
+          ↻
+        </span>
+
+
+        <span>
+          {{
+            cargando
+              ? 'ACTUALIZANDO'
+              : 'ACTUALIZAR'
+          }}
+        </span>
+
+      </button>
+
+    </section>
+
+
+    <!-- ===================================================
+         MENSAJES
+    ==================================================== -->
+
+    <div
+      class="mensaje mensaje-error"
+      *ngIf="mensajeError"
+      role="alert"
+    >
+
+      ⚠️
+
+      <span>
+        {{ mensajeError }}
+      </span>
+
+    </div>
+
+
+    <div
+      class="mensaje mensaje-exito"
+      *ngIf="mensajeExito"
+      role="status"
+    >
+
+      ✅
+
+      <span>
+        {{ mensajeExito }}
+      </span>
+
+    </div>
+
+
+    <!-- ===================================================
+         CARGANDO
+    ==================================================== -->
+
+    <section
+      class="cargando"
+      *ngIf="
+        cargando &&
+        salas.length === 0
+      "
+    >
+
+      <div class="spinner"></div>
+
+      <strong>
+        Buscando salas...
+      </strong>
+
+    </section>
+
+
+    <!-- ===================================================
+         LISTA
+    ==================================================== -->
+
+    <section
+      class="lista"
+      *ngIf="
+        !cargando ||
+        salas.length > 0
+      "
+    >
+
+
+      <!-- =================================================
+           SALA
+      ================================================== -->
+
+      <article
+        class="card"
+        *ngFor="let sala of salas"
+        [class.mi-sala]="esMiSala(sala)"
+        [class.procesando]="estaProcesando(sala)"
+      >
+
+
+        <!-- ICONO -->
+
+        <div
+          class="icono"
+          aria-hidden="true"
+        >
           🎮
-
         </div>
+
+
+        <!-- DATOS -->
 
         <div class="info">
 
-          <h2>
+          <div class="titulo-sala">
 
-            {{ sala.codigoSala }}
+            <h2>
+              {{ sala.codigoSala }}
+            </h2>
 
-          </h2>
+            <span
+              class="etiqueta-propia"
+              *ngIf="esMiSala(sala)"
+            >
+              TU SALA
+            </span>
+
+          </div>
+
 
           <p>
 
-            👤
+            <span>
+              👤
+            </span>
+
             <strong>
-
               {{ sala.nombreCreador }}
-
             </strong>
 
           </p>
 
+
           <p>
 
-            👥 {{ sala.jugadoresActuales }}/{{ sala.maxJugadores }} jugadores
+            <span>
+              👥
+            </span>
+
+            {{
+              sala.jugadoresActuales
+            }}/{{ sala.maxJugadores }}
+            jugadores
 
           </p>
 
-          <p>
 
-            📅 {{ sala.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}
+          <p class="fecha">
+
+            <span>
+              🕒
+            </span>
+
+            {{
+              sala.fechaCreacion
+                | date:'dd/MM/yyyy HH:mm'
+            }}
 
           </p>
 
         </div>
+
+
+        <!-- ESTADO -->
+
+        <div
+          class="estado"
+          [class.estado-propia]="esMiSala(sala)"
+        >
+
+          <span class="punto-estado"></span>
+
+          {{ obtenerTextoEstado(sala) }}
+
+        </div>
+
+
+        <!-- ACCIONES -->
 
         <div class="acciones">
 
-          <button
-            class="btn-unirse"
-            [disabled]="
-              salaNoDisponible(sala) ||
-              procesandoSalaId === sala.salaId
-            "
-            (click)="unirse(sala)">
 
-            {{ procesandoSalaId === sala.salaId ? 'ENTRANDO...' : 'UNIRSE' }}
-
-          </button>
+          <!-- ENTRAR A MI SALA -->
 
           <button
             *ngIf="esMiSala(sala)"
-            class="btn-cerrar"
-            [disabled]="procesandoSalaId === sala.salaId"
-            (click)="cerrarSala(sala)">
+            type="button"
+            class="btn-entrar"
+            [disabled]="estaProcesando(sala)"
+            (click)="unirse(sala)"
+          >
 
-            {{ procesandoSalaId === sala.salaId ? 'CERRANDO...' : 'CERRAR' }}
+            <span
+              *ngIf="
+                procesandoSalaId !==
+                sala.salaId
+              "
+            >
+              ▶
+            </span>
+
+
+            <span
+              *ngIf="
+                procesandoSalaId ===
+                sala.salaId
+              "
+              class="spinner-boton"
+            ></span>
+
+
+            {{
+              procesandoSalaId ===
+                sala.salaId
+                ? 'ENTRANDO'
+                : 'ENTRAR'
+            }}
+
+          </button>
+
+
+          <!-- UNIRSE -->
+
+          <button
+            *ngIf="!esMiSala(sala)"
+            type="button"
+            class="btn-unirse"
+            [disabled]="!puedeUnirse(sala)"
+            (click)="unirse(sala)"
+          >
+
+            <span
+              *ngIf="
+                procesandoSalaId !==
+                sala.salaId
+              "
+            >
+              ＋
+            </span>
+
+
+            <span
+              *ngIf="
+                procesandoSalaId ===
+                sala.salaId
+              "
+              class="spinner-boton"
+            ></span>
+
+
+            {{
+              procesandoSalaId ===
+                sala.salaId
+                ? 'ENTRANDO'
+                : 'UNIRSE'
+            }}
+
+          </button>
+
+
+          <!-- CERRAR -->
+
+          <button
+            *ngIf="esMiSala(sala)"
+            type="button"
+            class="btn-cerrar"
+            [disabled]="estaProcesando(sala)"
+            (click)="cerrarSala(sala)"
+          >
+
+            ✕ CERRAR
 
           </button>
 
         </div>
 
+      </article>
+
+
+      <!-- =================================================
+           NO HAY SALAS
+      ================================================== -->
+
+      <section
+        class="sin-salas"
+        *ngIf="
+          salas.length === 0 &&
+          !cargando
+        "
+      >
+
+        <div class="sin-salas-icono">
+          🎮
+        </div>
+
+
+        <div>
+
+          <h2>
+            No hay salas disponibles
+          </h2>
+
+          <p>
+            Sé el primero en crear una partida.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="btn-crear-vacia"
+          [disabled]="creandoSala"
+          (click)="crearSala()"
+        >
+
+          ＋ CREAR SALA
+
+        </button>
+
+      </section>
+
+    </section>
+
+
+    <!-- ===================================================
+         INFORMACIÓN INFERIOR
+    ==================================================== -->
+
+    <footer class="info-final">
+
+      <div class="item">
+
+        <span class="punto verde"></span>
+
+        Salas disponibles
+
       </div>
 
-    </div>
 
-    <div
-      class="sin-salas"
-      *ngIf="salas.length === 0">
+      <div class="item">
 
-      🎮 No hay salas disponibles.
+        <span class="punto amarillo"></span>
 
-      <br>
+        Tu sala
 
-      ¡Sé el primero en crear una!
+      </div>
 
-    </div>
 
-  </div>
+      <div class="item">
 
-  <!-- INFORMACIÓN -->
+        👥 Máximo 4 jugadores
 
-  <div class="info-final">
+      </div>
 
-    <div class="item">
 
-      🟢 Esperando jugadores
+      <div class="item">
 
-    </div>
+        ↻ Actualización automática
 
-    <div class="item">
+      </div>
 
-      🟡 Sala completa
+    </footer>
 
-    </div>
-
-    <div class="item">
-
-      🔴 En partida
-
-    </div>
-
-    <div class="item">
-
-      👥 Máximo 4 jugadores
-
-    </div>
-
-  </div>
+  </main>
 
 </ion-content>

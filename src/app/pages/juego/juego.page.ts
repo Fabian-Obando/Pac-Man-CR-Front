@@ -11,94 +11,40 @@ import {
 } from '@angular/router';
 
 import {
+  finalize,
+  Subject,
+  takeUntil
+} from 'rxjs';
+
+import {
   Auth,
   UsuarioSesion
 } from '../../services/auth';
 
 import {
   Juego,
+  JuegoService,
   JugadorJuego,
-  JuegoService
+  MovimientoJuegoRespuesta
 } from '../../services/juego.service';
 
-import {
-  CeldaJuego,
-  Direccion,
-  GameEngineService,
-  MapaJuego,
-  PersonajeMotor,
-  Posicion,
-  TipoFrutaPacMan,
-  TipoFrutaVillano
-} from '../../services/game-engine.service';
 
-/*======================================================
-  TIPOS DE LA PÁGINA
-======================================================*/
+/* ============================================================
+   TIPOS
+============================================================ */
 
-type VistaJuego =
-  | 'cargando'
-  | 'jugando'
-  | 'victoria'
-  | 'derrota'
-  | 'error';
+type DireccionJuego =
+  | 'Arriba'
+  | 'Abajo'
+  | 'Izquierda'
+  | 'Derecha';
 
-type EquipoJuego =
-  | 'pacman'
-  | 'villanos'
-  | '';
 
-/*======================================================
-  PERSONAJE UTILIZADO POR LA PÁGINA
-======================================================*/
+type TipoMensaje =
+  | 'error'
+  | 'exito'
+  | 'info';
 
-interface PersonajeJuego {
-
-  participanteId: number;
-
-  usuarioId: number | null;
-
-  nombreUsuario: string;
-
-  nombreRol: string;
-
-  esBot: boolean;
-
-  esLocal: boolean;
-
-  x: number;
-
-  y: number;
-
-  direccion: Direccion;
-
-  siguienteDireccion: Direccion;
-
-  puntos: number;
-
-  vidas: number;
-
-  vivo: boolean;
-
-  powerActivo: boolean;
-
-  escudoActivo: boolean;
-
-  doblePuntajeActivo: boolean;
-
-  velocidadExtraActiva: boolean;
-
-  fuerzaActiva: boolean;
-
-  congelado: boolean;
-
-  skin: string;
-
-}
-
-/*======================================================
-  COMPONENTE
-======================================================*/
 
 @Component({
   selector: 'app-juego',
@@ -106,300 +52,492 @@ interface PersonajeJuego {
   styleUrls: ['./juego.page.scss'],
   standalone: false
 })
-export class JuegoPage implements OnInit, OnDestroy {
+export class JuegoPage
+  implements OnInit, OnDestroy {
 
-  /*====================================================
-    SESIÓN
-  ====================================================*/
+
+  /* ============================================================
+     SESIÓN
+  ============================================================ */
 
   usuario!: UsuarioSesion;
 
-  nombreJugador = '';
 
-  oro = 0;
-
-  skinJugador = 'clasica';
-
-  /*====================================================
-    NAVEGACIÓN
-  ====================================================*/
-
-  salaId = 0;
+  /* ============================================================
+     PARTIDA
+  ============================================================ */
 
   partidaId = 0;
 
-  /*====================================================
-    BACKEND
-  ====================================================*/
+  salaId = 0;
 
   juego?: Juego;
 
-  jugadoresServidor: JugadorJuego[] = [];
+  jugadorActual?: JugadorJuego;
 
-  /*====================================================
-    PANTALLA
-  ====================================================*/
 
-  vista: VistaJuego = 'cargando';
+  /* ============================================================
+     ESTADOS DE CARGA
+  ============================================================ */
 
   cargando = true;
 
   sincronizando = false;
 
-  enviandoMovimiento = false;
+  moviendo = false;
 
   finalizando = false;
 
+  saliendo = false;
+
+
+  /* ============================================================
+     MENSAJES
+  ============================================================ */
+
   mensaje = '';
 
-  mensajeFinal = '';
+  tipoMensaje: TipoMensaje =
+    'info';
 
-  equipoGanador: EquipoJuego = '';
 
-  /*====================================================
-    DATOS DEL JUGADOR
-  ====================================================*/
+  /* ============================================================
+     DESTRUCCIÓN DE SUSCRIPCIONES
 
-  rolJugador = '';
+     Evita acumular cientos de Subscription durante
+     una partida de varios minutos.
+  ============================================================ */
 
-  equipoJugador: EquipoJuego = '';
+  private readonly destruir$ =
+    new Subject<void>();
 
-  puntaje = 0;
 
-  vidas = 3;
+  /* ============================================================
+     MOVIMIENTO
+  ============================================================ */
 
-  oroGanado = 0;
+  direccionActual:
+    DireccionJuego | null = null;
 
-  powerActivo = false;
 
-  mostrarInfo = false;
+  /*
+   * Impide mandar un segundo POST /Mover mientras
+   * todavía está respondiendo el anterior.
+   */
+  private peticionMovimientoActiva =
+    false;
 
-  /*====================================================
-    PARTIDA
-  ====================================================*/
 
-  mapaActual = 1;
+  /*
+   * Se activa cuando el jugador llega a una pared.
+   *
+   * El personaje queda detenido hasta que el usuario
+   * seleccione otra dirección.
+   */
+  private movimientoBloqueado =
+    false;
 
-  tiempo = 180;
 
-  movimientoActivo = false;
+  /*
+   * Timeout del movimiento continuo.
+   *
+   * No usamos setInterval porque setTimeout permite
+   * esperar a que una petición termine antes de mandar otra.
+   */
+  private temporizadorMovimiento?:
+    ReturnType<typeof setTimeout>;
 
-  /*====================================================
-    TABLERO Y PERSONAJES
-  ====================================================*/
 
-  celdas: CeldaJuego[] = [];
+  /* ============================================================
+     VELOCIDAD OPTIMIZADA PARA ANDROID
 
-  personajes: PersonajeJuego[] = [];
+     Antes:
+       normal = 155 ms
+       rápida = 105 ms
 
-  personajeLocal?: PersonajeJuego;
+     Eso podía producir demasiadas peticiones HTTP.
 
-  /*====================================================
-    MOVIMIENTO ESTILO PAC-MAN
-  ====================================================*/
+     Ahora:
+       normal = 230 ms
+       rápida = 165 ms
 
-  direccionActual: Direccion = 'derecha';
+     Sigue sintiéndose continuo, pero reduce bastante
+     la carga del A21s y del Backend.
+  ============================================================ */
 
-  siguienteDireccion: Direccion = 'derecha';
+  private readonly VELOCIDAD_NORMAL =
+    230;
 
-  direccionPendiente: Direccion = 'derecha';
 
-  /*====================================================
-    CONTROL TÁCTIL
-  ====================================================*/
+  private readonly VELOCIDAD_RAPIDA =
+    165;
 
-  inicioToqueX = 0;
 
-  inicioToqueY = 0;
+  /* ============================================================
+     DIRECCIÓN VISUAL
+  ============================================================ */
 
-  finToqueX = 0;
+  private readonly direccionVisualPorParticipante =
+    new Map<
+      number,
+      DireccionJuego
+    >();
 
-  finToqueY = 0;
 
-  private readonly distanciaMinimaDeslizamiento = 35;
+  private readonly ultimaPosicionPorParticipante =
+    new Map<
+      number,
+      {
+        x: number;
+        y: number;
+      }
+    >();
 
-  /*====================================================
-    INTERVALOS
-  ====================================================*/
 
-  intervaloMovimiento?: ReturnType<typeof setInterval>;
+  /* ============================================================
+     SINCRONIZACIÓN
+  ============================================================ */
 
-  intervaloSincronizacion?: ReturnType<typeof setInterval>;
+  private intervaloSincronizacion?:
+    ReturnType<typeof setInterval>;
 
-  intervaloTiempo?: ReturnType<typeof setInterval>;
 
-  intervaloBots?: ReturnType<typeof setInterval>;
+  /*
+   * Antes:
+   * 650 ms.
+   *
+   * Ahora:
+   * 1200 ms.
+   *
+   * IMPORTANTE:
+   *
+   * Cada POST /Mover ya devuelve el estado completo,
+   * entonces mientras el jugador está caminando
+   * NO necesitamos bombardear además GET /Estado.
+   */
+  private readonly INTERVALO_SINCRONIZACION =
+    1200;
 
-  /*====================================================
-    CONFIGURACIÓN
-  ====================================================*/
 
-  private readonly tiempoSincronizacion = 250;
+  /* ============================================================
+     RELOJ
+  ============================================================ */
 
-  private readonly ROL_PACMAN = 'pacman';
+  tiempoVisual = 0;
 
-  private readonly ROL_FANTASMA = 'fantasma';
 
-  private readonly ROL_MONSTRUO = 'monstruo';
+  private intervaloReloj?:
+    ReturnType<typeof setInterval>;
 
-  /*====================================================
-    CONSTRUCTOR
-  ====================================================*/
+
+  /*
+   * El texto del reloj solamente cambia una vez
+   * por segundo.
+   *
+   * No necesitamos actualizar Angular cada 250 ms.
+   */
+  private readonly INTERVALO_RELOJ =
+    1000;
+
+
+  private ultimaSincronizacionTiempo =
+    Date.now();
+
+
+  /* ============================================================
+     FINAL DE PARTIDA
+  ============================================================ */
+
+  private resultadoSolicitado =
+    false;
+
+
+  private navegacionFinalRealizada =
+    false;
+
+
+  /* ============================================================
+     CONSTRUCTOR
+  ============================================================ */
 
   constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-    private auth: Auth,
-    private juegoService: JuegoService,
-    private gameEngine: GameEngineService
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly auth: Auth,
+    private readonly juegoService: JuegoService
   ) {}
 
-  /*====================================================
-    INICIAR COMPONENTE
-  ====================================================*/
+
+  /* ============================================================
+     INICIO
+  ============================================================ */
 
   ngOnInit(): void {
+
+    this.cargarDatosIniciales();
+
+  }
+
+
+  ionViewWillEnter(): void {
+
+    if (
+      this.partidaId > 0 &&
+      this.usuario &&
+      !this.saliendo &&
+      !this.navegacionFinalRealizada
+    ) {
+
+      this.iniciarSincronizacion();
+
+      this.iniciarRelojVisual();
+
+    }
+
+  }
+
+
+  ionViewDidLeave(): void {
+
+    this.detenerMovimiento();
+
+    this.detenerSincronizacion();
+
+    this.detenerRelojVisual();
+
+  }
+
+
+  ngOnDestroy(): void {
+
+    this.detenerMovimiento();
+
+    this.detenerSincronizacion();
+
+    this.detenerRelojVisual();
+
+
+    /*
+     * Cancela cualquier HTTP que todavía esté vivo.
+     */
+    this.destruir$.next();
+
+    this.destruir$.complete();
+
+
+    this.direccionVisualPorParticipante.clear();
+
+    this.ultimaPosicionPorParticipante.clear();
+
+  }
+
+
+  /* ============================================================
+     DATOS INICIALES
+  ============================================================ */
+
+  private cargarDatosIniciales(): void {
 
     const sesion =
       this.auth.obtenerSesion();
 
+
     if (!sesion) {
 
-      this.router.navigate(['/login']);
+      void this.router.navigate(
+        ['/login'],
+        {
+          replaceUrl: true
+        }
+      );
 
       return;
 
     }
 
-    this.usuario = sesion;
 
-    this.nombreJugador =
-      sesion.nombreUsuario;
+    this.usuario =
+      sesion;
 
-    this.oro =
-      sesion.oroActual;
 
-    this.skinJugador =
-      localStorage.getItem(
-        'skinSeleccionada'
-      ) ??
-      localStorage.getItem(
-        'skinJugador'
-      ) ??
-      'clasica';
+    /* =========================================================
+       PARTIDA ID
+    ========================================================= */
 
     const partidaRecibida =
+      this.route.snapshot
+        .queryParamMap
+        .get(
+          'partidaId'
+        );
+
+
+    const partidaConvertida =
       Number(
-        this.route.snapshot
-          .queryParamMap
-          .get('partidaId')
+        partidaRecibida
       );
 
-    const salaRecibida =
-      Number(
-        this.route.snapshot
-          .queryParamMap
-          .get('salaId')
-      );
 
     if (
-      !Number.isInteger(partidaRecibida) ||
-      partidaRecibida <= 0 ||
-      !Number.isInteger(salaRecibida) ||
-      salaRecibida <= 0
+      !partidaRecibida ||
+      !Number.isInteger(
+        partidaConvertida
+      ) ||
+      partidaConvertida <= 0
     ) {
 
-      this.mensaje =
-        'No se recibió correctamente la información de la partida.';
+      this.mostrarMensaje(
+        'No se recibió una partida válida.',
+        'error'
+      );
 
-      this.vista = 'error';
 
-      this.cargando = false;
+      setTimeout(
+        () => {
+
+          void this.router.navigate(
+            ['/salas'],
+            {
+              replaceUrl: true
+            }
+          );
+
+        },
+        1000
+      );
+
 
       return;
 
     }
 
+
     this.partidaId =
-      partidaRecibida;
+      partidaConvertida;
 
-    this.salaId =
-      salaRecibida;
 
-    this.cargarPartida();
+    /* =========================================================
+       SALA ID
+    ========================================================= */
+
+    const salaRecibida =
+      this.route.snapshot
+        .queryParamMap
+        .get(
+          'salaId'
+        );
+
+
+    const salaConvertida =
+      Number(
+        salaRecibida
+      );
+
+
+    if (
+      salaRecibida &&
+      Number.isInteger(
+        salaConvertida
+      ) &&
+      salaConvertida > 0
+    ) {
+
+      this.salaId =
+        salaConvertida;
+
+    }
+
+
+    this.cargarJuegoInicial();
 
   }
 
-  /*====================================================
-    DESTRUIR COMPONENTE
-  ====================================================*/
 
-  ngOnDestroy(): void {
+  /* ============================================================
+     CARGAR PARTIDA
+  ============================================================ */
 
-    this.detenerTodosLosIntervalos();
+  private cargarJuegoInicial(): void {
 
-  }
+    if (
+      this.partidaId <= 0
+    ) {
 
-  /*====================================================
-    CARGAR PARTIDA DESDE EL BACKEND
-  ====================================================*/
+      return;
 
-  cargarPartida(): void {
+    }
 
-    this.cargando = true;
-    this.vista = 'cargando';
-    this.mensaje = '';
+
+    this.cargando =
+      true;
+
+
+    this.limpiarMensaje();
+
 
     this.juegoService
-      .obtenerJuego(this.partidaId)
+
+      .obtenerJuego(
+        this.partidaId
+      )
+
+      .pipe(
+
+        takeUntil(
+          this.destruir$
+        ),
+
+        finalize(
+          () => {
+
+            this.cargando =
+              false;
+
+          }
+        )
+
+      )
+
       .subscribe({
 
-        next: (respuesta: Juego) => {
+        next: estado => {
 
-          this.aplicarEstadoServidor(
-            respuesta,
-            true
+          this.aplicarEstado(
+            estado
           );
 
-          if (!this.personajeLocal) {
 
-            this.cargando = false;
-            this.vista = 'error';
+          if (
+            !estado.partidaFinalizada
+          ) {
 
-            this.mensaje =
-              'Tu usuario no aparece como participante de esta partida.';
+            this.iniciarSincronizacion();
 
-            return;
+            this.iniciarRelojVisual();
 
           }
 
-          this.prepararMapa();
-
-          this.cargando = false;
-          this.vista = 'jugando';
-
-          this.iniciarMovimientoContinuo();
-          this.iniciarSincronizacion();
-          this.iniciarTemporizador();
-          this.iniciarBots();
-
         },
 
-        error: (error: unknown) => {
+
+        error: error => {
 
           console.error(
-            'Error al cargar la partida:',
+            'Error cargando partida:',
             error
           );
 
-          this.cargando = false;
-          this.vista = 'error';
 
-          this.mensaje =
+          this.mostrarMensaje(
+
             this.obtenerMensajeError(
               error,
               'No fue posible cargar la partida.'
-            );
+            ),
+
+            'error'
+
+          );
 
         }
 
@@ -408,207 +546,2972 @@ export class JuegoPage implements OnInit, OnDestroy {
   }
 
 
-  /*====================================================
-    APLICAR ESTADO RECIBIDO DEL SERVIDOR
-  ====================================================*/
+  /* ============================================================
+     APLICAR ESTADO DEL BACK
+  ============================================================ */
 
-  private aplicarEstadoServidor(
-    respuesta: Juego,
-    cargaInicial: boolean = false
+  private aplicarEstado(
+    estado: Juego
   ): void {
 
-    this.juego = respuesta;
+    if (!estado) {
 
-    this.jugadoresServidor =
-      respuesta.jugadores ?? [];
-
-    const personajesAnteriores =
-      new Map<number, PersonajeJuego>();
-
-    for (const personaje of this.personajes) {
-
-      personajesAnteriores.set(
-        personaje.participanteId,
-        personaje
-      );
+      return;
 
     }
 
-    this.personajes =
-      this.jugadoresServidor.map(
-        (jugador: JugadorJuego) => {
 
-          const anterior =
-            personajesAnteriores.get(
-              jugador.participanteId
-            );
+    /*
+     * Primero calculamos las direcciones usando
+     * posiciones anteriores.
+     */
+    this.actualizarDireccionesVisuales(
+      estado
+    );
 
-          const esLocal =
-            jugador.usuarioId ===
-            this.usuario.usuarioId;
 
-          return {
+    /*
+     * Después reemplazamos el estado.
+     */
+    this.juego =
+      estado;
 
-            participanteId:
-              jugador.participanteId,
-
-            usuarioId:
-              jugador.usuarioId,
-
-            nombreUsuario:
-              jugador.nombreUsuario,
-
-            nombreRol:
-              jugador.nombreRol,
-
-            esBot:
-              jugador.esBot,
-
-            esLocal,
-
-            x:
-              esLocal &&
-              !cargaInicial &&
-              this.personajeLocal
-                ? this.personajeLocal.x
-                : jugador.posicionX,
-
-            y:
-              esLocal &&
-              !cargaInicial &&
-              this.personajeLocal
-                ? this.personajeLocal.y
-                : jugador.posicionY,
-
-            direccion:
-              anterior?.direccion ??
-              'derecha',
-
-            siguienteDireccion:
-              anterior?.siguienteDireccion ??
-              'derecha',
-
-            puntos:
-              jugador.puntos,
-
-            vidas:
-              anterior?.vidas ??
-              3,
-
-            vivo:
-              jugador.vivo,
-
-            powerActivo:
-              anterior?.powerActivo ??
-              false,
-
-            escudoActivo:
-              anterior?.escudoActivo ??
-              false,
-
-            doblePuntajeActivo:
-              anterior?.doblePuntajeActivo ??
-              false,
-
-            velocidadExtraActiva:
-              anterior?.velocidadExtraActiva ??
-              false,
-
-            fuerzaActiva:
-              anterior?.fuerzaActiva ??
-              false,
-
-            congelado:
-              anterior?.congelado ??
-              false,
-
-            skin:
-              esLocal
-                ? this.skinJugador
-                : anterior?.skin ??
-                  'clasica'
-
-          };
-
-        }
-      );
-
-    this.personajeLocal =
-      this.personajes.find(
-        personaje =>
-          personaje.esLocal
-      );
-
-    if (this.personajeLocal) {
-
-      this.nombreJugador =
-        this.personajeLocal.nombreUsuario;
-
-      this.rolJugador =
-        this.personajeLocal.nombreRol;
-
-      this.puntaje =
-        this.personajeLocal.puntos;
-
-      this.vidas =
-        this.personajeLocal.vidas;
-
-      this.powerActivo =
-        this.personajeLocal.powerActivo;
-
-      this.direccionActual =
-        this.personajeLocal.direccion;
-
-      this.siguienteDireccion =
-        this.personajeLocal
-          .siguienteDireccion;
-
-      this.direccionPendiente =
-        this.personajeLocal
-          .siguienteDireccion;
-
-      this.equipoJugador =
-        this.esRolPacMan(
-          this.personajeLocal.nombreRol
-        )
-          ? 'pacman'
-          : 'villanos';
-
-    }
-
-    if (!cargaInicial) {
-
-      this.actualizarPersonajesRemotos(
-        this.jugadoresServidor
-      );
-
-    }
 
     if (
-      respuesta.partidaFinalizada ||
-      respuesta.estadoPartida === 'Finalizada'
+      estado.salaId > 0
     ) {
 
-      this.detenerTodosLosIntervalos();
+      this.salaId =
+        estado.salaId;
 
-      this.resolverFinalDesdeServidor();
+    }
+
+
+    /*
+     * Sincronizamos el reloj visual con la
+     * autoridad del Backend.
+     */
+    this.tiempoVisual =
+      Math.max(
+        0,
+        Number(
+          estado.tiempoRestante ?? 0
+        )
+      );
+
+
+    this.ultimaSincronizacionTiempo =
+      Date.now();
+
+
+    this.actualizarJugadorActual();
+
+
+    if (
+      estado.partidaFinalizada ||
+      this.normalizarTexto(
+        estado.estadoPartida
+      ) ===
+      'finalizada'
+    ) {
+
+      this.procesarFinDePartida();
 
     }
 
   }
 
 
-  /*====================================================
-    NORMALIZAR NOMBRE DEL ROL
-  ====================================================*/
+  /* ============================================================
+     JUGADOR ACTUAL
+  ============================================================ */
 
-  private normalizarRol(
-    rol: string | null | undefined
+  private actualizarJugadorActual(): void {
+
+    if (
+      !this.juego?.jugadores ||
+      !this.usuario
+    ) {
+
+      this.jugadorActual =
+        undefined;
+
+      return;
+
+    }
+
+
+    const usuarioId =
+      Number(
+        this.usuario.usuarioId
+      );
+
+
+    const encontrado =
+      this.juego.jugadores
+        .find(
+          jugador =>
+
+            !jugador.esBot
+
+            &&
+
+            Number(
+              jugador.usuarioId
+            )
+            ===
+            usuarioId
+        );
+
+
+    this.jugadorActual =
+      encontrado;
+
+  }
+
+
+  /* ============================================================
+     SINCRONIZACIÓN MULTIJUGADOR
+  ============================================================ */
+
+  private iniciarSincronizacion(): void {
+
+    this.detenerSincronizacion();
+
+
+    if (
+      this.partidaId <= 0 ||
+      this.navegacionFinalRealizada
+    ) {
+
+      return;
+
+    }
+
+
+    this.intervaloSincronizacion =
+      setInterval(
+        () => {
+
+          this.sincronizarEstado();
+
+        },
+        this.INTERVALO_SINCRONIZACION
+      );
+
+  }
+
+
+  private detenerSincronizacion(): void {
+
+    if (
+      this.intervaloSincronizacion
+    ) {
+
+      clearInterval(
+        this.intervaloSincronizacion
+      );
+
+
+      this.intervaloSincronizacion =
+        undefined;
+
+    }
+
+  }
+
+
+  /* ============================================================
+     SINCRONIZAR ESTADO
+
+     OPTIMIZACIÓN PRINCIPAL:
+
+     mientras estamos caminando y los POST /Mover
+     están devolviendo estado, no enviamos GET /Estado
+     innecesariamente.
+  ============================================================ */
+
+  private sincronizarEstado(): void {
+
+    if (
+      this.partidaId <= 0 ||
+      this.sincronizando ||
+      this.finalizando ||
+      this.saliendo ||
+      this.navegacionFinalRealizada
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+     * Si actualmente hay un POST /Mover en vuelo,
+     * esperamos.
+     */
+    if (
+      this.peticionMovimientoActiva
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+     * Mientras caminamos libremente recibimos
+     * estado en cada respuesta del movimiento.
+     *
+     * No hace falta simultáneamente GET /Estado.
+     */
+    if (
+      this.direccionActual &&
+      !this.movimientoBloqueado &&
+      this.puedeControlarJugador()
+    ) {
+
+      return;
+
+    }
+
+
+    this.sincronizando =
+      true;
+
+
+    this.juegoService
+
+      .obtenerEstado(
+        this.partidaId
+      )
+
+      .pipe(
+
+        takeUntil(
+          this.destruir$
+        ),
+
+        finalize(
+          () => {
+
+            this.sincronizando =
+              false;
+
+          }
+        )
+
+      )
+
+      .subscribe({
+
+        next: estado => {
+
+          this.aplicarEstado(
+            estado
+          );
+
+        },
+
+
+        error: error => {
+
+          /*
+           * Una pérdida temporal de sincronización
+           * NO expulsa al jugador ni detiene la partida.
+           */
+          console.warn(
+            'Sincronización temporalmente no disponible:',
+            error
+          );
+
+        }
+
+      });
+
+  }
+
+
+  /* ============================================================
+     ACTUALIZACIÓN MANUAL
+  ============================================================ */
+
+  actualizar(): void {
+
+    if (
+      this.sincronizando ||
+      this.cargando ||
+      this.peticionMovimientoActiva
+    ) {
+
+      return;
+
+    }
+
+
+    this.sincronizarEstado();
+
+  }
+
+
+  /* ============================================================
+     RELOJ VISUAL
+  ============================================================ */
+
+  private iniciarRelojVisual(): void {
+
+    this.detenerRelojVisual();
+
+
+    this.intervaloReloj =
+      setInterval(
+        () => {
+
+          if (
+            !this.juego ||
+            this.juego.partidaFinalizada
+          ) {
+
+            return;
+
+          }
+
+
+          const ahora =
+            Date.now();
+
+
+          const segundosPasados =
+            Math.floor(
+              (
+                ahora -
+                this.ultimaSincronizacionTiempo
+              )
+              /
+              1000
+            );
+
+
+          this.tiempoVisual =
+            Math.max(
+              0,
+
+              Number(
+                this.juego.tiempoRestante
+              )
+              -
+              segundosPasados
+            );
+
+
+          /*
+           * Solo cuando llega realmente a cero
+           * pedimos confirmación al servidor.
+           */
+          if (
+            this.tiempoVisual <= 0 &&
+            !this.sincronizando
+          ) {
+
+            this.sincronizarEstado();
+
+          }
+
+        },
+        this.INTERVALO_RELOJ
+      );
+
+  }
+
+
+  private detenerRelojVisual(): void {
+
+    if (
+      this.intervaloReloj
+    ) {
+
+      clearInterval(
+        this.intervaloReloj
+      );
+
+
+      this.intervaloReloj =
+        undefined;
+
+    }
+
+  }
+
+
+  /* ============================================================
+     CAMBIAR DIRECCIÓN
+
+     Una sola pulsación inicia el movimiento continuo.
+  ============================================================ */
+
+  cambiarDireccion(
+    direccion: DireccionJuego
+  ): void {
+
+    if (
+      !this.puedeControlarJugador()
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+     * Si ya vamos en esa dirección y no estamos
+     * bloqueados, no reiniciamos timers.
+     *
+     * Esto evita spam por mantener apretado
+     * físicamente el botón.
+     */
+    if (
+      this.direccionActual === direccion &&
+      !this.movimientoBloqueado
+    ) {
+
+      return;
+
+    }
+
+
+    this.direccionActual =
+      direccion;
+
+
+    if (
+      this.jugadorActual
+    ) {
+
+      this.direccionVisualPorParticipante
+        .set(
+          this.jugadorActual.participanteId,
+          direccion
+        );
+
+    }
+
+
+    this.movimientoBloqueado =
+      false;
+
+
+    this.detenerTemporizadorMovimiento();
+
+
+    /*
+     * Si un request anterior sigue vivo,
+     * esperamos a que termine.
+     */
+    if (
+      this.peticionMovimientoActiva ||
+      this.sincronizando
+    ) {
+
+      this.programarSiguienteMovimiento(
+        80
+      );
+
+      return;
+
+    }
+
+
+    this.ejecutarMovimiento();
+
+  }
+
+
+  /* ============================================================
+     MOVIMIENTO CONTINUO
+  ============================================================ */
+
+  private ejecutarMovimiento(): void {
+
+    if (
+      !this.direccionActual ||
+      !this.puedeControlarJugador() ||
+      this.movimientoBloqueado ||
+      this.finalizando ||
+      this.saliendo
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+     * Nunca permitimos más de una solicitud
+     * de movimiento simultánea.
+     */
+    if (
+      this.peticionMovimientoActiva
+    ) {
+
+      this.programarSiguienteMovimiento(
+        70
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Si justo hay una sincronización GET en curso,
+     * dejamos que termine.
+     */
+    if (
+      this.sincronizando
+    ) {
+
+      this.programarSiguienteMovimiento(
+        80
+      );
+
+      return;
+
+    }
+
+
+    const jugador =
+      this.jugadorActual;
+
+
+    if (!jugador) {
+
+      return;
+
+    }
+
+
+    const direccionEnviada =
+      this.direccionActual;
+
+
+    this.peticionMovimientoActiva =
+      true;
+
+
+    this.moviendo =
+      true;
+
+
+    this.juegoService
+
+      .moverJugador(
+        this.partidaId,
+        jugador.participanteId,
+        this.usuario.usuarioId,
+        direccionEnviada
+      )
+
+      .pipe(
+
+        takeUntil(
+          this.destruir$
+        ),
+
+        finalize(
+          () => {
+
+            this.peticionMovimientoActiva =
+              false;
+
+
+            this.moviendo =
+              false;
+
+          }
+        )
+
+      )
+
+      .subscribe({
+
+        next: respuesta => {
+
+          this.procesarRespuestaMovimiento(
+            respuesta,
+            direccionEnviada
+          );
+
+        },
+
+
+        error: error => {
+
+          console.error(
+            'Error moviendo jugador:',
+            error
+          );
+
+
+          /*
+           * No mandamos inmediatamente al usuario
+           * fuera de la partida por un fallo de red.
+           */
+          this.detenerMovimiento();
+
+
+          this.mostrarMensaje(
+
+            this.obtenerMensajeError(
+              error,
+              'Se perdió momentáneamente la conexión con la partida.'
+            ),
+
+            'error'
+
+          );
+
+
+          /*
+           * Intentamos volver a sincronizar después
+           * sin crear una tormenta de peticiones.
+           */
+          setTimeout(
+            () => {
+
+              if (
+                !this.saliendo &&
+                !this.navegacionFinalRealizada
+              ) {
+
+                this.sincronizarEstado();
+
+              }
+
+            },
+            900
+          );
+
+        }
+
+      });
+
+  }
+
+
+  /* ============================================================
+     RESPUESTA DE MOVIMIENTO
+  ============================================================ */
+
+  private procesarRespuestaMovimiento(
+    respuesta: MovimientoJuegoRespuesta,
+    direccionEnviada: DireccionJuego
+  ): void {
+
+    if (
+      respuesta.estado
+    ) {
+
+      this.aplicarEstado(
+        respuesta.estado
+      );
+
+    }
+
+
+    if (
+      respuesta.estado
+        ?.partidaFinalizada
+    ) {
+
+      this.detenerMovimiento();
+
+      return;
+
+    }
+
+
+    if (
+      respuesta.movimientoRealizado
+    ) {
+
+      this.movimientoBloqueado =
+        false;
+
+
+      this.programarSiguienteMovimiento();
+
+      return;
+
+    }
+
+
+    /* =========================================================
+       DIFERENCIAR PARED DE RATE LIMIT
+
+       El Back nuevo puede contestar:
+
+       "Movimiento recibido demasiado rápido."
+
+       Eso NO significa que chocamos con una pared.
+    ========================================================= */
+
+    const mensajeNormalizado =
+      this.normalizarTexto(
+        respuesta.mensaje
+      );
+
+
+    const demasiadoRapido =
+      mensajeNormalizado.includes(
+        'demasiadorapido'
+      )
+      ||
+      mensajeNormalizado.includes(
+        'rapido'
+      );
+
+
+    if (
+      demasiadoRapido
+    ) {
+
+      this.movimientoBloqueado =
+        false;
+
+
+      this.programarSiguienteMovimiento(
+        90
+      );
+
+
+      return;
+
+    }
+
+
+    /*
+     * Si el servidor dice que temporalmente
+     * no puede moverse, dejamos que el polling
+     * vuelva a actualizarlo.
+     */
+    const temporalmenteBloqueado =
+      mensajeNormalizado.includes(
+        'nopuedemoverse'
+      )
+      ||
+      mensajeNormalizado.includes(
+        'moment'
+      );
+
+
+    if (
+      temporalmenteBloqueado
+    ) {
+
+      this.movimientoBloqueado =
+        true;
+
+
+      this.sincronizarEstado();
+
+      return;
+
+    }
+
+
+    /*
+     * Si realmente no avanzó en la dirección,
+     * asumimos pared.
+     */
+    if (
+      this.direccionActual ===
+      direccionEnviada
+    ) {
+
+      this.movimientoBloqueado =
+        true;
+
+    }
+
+  }
+
+
+  /* ============================================================
+     PROGRAMAR PRÓXIMO MOVIMIENTO
+  ============================================================ */
+
+  private programarSiguienteMovimiento(
+    retrasoPersonalizado?: number
+  ): void {
+
+    this.detenerTemporizadorMovimiento();
+
+
+    if (
+      !this.direccionActual ||
+      this.movimientoBloqueado ||
+      !this.puedeControlarJugador() ||
+      this.finalizando ||
+      this.saliendo
+    ) {
+
+      return;
+
+    }
+
+
+    const velocidad =
+      retrasoPersonalizado
+      ??
+      (
+        this.jugadorActual
+          ?.velocidadExtraActiva
+          ? this.VELOCIDAD_RAPIDA
+          : this.VELOCIDAD_NORMAL
+      );
+
+
+    this.temporizadorMovimiento =
+      setTimeout(
+        () => {
+
+          this.ejecutarMovimiento();
+
+        },
+        velocidad
+      );
+
+  }
+
+
+  /* ============================================================
+     DETENER TIMER MOVIMIENTO
+  ============================================================ */
+
+  private detenerTemporizadorMovimiento(): void {
+
+    if (
+      this.temporizadorMovimiento
+    ) {
+
+      clearTimeout(
+        this.temporizadorMovimiento
+      );
+
+
+      this.temporizadorMovimiento =
+        undefined;
+
+    }
+
+  }
+
+
+  /* ============================================================
+     DETENER MOVIMIENTO COMPLETO
+  ============================================================ */
+
+  private detenerMovimiento(): void {
+
+    this.detenerTemporizadorMovimiento();
+
+
+    this.direccionActual =
+      null;
+
+
+    this.movimientoBloqueado =
+      false;
+
+  }
+
+
+  /* ============================================================
+     ¿PUEDE CONTROLARSE?
+  ============================================================ */
+
+  puedeControlarJugador(): boolean {
+
+    if (
+      !this.juego ||
+      !this.jugadorActual
+    ) {
+
+      return false;
+
+    }
+
+
+    if (
+      this.juego.partidaFinalizada
+    ) {
+
+      return false;
+
+    }
+
+
+    if (
+      this.jugadorActual.esBot
+    ) {
+
+      return false;
+
+    }
+
+
+    if (
+      !this.jugadorActual.vivo
+    ) {
+
+      return false;
+
+    }
+
+
+    if (
+      !this.jugadorActual.puedeMoverse
+    ) {
+
+      return false;
+
+    }
+
+
+    if (
+      this.jugadorActual.congelado
+    ) {
+
+      return false;
+
+    }
+
+
+    return true;
+
+  }
+
+
+  /* ============================================================
+     TECLADO PC
+  ============================================================ */
+
+  @HostListener(
+    'window:keydown',
+    ['$event']
+  )
+  manejarTeclado(
+    event: KeyboardEvent
+  ): void {
+
+    if (
+      this.cargando ||
+      this.juego?.partidaFinalizada
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+     * Windows manda muchos keydown cuando se mantiene
+     * una tecla presionada.
+     *
+     * Como nuestro personaje ya camina automáticamente,
+     * ignoramos las repeticiones.
+     */
+    if (
+      event.repeat
+    ) {
+
+      event.preventDefault();
+
+      return;
+
+    }
+
+
+    switch (
+      event.key
+    ) {
+
+      case 'ArrowUp':
+      case 'w':
+      case 'W':
+
+        event.preventDefault();
+
+        this.cambiarDireccion(
+          'Arriba'
+        );
+
+        break;
+
+
+      case 'ArrowDown':
+      case 's':
+      case 'S':
+
+        event.preventDefault();
+
+        this.cambiarDireccion(
+          'Abajo'
+        );
+
+        break;
+
+
+      case 'ArrowLeft':
+      case 'a':
+      case 'A':
+
+        event.preventDefault();
+
+        this.cambiarDireccion(
+          'Izquierda'
+        );
+
+        break;
+
+
+      case 'ArrowRight':
+      case 'd':
+      case 'D':
+
+        event.preventDefault();
+
+        this.cambiarDireccion(
+          'Derecha'
+        );
+
+        break;
+
+    }
+
+  }
+
+
+  /* ============================================================
+     BOTONES CELULAR / PC
+  ============================================================ */
+
+  moverArriba(): void {
+
+    this.cambiarDireccion(
+      'Arriba'
+    );
+
+  }
+
+
+  moverAbajo(): void {
+
+    this.cambiarDireccion(
+      'Abajo'
+    );
+
+  }
+
+
+  moverIzquierda(): void {
+
+    this.cambiarDireccion(
+      'Izquierda'
+    );
+
+  }
+
+
+  moverDerecha(): void {
+
+    this.cambiarDireccion(
+      'Derecha'
+    );
+
+  }
+
+  /* ============================================================
+     OPTIMIZACIÓN DEL TABLERO
+
+     Angular consulta muchas veces las funciones utilizadas
+     dentro del *ngFor del laberinto.
+
+     Para evitar trabajo repetitivo en Android mantenemos:
+     - Set de celdas consumidas.
+     - Índice de jugadores por posición.
+  ============================================================ */
+
+  private referenciaCeldasConsumidas?:
+    string[];
+
+
+  private celdasConsumidasSet =
+    new Set<string>();
+
+
+  private referenciaJugadores?:
+    JugadorJuego[];
+
+
+  private jugadoresPorCelda =
+    new Map<
+      string,
+      JugadorJuego[]
+    >();
+
+
+  /* ============================================================
+     MAPA
+  ============================================================ */
+
+  get filasMapa(): string[] {
+
+    return (
+      this.juego?.mapa
+      ??
+      []
+    );
+
+  }
+
+
+  get columnasMapa(): number {
+
+    if (
+      !this.juego?.mapa?.length
+    ) {
+
+      return 0;
+
+    }
+
+
+    return Math.max(
+      ...this.juego.mapa.map(
+        fila =>
+          fila.length
+      )
+    );
+
+  }
+
+
+  /* ============================================================
+     TRACK BY
+
+     Ayuda a Angular a reutilizar elementos del DOM en vez de
+     reconstruirlos innecesariamente.
+  ============================================================ */
+
+  trackByFila(
+    index: number
+  ): number {
+
+    return index;
+
+  }
+
+
+  trackByJugador(
+    index: number,
+    jugador: JugadorJuego
+  ): number {
+
+    void index;
+
+    return jugador.participanteId;
+
+  }
+
+
+  /* ============================================================
+     OBTENER CELDA
+  ============================================================ */
+
+  obtenerCelda(
+    x: number,
+    y: number
   ): string {
 
-    return (rol ?? '')
+    const fila =
+      this.juego?.mapa?.[y];
+
+
+    if (
+      !fila ||
+      x < 0 ||
+      x >= fila.length
+    ) {
+
+      return '#';
+
+    }
+
+
+    return fila[x];
+
+  }
+
+
+  /* ============================================================
+     CACHÉ CELDAS CONSUMIDAS
+  ============================================================ */
+
+  private obtenerSetCeldasConsumidas():
+    Set<string> {
+
+    const actuales =
+      this.juego?.celdasConsumidas
+      ??
+      [];
+
+
+    /*
+     * El Back devuelve un nuevo array cuando existe
+     * una actualización.
+     *
+     * Solo reconstruimos el Set cuando cambia esa referencia.
+     */
+    if (
+      this.referenciaCeldasConsumidas !==
+      actuales
+    ) {
+
+      this.referenciaCeldasConsumidas =
+        actuales;
+
+
+      this.celdasConsumidasSet =
+        new Set<string>(
+          actuales
+        );
+
+    }
+
+
+    return this.celdasConsumidasSet;
+
+  }
+
+
+  celdaConsumida(
+    x: number,
+    y: number
+  ): boolean {
+
+    const clave =
+      `${x}:${y}`;
+
+
+    return this
+      .obtenerSetCeldasConsumidas()
+      .has(
+        clave
+      );
+
+  }
+
+
+  /* ============================================================
+     TIPOS DE CELDA
+  ============================================================ */
+
+  esPared(
+    x: number,
+    y: number
+  ): boolean {
+
+    return (
+      this.obtenerCelda(
+        x,
+        y
+      ) === '#'
+    );
+
+  }
+
+
+  esPunto(
+    x: number,
+    y: number
+  ): boolean {
+
+    return (
+
+      this.obtenerCelda(
+        x,
+        y
+      ) === '.'
+
+      &&
+
+      !this.celdaConsumida(
+        x,
+        y
+      )
+
+    );
+
+  }
+
+
+  esPowerPellet(
+    x: number,
+    y: number
+  ): boolean {
+
+    return (
+
+      this.obtenerCelda(
+        x,
+        y
+      ) === 'o'
+
+      &&
+
+      !this.celdaConsumida(
+        x,
+        y
+      )
+
+    );
+
+  }
+
+
+  esFrutaPacMan(
+    x: number,
+    y: number
+  ): boolean {
+
+    return (
+
+      this.obtenerCelda(
+        x,
+        y
+      ) === 'F'
+
+      &&
+
+      !this.celdaConsumida(
+        x,
+        y
+      )
+
+    );
+
+  }
+
+
+  esFrutaVillano(
+    x: number,
+    y: number
+  ): boolean {
+
+    return (
+
+      this.obtenerCelda(
+        x,
+        y
+      ) === 'M'
+
+      &&
+
+      !this.celdaConsumida(
+        x,
+        y
+      )
+
+    );
+
+  }
+
+
+  esTunel(
+    x: number,
+    y: number
+  ): boolean {
+
+    return (
+      this.obtenerCelda(
+        x,
+        y
+      ) === 'T'
+    );
+
+  }
+
+
+  /* ============================================================
+     ÍNDICE DE JUGADORES POR CELDA
+  ============================================================ */
+
+  private obtenerIndiceJugadores():
+    Map<string, JugadorJuego[]> {
+
+    const jugadores =
+      this.juego?.jugadores
+      ??
+      [];
+
+
+    /*
+     * Solo reconstruimos el índice cuando el Back entrega
+     * un nuevo array de jugadores.
+     */
+    if (
+      this.referenciaJugadores !==
+      jugadores
+    ) {
+
+      this.referenciaJugadores =
+        jugadores;
+
+
+      const nuevoIndice =
+        new Map<
+          string,
+          JugadorJuego[]
+        >();
+
+
+      for (
+        const jugador
+        of jugadores
+      ) {
+
+        if (
+          !jugador.vivo &&
+          jugador.segundosReaparicion <= 0
+        ) {
+
+          continue;
+
+        }
+
+
+        const clave =
+          `${jugador.posicionX}:${jugador.posicionY}`;
+
+
+        const existentes =
+          nuevoIndice.get(
+            clave
+          );
+
+
+        if (
+          existentes
+        ) {
+
+          existentes.push(
+            jugador
+          );
+
+        }
+        else {
+
+          nuevoIndice.set(
+            clave,
+            [
+              jugador
+            ]
+          );
+
+        }
+
+      }
+
+
+      this.jugadoresPorCelda =
+        nuevoIndice;
+
+    }
+
+
+    return this.jugadoresPorCelda;
+
+  }
+
+
+  /* ============================================================
+     JUGADORES EN CELDA
+  ============================================================ */
+
+  jugadoresEnCelda(
+    x: number,
+    y: number
+  ): JugadorJuego[] {
+
+    const clave =
+      `${x}:${y}`;
+
+
+    return (
+      this
+        .obtenerIndiceJugadores()
+        .get(
+          clave
+        )
+      ??
+      []
+    );
+
+  }
+
+
+  esJugadorActual(
+    jugador: JugadorJuego
+  ): boolean {
+
+    return (
+
+      Number(
+        jugador.usuarioId
+      )
+
+      ===
+
+      Number(
+        this.usuario.usuarioId
+      )
+
+    );
+
+  }
+
+
+  /* ============================================================
+     ROLES
+  ============================================================ */
+
+  esPacMan(
+    jugador: JugadorJuego
+  ): boolean {
+
+    return (
+
+      this.normalizarTexto(
+        jugador.equipo
+      ) ===
+      'pacman'
+
+      ||
+
+      this.normalizarTexto(
+        jugador.rol
+      ) ===
+      'pacman'
+
+    );
+
+  }
+
+
+  esFantasma(
+    jugador: JugadorJuego
+  ): boolean {
+
+    return (
+
+      jugador.rolId === 2
+
+      ||
+
+      this.normalizarTexto(
+        jugador.rol
+      ).includes(
+        'fantasma'
+      )
+
+    );
+
+  }
+
+
+  esMonstruo(
+    jugador: JugadorJuego
+  ): boolean {
+
+    return (
+
+      jugador.rolId === 3
+
+      ||
+
+      this.normalizarTexto(
+        jugador.rol
+      ).includes(
+        'monstruo'
+      )
+
+    );
+
+  }
+
+
+  esVillano(
+    jugador: JugadorJuego
+  ): boolean {
+
+    return (
+      this.normalizarTexto(
+        jugador.equipo
+      ) ===
+      'villanos'
+    );
+
+  }
+
+
+  /* ============================================================
+     SKINS
+
+     Se conserva la skin enviada por el Backend.
+  ============================================================ */
+
+  obtenerClaseSkin(
+    jugador: JugadorJuego
+  ): string {
+
+    if (
+      jugador.claseSkin &&
+      jugador.claseSkin.trim()
+    ) {
+
+      return jugador.claseSkin.trim();
+
+    }
+
+
+    if (
+      this.esFantasma(
+        jugador
+      )
+    ) {
+
+      return 'ghost-rojo';
+
+    }
+
+
+    if (
+      this.esMonstruo(
+        jugador
+      )
+    ) {
+
+      return 'monster-demonio';
+
+    }
+
+
+    return 'pacman-clasico';
+
+  }
+
+
+  obtenerNombreSkin(
+    jugador?: JugadorJuego
+  ): string {
+
+    if (!jugador) {
+
+      return 'Predeterminada';
+
+    }
+
+
+    if (
+      jugador.nombreSkin
+    ) {
+
+      return jugador.nombreSkin;
+
+    }
+
+
+    if (
+      this.esFantasma(
+        jugador
+      )
+    ) {
+
+      return 'Rojo';
+
+    }
+
+
+    if (
+      this.esMonstruo(
+        jugador
+      )
+    ) {
+
+      return 'Demonio';
+
+    }
+
+
+    return 'Clásico';
+
+  }
+
+
+  /* ============================================================
+     DIRECCIÓN VISUAL
+  ============================================================ */
+
+  private actualizarDireccionesVisuales(
+    estado: Juego
+  ): void {
+
+    if (
+      !estado?.jugadores
+    ) {
+
+      return;
+
+    }
+
+
+    const columnas =
+      Math.max(
+        0,
+        ...(estado.mapa ?? []).map(
+          fila =>
+            fila.length
+        )
+      );
+
+
+    for (
+      const jugador
+      of estado.jugadores
+    ) {
+
+      const id =
+        Number(
+          jugador.participanteId
+        );
+
+
+      if (
+        !Number.isInteger(
+          id
+        ) ||
+        id <= 0
+      ) {
+
+        continue;
+
+      }
+
+
+      const actual = {
+
+        x:
+          Number(
+            jugador.posicionX
+          ),
+
+        y:
+          Number(
+            jugador.posicionY
+          )
+
+      };
+
+
+      const anterior =
+        this
+          .ultimaPosicionPorParticipante
+          .get(
+            id
+          );
+
+
+      if (
+        anterior
+      ) {
+
+        const dx =
+          actual.x -
+          anterior.x;
+
+
+        const dy =
+          actual.y -
+          anterior.y;
+
+
+        let direccionInferida:
+          DireccionJuego | null =
+          null;
+
+
+        /* ======================================================
+           MOVIMIENTO HORIZONTAL
+        ====================================================== */
+
+        if (
+          dx !== 0
+        ) {
+
+          /*
+           * Cruce por túnel:
+           *
+           * izquierda:
+           * 0 -> última columna
+           */
+          if (
+            columnas > 2 &&
+            anterior.x === 0 &&
+            actual.x ===
+              columnas - 1
+          ) {
+
+            direccionInferida =
+              'Izquierda';
+
+          }
+
+          /*
+           * derecha:
+           * última columna -> 0
+           */
+          else if (
+            columnas > 2 &&
+            anterior.x ===
+              columnas - 1 &&
+            actual.x === 0
+          ) {
+
+            direccionInferida =
+              'Derecha';
+
+          }
+
+          else {
+
+            direccionInferida =
+              dx > 0
+                ? 'Derecha'
+                : 'Izquierda';
+
+          }
+
+        }
+
+
+        /* ======================================================
+           MOVIMIENTO VERTICAL
+        ====================================================== */
+
+        else if (
+          dy !== 0
+        ) {
+
+          direccionInferida =
+            dy > 0
+              ? 'Abajo'
+              : 'Arriba';
+
+        }
+
+
+        if (
+          direccionInferida
+        ) {
+
+          this
+            .direccionVisualPorParticipante
+            .set(
+              id,
+              direccionInferida
+            );
+
+        }
+
+      }
+
+
+      /*
+       * Primera aparición.
+       */
+      if (
+        !this
+          .direccionVisualPorParticipante
+          .has(
+            id
+          )
+      ) {
+
+        const direccionBackend =
+          this.normalizarDireccionVisual(
+            jugador.direccion
+          );
+
+
+        this
+          .direccionVisualPorParticipante
+          .set(
+            id,
+            direccionBackend
+          );
+
+      }
+
+
+      this
+        .ultimaPosicionPorParticipante
+        .set(
+          id,
+          actual
+        );
+
+    }
+
+  }
+
+
+  /* ============================================================
+     NORMALIZAR DIRECCIÓN DEL BACK
+  ============================================================ */
+
+  private normalizarDireccionVisual(
+    direccion:
+      string |
+      null |
+      undefined
+  ): DireccionJuego {
+
+    const valor =
+      this.normalizarTexto(
+        direccion
+      );
+
+
+    switch (
+      valor
+    ) {
+
+      case 'arriba':
+
+        return 'Arriba';
+
+
+      case 'abajo':
+
+        return 'Abajo';
+
+
+      case 'izquierda':
+
+        return 'Izquierda';
+
+
+      case 'derecha':
+      default:
+
+        return 'Derecha';
+
+    }
+
+  }
+
+
+  /* ============================================================
+     OBTENER DIRECCIÓN VISUAL
+  ============================================================ */
+
+  obtenerDireccionVisual(
+    jugador: JugadorJuego
+  ): DireccionJuego {
+
+    /*
+     * Para nuestro personaje usamos inmediatamente
+     * la dirección pulsada.
+     */
+    if (
+      this.esJugadorActual(
+        jugador
+      ) &&
+      this.direccionActual
+    ) {
+
+      return this.direccionActual;
+
+    }
+
+
+    return (
+
+      this
+        .direccionVisualPorParticipante
+        .get(
+          Number(
+            jugador.participanteId
+          )
+        )
+
+      ??
+
+      this.normalizarDireccionVisual(
+        jugador.direccion
+      )
+
+    );
+
+  }
+
+
+  /* ============================================================
+     CLASE CSS DE DIRECCIÓN
+  ============================================================ */
+
+  obtenerClaseDireccion(
+    jugador: JugadorJuego
+  ): string {
+
+    switch (
+      this.obtenerDireccionVisual(
+        jugador
+      )
+    ) {
+
+      case 'Arriba':
+
+        return 'direccion-arriba';
+
+
+      case 'Abajo':
+
+        return 'direccion-abajo';
+
+
+      case 'Izquierda':
+
+        return 'direccion-izquierda';
+
+
+      case 'Derecha':
+      default:
+
+        return 'direccion-derecha';
+
+    }
+
+  }
+
+
+  /*
+   * Compatibilidad con HTML anterior.
+   *
+   * NO rotamos físicamente el sprite completo.
+   */
+  obtenerRotacion(
+    jugador: JugadorJuego
+  ): string {
+
+    void jugador;
+
+    return 'none';
+
+  }
+
+
+  /* ============================================================
+     OPACIDAD
+  ============================================================ */
+
+  obtenerOpacidadJugador(
+    jugador: JugadorJuego
+  ): number {
+
+    if (
+      jugador.vivo
+    ) {
+
+      return 1;
+
+    }
+
+
+    if (
+      jugador.segundosReaparicion > 0
+    ) {
+
+      return 0.35;
+
+    }
+
+
+    return 0;
+
+  }
+
+
+  /* ============================================================
+     VIDAS
+  ============================================================ */
+
+  get vidasActuales(): number {
+
+    if (
+      !this.jugadorActual
+    ) {
+
+      return 0;
+
+    }
+
+
+    if (
+      !this.esPacMan(
+        this.jugadorActual
+      )
+    ) {
+
+      return 1;
+
+    }
+
+
+    return Math.max(
+      0,
+      this.jugadorActual.vidas
+    );
+
+  }
+
+
+  /* ============================================================
+     PUNTOS
+  ============================================================ */
+
+  get puntosActuales(): number {
+
+    return (
+      this.jugadorActual?.puntos
+      ??
+      0
+    );
+
+  }
+
+
+  /* ============================================================
+     ORO
+  ============================================================ */
+
+  get oroActual(): number {
+
+    return (
+      this.jugadorActual?.oroGanado
+      ??
+      0
+    );
+
+  }
+
+
+  /* ============================================================
+     FRUTAS
+  ============================================================ */
+
+  get frutasActuales(): number {
+
+    return (
+      this.jugadorActual
+        ?.frutasConsumidas
+      ??
+      0
+    );
+
+  }
+
+
+  /* ============================================================
+     EQUIPOS
+  ============================================================ */
+
+  get puntosEquipoActual(): number {
+
+    if (
+      !this.jugadorActual ||
+      !this.juego
+    ) {
+
+      return 0;
+
+    }
+
+
+    return this.esPacMan(
+      this.jugadorActual
+    )
+      ? this.juego.puntosPacMan
+      : this.juego.puntosVillanos;
+
+  }
+
+
+  get puntosEquipoRival(): number {
+
+    if (
+      !this.jugadorActual ||
+      !this.juego
+    ) {
+
+      return 0;
+
+    }
+
+
+    return this.esPacMan(
+      this.jugadorActual
+    )
+      ? this.juego.puntosVillanos
+      : this.juego.puntosPacMan;
+
+  }
+
+
+  get nombreEquipoActual(): string {
+
+    if (
+      !this.jugadorActual
+    ) {
+
+      return 'PAC-MAN';
+
+    }
+
+
+    return this.esPacMan(
+      this.jugadorActual
+    )
+      ? 'PAC-MAN'
+      : 'VILLANOS';
+
+  }
+
+
+  get nombreEquipoRival(): string {
+
+    return (
+      this.nombreEquipoActual ===
+      'PAC-MAN'
+    )
+      ? 'VILLANOS'
+      : 'PAC-MAN';
+
+  }
+
+
+  /* ============================================================
+     MONEDAS
+  ============================================================ */
+
+  get monedasRestantes(): number {
+
+    return (
+      this.juego
+        ?.monedasRestantes
+      ??
+      0
+    );
+
+  }
+
+
+  /* ============================================================
+     PROGRESO
+  ============================================================ */
+
+  get progresoMapa(): number {
+
+    const iniciales =
+      this.juego
+        ?.monedasIniciales
+      ??
+      0;
+
+
+    const restantes =
+      this.juego
+        ?.monedasRestantes
+      ??
+      0;
+
+
+    if (
+      iniciales <= 0
+    ) {
+
+      return 0;
+
+    }
+
+
+    const consumidas =
+      iniciales -
+      restantes;
+
+
+    return Math.min(
+      100,
+
+      Math.max(
+        0,
+
+        Math.round(
+          (
+            consumidas /
+            iniciales
+          )
+          *
+          100
+        )
+      )
+    );
+
+  }
+
+
+  /* ============================================================
+     RELOJ
+  ============================================================ */
+
+  get tiempoFormateado(): string {
+
+    const total =
+      Math.max(
+        0,
+
+        Math.floor(
+          this.tiempoVisual
+        )
+      );
+
+
+    const minutos =
+      Math.floor(
+        total /
+        60
+      );
+
+
+    const segundos =
+      total %
+      60;
+
+
+    return (
+      `${minutos}:` +
+      `${segundos
+        .toString()
+        .padStart(
+          2,
+          '0'
+        )}`
+    );
+
+  }
+
+
+  /* ============================================================
+     NOMBRE MAPA
+  ============================================================ */
+
+  get nombreMapa(): string {
+
+    return (
+      this.juego?.nombreMapa
+      ||
+      (
+        this.juego?.mapaId
+          ? `Laberinto ${this.juego.mapaId}`
+          : 'Laberinto'
+      )
+    );
+
+  }
+
+
+  /* ============================================================
+     DIFICULTAD
+  ============================================================ */
+
+  get nombreDificultad(): string {
+
+    return (
+      this.juego?.nombreDificultad
+      ||
+      'Normal'
+    );
+
+  }
+
+
+  /* ============================================================
+     OBJETIVO DEL JUGADOR
+  ============================================================ */
+
+  get objetivoJugador(): string {
+
+    if (
+      !this.jugadorActual
+    ) {
+
+      return '';
+
+    }
+
+
+    if (
+      this.esPacMan(
+        this.jugadorActual
+      )
+    ) {
+
+      return (
+        'Comé todos los puntos del laberinto y sobreviví a los villanos.'
+      );
+
+    }
+
+
+    if (
+      this.esFantasma(
+        this.jugadorActual
+      )
+    ) {
+
+      return (
+        'Perseguí a los Pac-Man y evitá que limpien el laberinto.'
+      );
+
+    }
+
+
+    return (
+      'Cazá a los Pac-Man y utiliza las frutas especiales para dominar el mapa.'
+    );
+
+  }
+
+
+  /* ============================================================
+     PODERES ACTIVOS
+  ============================================================ */
+
+  get poderesActivos(): string[] {
+
+    const jugador =
+      this.jugadorActual;
+
+
+    if (!jugador) {
+
+      return [];
+
+    }
+
+
+    const poderes:
+      string[] = [];
+
+
+    if (
+      jugador.powerActivo
+    ) {
+
+      poderes.push(
+        `⚡ Power ${jugador.segundosPower}s`
+      );
+
+    }
+
+
+    if (
+      jugador.escudoActivo
+    ) {
+
+      poderes.push(
+        `🛡️ Escudo ${jugador.segundosEscudo}s`
+      );
+
+    }
+
+
+    if (
+      jugador.doblePuntajeActivo
+    ) {
+
+      poderes.push(
+        `✖2 Puntos ${jugador.segundosDoblePuntaje}s`
+      );
+
+    }
+
+
+    if (
+      jugador.velocidadExtraActiva
+    ) {
+
+      poderes.push(
+        `💨 Velocidad ${jugador.segundosVelocidad}s`
+      );
+
+    }
+
+
+    if (
+      jugador.fuerzaActiva
+    ) {
+
+      poderes.push(
+        `💥 Fuerza ${jugador.segundosFuerza}s`
+      );
+
+    }
+
+
+    if (
+      jugador.visionActiva
+    ) {
+
+      poderes.push(
+        `👁️ Visión ${jugador.segundosVision}s`
+      );
+
+    }
+
+
+    if (
+      jugador.congelado
+    ) {
+
+      poderes.push(
+        `❄️ Congelado ${jugador.segundosCongelado}s`
+      );
+
+    }
+
+
+    return poderes;
+
+  }
+
+
+  /* ============================================================
+     REAPARECIENDO
+  ============================================================ */
+
+  get estaReapareciendo(): boolean {
+
+    return Boolean(
+
+      this.jugadorActual
+
+      &&
+
+      !this.jugadorActual.vivo
+
+      &&
+
+      this.jugadorActual.vidas > 0
+
+      &&
+
+      this.jugadorActual
+        .segundosReaparicion > 0
+
+    );
+
+  }
+
+
+  /* ============================================================
+     FINALIZAR PARTIDA
+  ============================================================ */
+
+  private procesarFinDePartida(): void {
+
+    this.detenerMovimiento();
+
+    this.detenerSincronizacion();
+
+    this.detenerRelojVisual();
+
+
+    if (
+      this.resultadoSolicitado
+    ) {
+
+      return;
+
+    }
+
+
+    this.resultadoSolicitado =
+      true;
+
+
+    this.guardarResultadoFinal();
+
+  }
+
+
+  private guardarResultadoFinal(): void {
+
+    if (
+      this.finalizando ||
+      this.partidaId <= 0
+    ) {
+
+      return;
+
+    }
+
+
+    this.finalizando =
+      true;
+
+
+    this.juegoService
+
+      .finalizarPartida(
+        this.partidaId
+      )
+
+      .pipe(
+
+        takeUntil(
+          this.destruir$
+        ),
+
+        finalize(
+          () => {
+
+            this.finalizando =
+              false;
+
+          }
+        )
+
+      )
+
+      .subscribe({
+
+        next: respuesta => {
+
+          if (
+            respuesta.estado
+          ) {
+
+            this.juego =
+              respuesta.estado;
+
+
+            this.actualizarJugadorActual();
+
+          }
+
+
+          this.mostrarMensaje(
+
+            respuesta.mensaje ||
+            'Partida finalizada.',
+
+            'exito'
+
+          );
+
+        },
+
+
+        error: error => {
+
+          console.error(
+            'Error guardando resultado final:',
+            error
+          );
+
+
+          this.resultadoSolicitado =
+            false;
+
+
+          this.mostrarMensaje(
+
+            this.obtenerMensajeError(
+              error,
+              'La partida terminó, pero no fue posible guardar el resultado.'
+            ),
+
+            'error'
+
+          );
+
+        }
+
+      });
+
+  }
+
+
+  /* ============================================================
+     ¿GANÓ EL JUGADOR?
+  ============================================================ */
+
+  get jugadorGano(): boolean {
+
+    if (
+      !this.juego ||
+      !this.jugadorActual ||
+      !this.juego.partidaFinalizada
+    ) {
+
+      return false;
+
+    }
+
+
+    return (
+
+      this.normalizarTexto(
+        this.juego.equipoGanador
+      )
+
+      ===
+
+      this.normalizarTexto(
+        this.jugadorActual.equipo
+      )
+
+    );
+
+  }
+
+
+  /* ============================================================
+     MENSAJE FINAL
+  ============================================================ */
+
+  get mensajeFinal(): string {
+
+    if (
+      !this.juego
+    ) {
+
+      return '';
+
+    }
+
+
+    if (
+      this.juego.mensajeFinal
+    ) {
+
+      return this.juego.mensajeFinal;
+
+    }
+
+
+    return this.jugadorGano
+      ? '¡Tu equipo ganó la partida!'
+      : 'La partida terminó.';
+
+  }
+
+
+  /* ============================================================
+     NAVEGACIÓN
+  ============================================================ */
+
+  volverMenu(): void {
+
+    if (
+      this.saliendo
+    ) {
+
+      return;
+
+    }
+
+
+    this.saliendo =
+      true;
+
+
+    this.detenerMovimiento();
+
+    this.detenerSincronizacion();
+
+    this.detenerRelojVisual();
+
+
+    void this.router.navigate(
+      ['/menu'],
+      {
+        replaceUrl: true
+      }
+    );
+
+  }
+
+
+  verRanking(): void {
+
+    this.detenerMovimiento();
+
+    this.detenerSincronizacion();
+
+    this.detenerRelojVisual();
+
+
+    void this.router.navigate(
+      ['/ranking'],
+      {
+        replaceUrl: true
+      }
+    );
+
+  }
+
+
+  /* ============================================================
+     ABANDONAR
+  ============================================================ */
+
+  abandonarPartida(): void {
+
+    if (
+      this.juego?.partidaFinalizada
+    ) {
+
+      this.volverMenu();
+
+      return;
+
+    }
+
+
+    const confirmar =
+      window.confirm(
+        '¿Seguro que deseas abandonar la partida?'
+      );
+
+
+    if (
+      !confirmar
+    ) {
+
+      return;
+
+    }
+
+
+    this.volverMenu();
+
+  }
+
+
+  /* ============================================================
+     PANELES
+  ============================================================ */
+
+  mostrarJugadores =
+    false;
+
+
+  alternarJugadores(): void {
+
+    this.mostrarJugadores =
+      !this.mostrarJugadores;
+
+  }
+
+
+  mostrarAyuda =
+    false;
+
+
+  alternarAyuda(): void {
+
+    this.mostrarAyuda =
+      !this.mostrarAyuda;
+
+  }
+
+
+  cerrarPaneles(): void {
+
+    this.mostrarJugadores =
+      false;
+
+
+    this.mostrarAyuda =
+      false;
+
+  }
+
+
+  /* ============================================================
+     MENSAJES
+  ============================================================ */
+
+  private mostrarMensaje(
+    texto: string,
+    tipo: TipoMensaje
+  ): void {
+
+    this.mensaje =
+      texto;
+
+
+    this.tipoMensaje =
+      tipo;
+
+  }
+
+
+  private limpiarMensaje(): void {
+
+    this.mensaje =
+      '';
+
+
+    this.tipoMensaje =
+      'info';
+
+  }
+
+
+  /* ============================================================
+     NORMALIZAR TEXTO
+  ============================================================ */
+
+  private normalizarTexto(
+    texto:
+      string |
+      null |
+      undefined
+  ): string {
+
+    return (
+      texto ??
+      ''
+    )
+      .trim()
       .toLowerCase()
-      .normalize('NFD')
+      .normalize(
+        'NFD'
+      )
       .replace(
         /[\u0300-\u036f]/g,
         ''
@@ -620,1703 +3523,57 @@ export class JuegoPage implements OnInit, OnDestroy {
 
   }
 
-  /*====================================================
-    VALIDACIONES DE ROLES
-  ====================================================*/
 
-  esRolPacMan(
-    rol: string | null | undefined
-  ): boolean {
-
-    return (
-      this.normalizarRol(rol) ===
-      this.ROL_PACMAN
-    );
-
-  }
-
-  esRolFantasma(
-    rol: string | null | undefined
-  ): boolean {
-
-    return (
-      this.normalizarRol(rol) ===
-      this.ROL_FANTASMA
-    );
-
-  }
-
-  esRolMonstruo(
-    rol: string | null | undefined
-  ): boolean {
-
-    return (
-      this.normalizarRol(rol) ===
-      this.ROL_MONSTRUO
-    );
-
-  }
-
-  esPacManLocal(): boolean {
-
-    return this.esRolPacMan(
-      this.rolJugador
-    );
-
-  }
-
-  esFantasmaLocal(): boolean {
-
-    return this.esRolFantasma(
-      this.rolJugador
-    );
-
-  }
-
-  esMonstruoLocal(): boolean {
-
-    return this.esRolMonstruo(
-      this.rolJugador
-    );
-
-  }
-
-  esVillanoLocal(): boolean {
-
-    return (
-      this.esFantasmaLocal() ||
-      this.esMonstruoLocal()
-    );
-
-  }
-
-  /*====================================================
-    MAPA SELECCIONADO
-  ====================================================*/
-
-  get mapaSeleccionado(): MapaJuego {
-
-    return this.gameEngine.obtenerMapa(
-      this.mapaActual
-    );
-
-  }
-
-  /*====================================================
-    FORMATO DEL TIEMPO
-  ====================================================*/
-
-  get tiempoTexto(): string {
-
-    const minutos =
-      Math.floor(this.tiempo / 60);
-
-    const segundos =
-      this.tiempo % 60;
-
-    return (
-      `${minutos}:` +
-      `${segundos < 10 ? '0' : ''}` +
-      `${segundos}`
-    );
-
-  }
-
-  /*====================================================
-    PREPARAR MAPA
-  ====================================================*/
-
-  private prepararMapa(): void {
-
-    if (
-      this.mapaActual < 1 ||
-      this.mapaActual > 5
-    ) {
-
-      this.mapaActual = 1;
-
-    }
-
-    this.celdas =
-      this.gameEngine.crearTablero(
-        this.mapaActual
-      );
-
-    this.tiempo =
-      this.mapaSeleccionado.duracion;
-
-    this.powerActivo = false;
-
-    this.direccionActual =
-      'derecha';
-
-    this.siguienteDireccion =
-      'derecha';
-
-    this.direccionPendiente =
-      'derecha';
-
-    this.asignarPosicionesIniciales();
-
-  }
-
-  /*====================================================
-    ASIGNAR POSICIONES INICIALES
-  ====================================================*/
-
-  private asignarPosicionesIniciales(): void {
-
-    const posiciones =
-      this.gameEngine
-        .obtenerPosicionesIniciales(
-          this.mapaActual
-        );
-
-    let indicePacMan = 0;
-    let indiceVillano = 0;
-
-    this.personajes =
-      this.personajes.map(
-        personaje => {
-
-          const posicion =
-            this.esRolPacMan(
-              personaje.nombreRol
-            )
-              ? (
-                  posiciones.pacman[
-                    indicePacMan++
-                  ] ??
-                  posiciones.pacman[0]
-                )
-              : (
-                  posiciones.villanos[
-                    indiceVillano++
-                  ] ??
-                  posiciones.villanos[0]
-                );
-
-          return {
-
-            ...personaje,
-
-            x:
-              posicion.x,
-
-            y:
-              posicion.y,
-
-            direccion:
-              'derecha',
-
-            siguienteDireccion:
-              'derecha'
-
-          };
-
-        }
-      );
-
-    this.personajeLocal =
-      this.personajes.find(
-        personaje =>
-          personaje.esLocal
-      );
-
-    if (!this.personajeLocal) {
-
-      return;
-
-    }
-
-    this.direccionActual =
-      this.personajeLocal.direccion;
-
-    this.siguienteDireccion =
-      this.personajeLocal
-        .siguienteDireccion;
-
-    this.direccionPendiente =
-      this.personajeLocal
-        .siguienteDireccion;
-
-    this.enviarMovimientoServidor();
-
-  }
-
-  /*====================================================
-    CONTROLES DE TECLADO
-  ====================================================*/
-
-  @HostListener(
-    'window:keydown',
-    ['$event']
-  )
-  manejarTeclado(
-    event: KeyboardEvent
-  ): void {
-
-    const tecla =
-      event.key.toLowerCase();
-
-    const direcciones:
-      Record<string, Direccion> = {
-
-      arrowup:
-        'arriba',
-
-      w:
-        'arriba',
-
-      arrowdown:
-        'abajo',
-
-      s:
-        'abajo',
-
-      arrowleft:
-        'izquierda',
-
-      a:
-        'izquierda',
-
-      arrowright:
-        'derecha',
-
-      d:
-        'derecha'
-
-    };
-
-    const direccion =
-      direcciones[tecla];
-
-    if (!direccion) {
-
-      return;
-
-    }
-
-    event.preventDefault();
-
-    this.cambiarDireccion(
-      direccion
-    );
-
-  }
-
-  /*====================================================
-    INICIAR DESLIZAMIENTO TÁCTIL
-  ====================================================*/
-
-  iniciarDeslizamiento(
-    event: TouchEvent
-  ): void {
-
-    const toque =
-      event.changedTouches[0];
-
-    if (!toque) {
-
-      return;
-
-    }
-
-    this.inicioToqueX =
-      toque.clientX;
-
-    this.inicioToqueY =
-      toque.clientY;
-
-  }
-
-  /*====================================================
-    FINALIZAR DESLIZAMIENTO TÁCTIL
-  ====================================================*/
-
-  finalizarDeslizamiento(
-    event: TouchEvent
-  ): void {
-
-    const toque =
-      event.changedTouches[0];
-
-    if (!toque) {
-
-      return;
-
-    }
-
-    this.finToqueX =
-      toque.clientX;
-
-    this.finToqueY =
-      toque.clientY;
-
-    const diferenciaX =
-      this.finToqueX -
-      this.inicioToqueX;
-
-    const diferenciaY =
-      this.finToqueY -
-      this.inicioToqueY;
-
-    const distanciaHorizontal =
-      Math.abs(diferenciaX);
-
-    const distanciaVertical =
-      Math.abs(diferenciaY);
-
-    if (
-      distanciaHorizontal <
-        this.distanciaMinimaDeslizamiento &&
-      distanciaVertical <
-        this.distanciaMinimaDeslizamiento
-    ) {
-
-      return;
-
-    }
-
-    if (
-      distanciaHorizontal >
-      distanciaVertical
-    ) {
-
-      this.cambiarDireccion(
-        diferenciaX > 0
-          ? 'derecha'
-          : 'izquierda'
-      );
-
-      return;
-
-    }
-
-    this.cambiarDireccion(
-      diferenciaY > 0
-        ? 'abajo'
-        : 'arriba'
-    );
-
-  }
-
-  /*====================================================
-    CAMBIAR DIRECCIÓN
-  ====================================================*/
-
-  cambiarDireccion(
-    direccion: Direccion
-  ): void {
-
-    if (
-      this.vista !== 'jugando' ||
-      !this.personajeLocal ||
-      this.finalizando ||
-      !this.personajeLocal.vivo
-    ) {
-
-      return;
-
-    }
-
-    this.direccionPendiente =
-      direccion;
-
-    this.siguienteDireccion =
-      direccion;
-
-    this.personajeLocal
-      .siguienteDireccion =
-      direccion;
-
-  }
-
-  /*====================================================
-    INICIAR SINCRONIZACIÓN CON BACKEND
-  ====================================================*/
-
-  private iniciarSincronizacion(): void {
-
-    if (
-      this.intervaloSincronizacion
-    ) {
-
-      clearInterval(
-        this.intervaloSincronizacion
-      );
-
-    }
-
-    this.intervaloSincronizacion =
-      setInterval(
-        () => {
-
-          this.incronizarPartida();
-
-        },
-        this.tiempoSincronizacion
-      );
-
-  }
-
-  /*====================================================
-    SINCRONIZAR PARTIDA
-  ====================================================*/
-
-  private soyControladorBots(): boolean {
-
-  const humanos =
-    this.personajes
-      .filter(
-        personaje =>
-          !personaje.esBot &&
-          personaje.usuarioId !== null
-      )
-      .sort(
-        (a, b) =>
-          Number(a.usuarioId) -
-          Number(b.usuarioId)
-      );
-
-  return (
-    humanos.length > 0 &&
-    humanos[0].usuarioId ===
-    this.usuario.usuarioId
-  );
-
-}
-  
-  incronizarPartida(): void {
-
-    if (
-      this.sincronizando ||
-      this.finalizando ||
-      this.vista !== 'jugando'
-    ) {
-
-      return;
-
-    }
-
-    this.sincronizando = true;
-
-    this.juegoService
-      .obtenerEstado(
-        this.partidaId
-      )
-      .subscribe({
-
-        next: (respuesta: Juego) => {
-
-          this.aplicarEstadoServidor(
-            respuesta,
-            false
-          );
-
-          this.sincronizando = false;
-
-        },
-
-        error: (error: unknown) => {
-
-          console.error(
-            'Error al sincronizar la partida:',
-            error
-          );
-
-          this.sincronizando = false;
-
-        }
-
-      });
-
-  }
-
-  /*====================================================
-    ACTUALIZAR PERSONAJES REMOTOS
-  ====================================================*/
-
-  private actualizarPersonajesRemotos(
-    jugadores: JugadorJuego[]
-  ): void {
-
-    for (
-      const jugadorServidor
-      of jugadores
-    ) {
-
-      if (
-        jugadorServidor.usuarioId ===
-        this.usuario.usuarioId
-      ) {
-
-        continue;
-
-      }
-
-      const personaje =
-        this.personajes.find(
-          actual =>
-            actual.participanteId ===
-            jugadorServidor.participanteId
-        );
-
-      if (!personaje) {
-
-        continue;
-
-      }
-
-      personaje.x =
-        jugadorServidor.posicionX;
-
-      personaje.y =
-        jugadorServidor.posicionY;
-
-      personaje.puntos =
-        jugadorServidor.puntos;
-
-      personaje.vivo =
-        jugadorServidor.vivo;
-
-    }
-
-  }
-
-  /*====================================================
-    ENVIAR POSICIÓN AL BACKEND
-  ====================================================*/
-
-  private enviarMovimientoServidor(): void {
-
-    if (
-      !this.personajeLocal ||
-      this.enviandoMovimiento ||
-      this.finalizando ||
-      !this.partidaId
-    ) {
-
-      return;
-
-    }
-
-    this.enviandoMovimiento = true;
-
-    this.juegoService
-      .actualizarEstado(
-        this.partidaId,
-        {
-
-          usuarioId:
-            this.usuario.usuarioId,
-
-          posicionX:
-            this.personajeLocal.x,
-
-          posicionY:
-            this.personajeLocal.y,
-
-          direccion:
-            this.personajeLocal.direccion
-
-        }
-      )
-      .subscribe({
-
-        next: (respuesta: Juego) => {
-
-          this.aplicarEstadoServidor(
-            respuesta,
-            false
-          );
-
-          this.enviandoMovimiento =
-            false;
-
-        },
-
-        error: (error: unknown) => {
-
-          console.error(
-            'Error al enviar movimiento:',
-            error
-          );
-
-          this.enviandoMovimiento =
-            false;
-
-        }
-
-      });
-
-  }
-/*====================================================
-    OBTENER VELOCIDAD BASE
-  ====================================================*/
-
-  private obtenerVelocidadLocal(): number {
-
-    if (this.esPacManLocal()) {
-
-      return this.mapaSeleccionado
-        .velocidadPacman;
-
-    }
-
-    if (this.esRolMonstruo(this.rolJugador)) {
-
-      return this.mapaSeleccionado
-        .velocidadMonstruo;
-
-    }
-
-    return this.mapaSeleccionado
-      .velocidadFantasma;
-
-  }
-
-  /*====================================================
-    VELOCIDAD CON EFECTOS
-  ====================================================*/
-
-  private obtenerVelocidadConEfectos(): number {
-
-    let velocidad =
-      this.obtenerVelocidadLocal();
-
-    if (
-      this.personajeLocal?.velocidadExtraActiva
-    ) {
-
-      velocidad = Math.max(
-        70,
-        Math.floor(velocidad * 0.65)
-      );
-
-    }
-
-    if (
-      this.personajeLocal?.congelado
-    ) {
-
-      velocidad *= 3;
-
-    }
-
-    return velocidad;
-
-  }
-
-  /*====================================================
-    INICIAR MOVIMIENTO
-  ====================================================*/
-
-  private iniciarMovimientoContinuo(): void {
-
-    if (this.intervaloMovimiento) {
-
-      clearInterval(
-        this.intervaloMovimiento
-      );
-
-    }
-
-    this.movimientoActivo = true;
-
-    this.intervaloMovimiento =
-      setInterval(
-        () => {
-
-          if (
-            this.vista !== 'jugando' ||
-            this.finalizando ||
-            !this.movimientoActivo
-          ) {
-
-            return;
-
-          }
-
-          this.avanzarPersonajeLocal();
-
-        },
-        this.obtenerVelocidadConEfectos()
-      );
-
-  }
-
-  /*====================================================
-    REINICIAR VELOCIDAD
-  ====================================================*/
-
-  private reiniciarMovimientoPorVelocidad(): void {
-
-    if (!this.movimientoActivo) {
-
-      return;
-
-    }
-
-    this.iniciarMovimientoContinuo();
-
-  }
-
-  /*====================================================
-    AVANZAR PERSONAJE
-  ====================================================*/
-
-  private avanzarPersonajeLocal(): void {
-
-    if (
-      !this.personajeLocal ||
-      !this.personajeLocal.vivo ||
-      this.personajeLocal.congelado
-    ) {
-
-      return;
-
-    }
-
-    this.personajeLocal.siguienteDireccion =
-      this.direccionPendiente;
-
-    const personajeMotor: PersonajeMotor = {
-
-      participanteId:
-        this.personajeLocal.participanteId,
-
-      usuarioId:
-        this.personajeLocal.usuarioId,
-
-      nombreUsuario:
-        this.personajeLocal.nombreUsuario,
-
-      nombreRol:
-        this.personajeLocal.nombreRol,
-
-      esBot:
-        this.personajeLocal.esBot,
-
-      esLocal:
-        this.personajeLocal.esLocal,
-
-      x:
-        this.personajeLocal.x,
-
-      y:
-        this.personajeLocal.y,
-
-      direccion:
-        this.personajeLocal.direccion,
-
-      siguienteDireccion:
-        this.personajeLocal.siguienteDireccion,
-
-      puntos:
-        this.personajeLocal.puntos,
-
-      vidas:
-        this.personajeLocal.vidas,
-
-      vivo:
-        this.personajeLocal.vivo,
-
-      powerActivo:
-        this.personajeLocal.powerActivo,
-
-      escudoActivo:
-        this.personajeLocal.escudoActivo,
-
-      doblePuntajeActivo:
-        this.personajeLocal.doblePuntajeActivo,
-
-      velocidadExtraActiva:
-        this.personajeLocal.velocidadExtraActiva,
-
-      skin:
-        this.personajeLocal.skin
-
-    };
-
-    const resultado =
-      this.gameEngine.moverPersonaje(
-        personajeMotor,
-        this.celdas
-      );
-
-    const seMovio =
-      resultado.x !== this.personajeLocal.x ||
-      resultado.y !== this.personajeLocal.y;
-
-    this.personajeLocal.x =
-      resultado.x;
-
-    this.personajeLocal.y =
-      resultado.y;
-
-    this.personajeLocal.direccion =
-      resultado.direccion;
-
-    this.personajeLocal.siguienteDireccion =
-      resultado.siguienteDireccion;
-
-    this.direccionActual =
-      resultado.direccion;
-
-    this.siguienteDireccion =
-      resultado.siguienteDireccion;
-
-    if (!seMovio) {
-
-      return;
-
-    }
-
-    this.consumirCeldaLocal();
-
-    this.verificarColisiones();
-
-    this.enviarMovimientoServidor();
-
-  }
-
-
-
-    /*====================================================
-    CONSUMIR CELDA
-  ====================================================*/
-
-  private consumirCeldaLocal(): void {
-
-    if (
-      !this.personajeLocal ||
-      !this.personajeLocal.vivo
-    ) {
-
-      return;
-
-    }
-
-    const celda =
-      this.gameEngine.obtenerCelda(
-
-        this.celdas,
-
-        this.personajeLocal.x,
-
-        this.personajeLocal.y
-
-      );
-
-    if (!celda) {
-
-      return;
-
-    }
-
-    const resultado =
-      this.gameEngine.consumirCelda(
-
-        celda,
-
-        this.esPacManLocal(),
-
-        this.personajeLocal
-          .doblePuntajeActivo
-
-      );
-
-    if (!resultado.consumio) {
-
-      return;
-
-    }
-
-    this.personajeLocal.puntos +=
-      resultado.puntosGanados;
-
-    this.puntaje =
-      this.personajeLocal.puntos;
-
-    this.oro +=
-      resultado.oroGanado;
-
-    this.oroGanado +=
-      resultado.oroGanado;
-
-    this.personajeLocal.vidas +=
-      resultado.vidasGanadas;
-
-    this.personajeLocal.vidas -=
-      resultado.vidasPerdidas;
-
-    this.vidas =
-      this.personajeLocal.vidas;
-
-    celda.efecto =
-      resultado.mensaje;
-
-    setTimeout(() => {
-
-      celda.efecto = '';
-
-    }, 700);
-
-    if (
-      resultado.powerActivado
-    ) {
-
-      this.activarPowerPacMan();
-
-    }
-
-    if (
-      resultado.frutaPacMan
-    ) {
-
-      this.aplicarFrutaPacMan(
-
-        resultado.frutaPacMan
-
-      );
-
-    }
-
-    if (
-      resultado.frutaVillano
-    ) {
-
-      this.aplicarFrutaVillano(
-
-        resultado.frutaVillano
-
-      );
-
-    }
-
-    this.actualizarMonedasRestantes();
-
-    this.verificarVictoriaPorPuntos();
-
-  }
-
-
-  /*====================================================
-    POWER PELLET
-  ====================================================*/
-
-  private activarPowerPacMan(): void {
-
-    if (
-      !this.personajeLocal ||
-      !this.esPacManLocal()
-    ) {
-
-      return;
-
-    }
-
-    this.personajeLocal.powerActivo =
-      true;
-
-    this.powerActivo = true;
-
-    setTimeout(() => {
-
-      if (!this.personajeLocal) {
-
-        return;
-
-      }
-
-      this.personajeLocal.powerActivo =
-        false;
-
-      this.powerActivo = false;
-
-    }, 8000);
-
-  }
-
-  /*====================================================
-    FRUTAS PACMAN
-  ====================================================*/
-
-  private aplicarFrutaPacMan(
-    fruta: TipoFrutaPacMan
-  ): void {
-
-    if (
-      !this.personajeLocal
-    ) {
-
-      return;
-
-    }
-
-    switch (fruta) {
-
-      case 'velocidad':
-
-        this.personajeLocal
-          .velocidadExtraActiva =
-          true;
-
-        this.reiniciarMovimientoPorVelocidad();
-
-        setTimeout(() => {
-
-          if (!this.personajeLocal) {
-
-            return;
-
-          }
-
-          this.personajeLocal
-            .velocidadExtraActiva =
-            false;
-
-          this.reiniciarMovimientoPorVelocidad();
-
-        }, 7000);
-
-        break;
-
-      case 'escudo':
-
-        this.personajeLocal
-          .escudoActivo =
-          true;
-
-        setTimeout(() => {
-
-          if (!this.personajeLocal) {
-
-            return;
-
-          }
-
-          this.personajeLocal
-            .escudoActivo =
-            false;
-
-        }, 8000);
-
-        break;
-
-      case 'doblePuntaje':
-
-        this.personajeLocal
-          .doblePuntajeActivo =
-          true;
-
-        setTimeout(() => {
-
-          if (!this.personajeLocal) {
-
-            return;
-
-          }
-
-          this.personajeLocal
-            .doblePuntajeActivo =
-            false;
-
-        }, 10000);
-
-        break;
-
-      case 'vida':
-
-        this.personajeLocal.vidas++;
-
-        this.vidas =
-          this.personajeLocal.vidas;
-
-        break;
-
-    }
-    
-
-  }
-  /*====================================================
-    FRUTAS DE LOS VILLANOS
-  ====================================================*/
-
-  private aplicarFrutaVillano(
-    fruta: TipoFrutaVillano
-  ): void {
-
-    if (
-      !this.personajeLocal ||
-      !this.esVillanoLocal()
-    ) {
-
-      return;
-
-    }
-
-    switch (fruta) {
-
-      case 'velocidad':
-
-        this.personajeLocal
-          .velocidadExtraActiva = true;
-
-        this.reiniciarMovimientoPorVelocidad();
-
-        setTimeout(() => {
-
-          if (!this.personajeLocal) {
-
-            return;
-
-          }
-
-          this.personajeLocal
-            .velocidadExtraActiva = false;
-
-          this.reiniciarMovimientoPorVelocidad();
-
-        }, 7000);
-
-        break;
-
-      case 'fuerza':
-
-        this.personajeLocal
-          .fuerzaActiva = true;
-
-        setTimeout(() => {
-
-          if (!this.personajeLocal) {
-
-            return;
-
-          }
-
-          this.personajeLocal
-            .fuerzaActiva = false;
-
-        }, 8000);
-
-        break;
-
-      case 'congelar':
-
-        this.congelarPacMan();
-
-        break;
-
-      case 'vision':
-
-        this.mostrarInfo = true;
-
-        setTimeout(() => {
-
-          this.mostrarInfo = false;
-
-        }, 8000);
-
-        break;
-
-    }
-
-  }
-
-  /*====================================================
-    CONGELAR PACMAN
-  ====================================================*/
-
-  private congelarPacMan(): void {
-
-    const pacmans =
-      this.personajes.filter(
-
-        personaje =>
-
-          personaje.vivo &&
-          this.esRolPacMan(
-            personaje.nombreRol
-          )
-
-      );
-
-    for (const pacman of pacmans) {
-
-      pacman.congelado = true;
-
-    }
-
-    setTimeout(() => {
-
-      for (const pacman of pacmans) {
-
-        pacman.congelado = false;
-
-      }
-
-    }, 3000);
-
-  }
-
-  /*====================================================
-    ACTUALIZAR PUNTOS RESTANTES
-  ====================================================*/
-
-  private actualizarMonedasRestantes(): void {
-
-    if (!this.juego) {
-
-      return;
-
-    }
-
-    this.juego.monedasRestantes =
-      this.gameEngine
-        .contarPuntosRestantes(
-          this.celdas
-        );
-
-  }
-
-  /*====================================================
-    VICTORIA POR PUNTOS
-  ====================================================*/
-
-  private verificarVictoriaPorPuntos(): void {
-
-    const restantes =
-      this.gameEngine
-        .contarPuntosRestantes(
-          this.celdas
-        );
-
-    if (restantes > 0) {
-
-      return;
-
-    }
-
-    this.finalizarPartidaLocal(
-
-      'pacman',
-
-      'Los Pac-Man consumieron todos los puntos.'
-
-    );
-
-  }
- 
-
-  /*====================================================
-    COLISIONES
-  ====================================================*/
-
-  private verificarColisiones(): void {
-
-    if (!this.personajeLocal) {
-
-      return;
-
-    }
-
-    const enemigos =
-      this.personajes.filter(
-
-        personaje =>
-
-          personaje.vivo &&
-          personaje.participanteId !==
-            this.personajeLocal!.participanteId &&
-          this.esRolPacMan(
-            personaje.nombreRol
-          ) !==
-          this.esRolPacMan(
-            this.personajeLocal!.nombreRol
-          )
-
-      );
-
-    for (const enemigo of enemigos) {
-
-      if (
-
-        enemigo.x !==
-          this.personajeLocal.x ||
-
-        enemigo.y !==
-          this.personajeLocal.y
-
-      ) {
-
-        continue;
-
-      }
-
-      /*
-       * Pac-Man con POWER
-       */
-
-      if (
-
-        this.personajeLocal.powerActivo &&
-        this.esPacManLocal()
-
-      ) {
-
-        enemigo.vivo = false;
-
-        continue;
-
-      }
-
-      /*
-       * Escudo
-       */
-
-      if (
-
-        this.personajeLocal
-          .escudoActivo
-
-      ) {
-
-        this.personajeLocal
-          .escudoActivo = false;
-
-        continue;
-
-      }
-
-      /*
-       * Fuerza del villano
-       */
-
-      const dano =
-        enemigo.fuerzaActiva
-          ? 2
-          : 1;
-
-      this.personajeLocal.vidas -=
-        dano;
-
-      this.vidas =
-        this.personajeLocal.vidas;
-
-      if (
-
-        this.personajeLocal.vidas <= 0
-
-      ) {
-
-        this.personajeLocal.vivo =
-          false;
-
-        this.finalizarPartidaLocal(
-
-          'villanos',
-
-          'Los villanos eliminaron a Pac-Man.'
-
-        );
-
-      }
-
-    }
-
-  }
-  /*====================================================
-    TEMPORIZADOR
-  ====================================================*/
-
-  private iniciarTemporizador(): void {
-
-    if (this.intervaloTiempo) {
-
-      clearInterval(
-        this.intervaloTiempo
-      );
-
-    }
-
-    this.intervaloTiempo =
-      setInterval(() => {
-
-        if (
-          this.vista !== 'jugando' ||
-          this.finalizando
-        ) {
-
-          return;
-
-        }
-
-        this.tiempo--;
-
-        if (this.tiempo <= 0) {
-
-          this.finalizarPartidaLocal(
-
-            'villanos',
-
-            'Se terminó el tiempo.'
-
-          );
-
-        }
-
-      }, 1000);
-
-  }
-
-  /*====================================================
-    INICIAR IA DE BOTS
-  ====================================================*/
-
-  private iniciarBots(): void {
-
-    if (!this.soyControladorBots()) {
-
-      return;
-
-    }
-
-    if (this.intervaloBots) {
-
-      clearInterval(
-        this.intervaloBots
-      );
-
-    }
-
-    this.intervaloBots =
-      setInterval(() => {
-
-        if (
-          this.vista !== 'jugando' ||
-          this.finalizando
-        ) {
-
-          return;
-
-        }
-
-        this.moverBots();
-
-      }, Math.min(
-
-        this.mapaSeleccionado
-          .velocidadFantasma,
-
-        this.mapaSeleccionado
-          .velocidadMonstruo
-
-      ));
-
-  }
-    moverBots() {
-        throw new Error('Method not implemented.');
-    }
-
-
-  /*====================================================
-    FINALIZAR PARTIDA
-  ====================================================*/
-
-  private finalizarPartidaLocal(
-    ganador: EquipoJuego,
-    mensaje: string
-  ): void {
-
-    if (this.finalizando) {
-
-      return;
-
-    }
-
-    this.finalizando = true;
-
-    this.detenerTodosLosIntervalos();
-
-    this.equipoGanador =
-      ganador;
-
-    this.mensajeFinal =
-      mensaje;
-
-    this.vista =
-      ganador === this.equipoJugador
-        ? 'victoria'
-        : 'derrota';
-
-  }
-
-  /*====================================================
-    FINAL RECIBIDO DEL SERVIDOR
-  ====================================================*/
-
-  private resolverFinalDesdeServidor(): void {
-
-    if (!this.juego) {
-
-      return;
-
-    }
-
-    this.finalizarPartidaLocal(
-
-      this.juego.ganador === 'PacMan'
-        ? 'pacman'
-        : 'villanos',
-
-      this.juego.mensajeFinal ??
-      'La partida terminó.'
-
-    );
-
-  }
-
-  /*====================================================
-    MENSAJE DE ERROR
-  ====================================================*/
+  /* ============================================================
+     MENSAJE ERROR
+  ============================================================ */
 
   private obtenerMensajeError(
     error: any,
-    defecto: string
+    predeterminado: string
   ): string {
 
     if (
-      error?.error?.mensaje
+      typeof error?.error ===
+      'string'
+    ) {
+
+      return error.error;
+
+    }
+
+
+    if (
+      typeof error?.error?.message ===
+      'string'
+    ) {
+
+      return error.error.message;
+
+    }
+
+
+    if (
+      typeof error?.error?.mensaje ===
+      'string'
     ) {
 
       return error.error.mensaje;
 
     }
 
-    if (
-      error?.error?.Message
-    ) {
-
-      return error.error.Message;
-
-    }
 
     if (
-      error?.message
+      typeof error?.message ===
+      'string'
     ) {
 
       return error.message;
 
     }
 
-    return defecto;
 
-  }
-
-  /*====================================================
-    CLASE CSS CELDA
-  ====================================================*/
-
-  claseCelda(
-    celda: CeldaJuego
-  ): string {
-
-    return `celda-${celda.tipo}`;
-
-  }
-
-  /*====================================================
-    CONTENIDO CELDA
-  ====================================================*/
-
-  contenidoCelda(
-    celda: CeldaJuego
-  ): string {
-
-    switch (celda.tipo) {
-
-      case 'poder':
-        return '●';
-
-      case 'fruta':
-        return '🍒';
-
-      case 'frutaVillana':
-        return '🫐';
-
-      default:
-        return '';
-
-    }
-
-  }
-
-  /*====================================================
-    PUNTOS RESTANTES
-  ====================================================*/
-
-  puntosRestantes(): number {
-
-    return this.gameEngine
-      .contarPuntosRestantes(
-        this.celdas
-      );
-
-  }
-
-  /*====================================================
-    DETENER INTERVALOS
-  ====================================================*/
-
-  private detenerTodosLosIntervalos(): void {
-
-    this.movimientoActivo = false;
-
-    if (this.intervaloMovimiento) {
-
-      clearInterval(
-        this.intervaloMovimiento
-      );
-
-      this.intervaloMovimiento =
-        undefined;
-
-    }
-
-    if (this.intervaloSincronizacion) {
-
-      clearInterval(
-        this.intervaloSincronizacion
-      );
-
-      this.intervaloSincronizacion =
-        undefined;
-
-    }
-
-    if (this.intervaloTiempo) {
-
-      clearInterval(
-        this.intervaloTiempo
-      );
-
-      this.intervaloTiempo =
-        undefined;
-
-    }
-
-    if (this.intervaloBots) {
-
-      clearInterval(
-        this.intervaloBots
-      );
-
-      this.intervaloBots =
-        undefined;
-
-    }
+    return predeterminado;
 
   }
 

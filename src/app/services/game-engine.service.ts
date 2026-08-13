@@ -16,6 +16,7 @@ export type TipoCelda =
   | 'poder'
   | 'fruta'
   | 'frutaVillana'
+  | 'tunel'
   | 'vacia';
 
 export type TipoFrutaPacMan =
@@ -377,7 +378,7 @@ export class GameEngineService {
         return 'frutaVillana';
 
       case 'T':
-        return 'vacia';
+        return 'tunel';
 
       default:
         return 'vacia';

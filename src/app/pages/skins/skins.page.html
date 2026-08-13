@@ -1,93 +1,708 @@
-<ion-content fullscreen class="skins-page">
-  <div class="background-grid"></div>
+<ion-content
+  [fullscreen]="true"
+  class="skins-page"
+>
 
-  <div class="shop-container">
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
 
-    <div class="shop-header">
-      <button class="back-shop" (click)="volverMenu()">← MENÚ</button>
+  <div
+    class="background-grid"
+    aria-hidden="true"
+  ></div>
+
+
+  <!-- =====================================================
+       CONTENEDOR PRINCIPAL
+  ====================================================== -->
+
+  <main class="shop-container">
+
+
+    <!-- ===================================================
+         CABECERA
+    ==================================================== -->
+
+    <header class="shop-header">
+
+      <!-- VOLVER -->
+
+      <button
+        type="button"
+        class="back-shop"
+        (click)="volverMenu()"
+        [disabled]="cargando || procesandoCompra || procesandoEquipar"
+      >
+        ← MENÚ
+      </button>
+
+
+      <!-- TÍTULO -->
 
       <div class="title-area">
-        <h1>TIENDA</h1>
-        <small>Pac-Man CR</small>
+
+        <h1>
+          TIENDA
+        </h1>
+
+        <small>
+          Pac-Man CR
+        </small>
+
       </div>
 
-      <div class="gold-box">🪙 {{ oro }}</div>
-    </div>
 
-    <div class="categorias">
-      <button [class.active]="categoriaActual === 'Pac-Man'" (click)="cambiarCategoria('Pac-Man')">PAC-MAN</button>
-      <button [class.active]="categoriaActual === 'Fantasma'" (click)="cambiarCategoria('Fantasma')">FANTASMAS</button>
-      <button [class.active]="categoriaActual === 'Monstruo'" (click)="cambiarCategoria('Monstruo')">MONSTRUOS</button>
-    </div>
+      <!-- ORO DEL USUARIO -->
 
-    <div class="rarezas">
-      <button [class.active]="rarezaActual === 'Todas'" (click)="cambiarRareza('Todas')">Todas</button>
-      <button [class.active]="rarezaActual === 'Común'" (click)="cambiarRareza('Común')">Común</button>
-      <button [class.active]="rarezaActual === 'Rara'" (click)="cambiarRareza('Rara')">Rara</button>
-      <button [class.active]="rarezaActual === 'Épica'" (click)="cambiarRareza('Épica')">Épica</button>
-      <button [class.active]="rarezaActual === 'Legendaria'" (click)="cambiarRareza('Legendaria')">Legendaria</button>
-      <button [class.active]="rarezaActual === 'Mítica'" (click)="cambiarRareza('Mítica')">Mítica</button>
-    </div>
-
-    <div class="skins-grid">
       <div
-        class="skin-card"
-        *ngFor="let skin of skinsFiltradas"
-        [class.selected]="skinSeleccionada?.id === skin.id"
-        [class.equipped-card]="skin.equipada"
-        (click)="seleccionarSkin(skin)">
+        class="gold-box"
+        aria-label="Oro disponible"
+      >
 
-        <div class="rarity" [ngClass]="skin.rareza.toLowerCase()">{{ skin.rareza }}</div>
+        <span aria-hidden="true">
+          🪙
+        </span>
 
-        <div class="skin-stage">
-          <div class="skin-character" [ngClass]="skin.estilo">
-            <span class="eye one"></span>
-            <span class="eye two"></span>
-            <span class="mouth"></span>
-            <span class="crown"></span>
-            <span class="horn left"></span>
-            <span class="horn right"></span>
+        <strong>
+          {{ oro }}
+        </strong>
+
+      </div>
+
+    </header>
+
+
+    <!-- ===================================================
+         MENSAJES
+    ==================================================== -->
+
+    <div
+      class="shop-message error"
+      *ngIf="mensajeError"
+      role="alert"
+    >
+
+      <ion-icon
+        name="alert-circle-outline"
+      ></ion-icon>
+
+      <span>
+        {{ mensajeError }}
+      </span>
+
+    </div>
+
+
+    <div
+      class="shop-message success"
+      *ngIf="mensajeExito"
+      role="status"
+    >
+
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>
+        {{ mensajeExito }}
+      </span>
+
+    </div>
+
+
+    <!-- ===================================================
+         CARGANDO
+    ==================================================== -->
+
+    <section
+      class="loading-shop"
+      *ngIf="cargando"
+    >
+
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+      <span>
+        Cargando tienda...
+      </span>
+
+    </section>
+
+
+    <!-- ===================================================
+         CONTENIDO DE LA TIENDA
+    ==================================================== -->
+
+    <ng-container *ngIf="!cargando">
+
+
+      <!-- =================================================
+           CATEGORÍAS
+
+           El jugador puede tener una skin equipada
+           independiente para:
+           - Pac-Man
+           - Fantasma
+           - Monstruo
+      ================================================== -->
+
+      <section class="categorias">
+
+        <button
+          type="button"
+          [class.active]="categoriaActual === 'Pac-Man'"
+          (click)="cambiarCategoria('Pac-Man')"
+        >
+
+          🟡 PAC-MAN
+
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="categoriaActual === 'Fantasma'"
+          (click)="cambiarCategoria('Fantasma')"
+        >
+
+          👻 FANTASMAS
+
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="categoriaActual === 'Monstruo'"
+          (click)="cambiarCategoria('Monstruo')"
+        >
+
+          😈 MONSTRUOS
+
+        </button>
+
+      </section>
+
+
+      <!-- =================================================
+           RAREZAS
+      ================================================== -->
+
+      <section class="rarezas">
+
+        <button
+          type="button"
+          [class.active]="rarezaActual === 'Todas'"
+          (click)="cambiarRareza('Todas')"
+        >
+          Todas
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="rarezaActual === 'Común'"
+          (click)="cambiarRareza('Común')"
+        >
+          Común
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="rarezaActual === 'Rara'"
+          (click)="cambiarRareza('Rara')"
+        >
+          Rara
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="rarezaActual === 'Épica'"
+          (click)="cambiarRareza('Épica')"
+        >
+          Épica
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="rarezaActual === 'Legendaria'"
+          (click)="cambiarRareza('Legendaria')"
+        >
+          Legendaria
+        </button>
+
+
+        <button
+          type="button"
+          [class.active]="rarezaActual === 'Mítica'"
+          (click)="cambiarRareza('Mítica')"
+        >
+          Mítica
+        </button>
+
+      </section>
+
+
+      <!-- =================================================
+           AVISO DE CATEGORÍA
+      ================================================== -->
+
+      <section class="category-info">
+
+        <ion-icon
+          name="information-circle-outline"
+        ></ion-icon>
+
+        <span>
+
+          Puedes tener una skin equipada para
+          <strong>{{ categoriaActual }}</strong>.
+
+        </span>
+
+      </section>
+
+
+      <!-- =================================================
+           GRID DE SKINS
+      ================================================== -->
+
+      <section
+        class="skins-grid"
+        *ngIf="skinsFiltradas.length > 0"
+      >
+
+        <button
+          type="button"
+          class="skin-card"
+          *ngFor="let skin of skinsFiltradas"
+          [class.selected]="skinSeleccionada?.id === skin.id"
+          [class.equipped-card]="skin.equipada"
+          (click)="seleccionarSkin(skin)"
+        >
+
+
+          <!-- RAREZA -->
+
+          <div
+            class="rarity"
+            [ngClass]="skin.rareza.toLowerCase()"
+          >
+
+            {{ skin.rareza }}
+
           </div>
-        </div>
 
-        <h2>{{ skin.nombre }}</h2>
-        <p>{{ skin.descripcion }}</p>
 
-        <div class="price" *ngIf="!skin.comprada">🪙 {{ skin.precio }}</div>
-        <div class="owned" *ngIf="skin.comprada && !skin.equipada">COMPRADA</div>
-        <div class="equipped" *ngIf="skin.equipada">EQUIPADA</div>
-      </div>
-    </div>
-  </div>
+          <!-- EQUIPADA -->
 
-  <div class="preview-panel" *ngIf="skinSeleccionada">
+          <div
+            class="equipped-badge"
+            *ngIf="skin.equipada"
+          >
+
+            <ion-icon
+              name="checkmark-circle-outline"
+            ></ion-icon>
+
+            EQUIPADA
+
+          </div>
+
+
+          <!-- PERSONAJE -->
+
+          <div class="skin-stage">
+
+            <div
+              class="skin-character"
+              [ngClass]="skin.estilo"
+            >
+
+              <span class="eye one"></span>
+
+              <span class="eye two"></span>
+
+              <span class="mouth"></span>
+
+              <span class="crown"></span>
+
+              <span class="horn left"></span>
+
+              <span class="horn right"></span>
+
+            </div>
+
+          </div>
+
+
+          <!-- NOMBRE -->
+
+          <h2>
+            {{ skin.nombre }}
+          </h2>
+
+
+          <!-- DESCRIPCIÓN -->
+
+          <p>
+            {{ skin.descripcion }}
+          </p>
+
+
+          <!-- =================================================
+               PRECIO
+          ================================================== -->
+
+          <div
+            class="price"
+            *ngIf="!skin.comprada"
+          >
+
+            <span aria-hidden="true">
+              🪙
+            </span>
+
+            {{ skin.precio }}
+
+          </div>
+
+
+          <!-- =================================================
+               COMPRADA
+          ================================================== -->
+
+          <div
+            class="owned"
+            *ngIf="
+              skin.comprada &&
+              !skin.equipada
+            "
+          >
+
+            <ion-icon
+              name="bag-check-outline"
+            ></ion-icon>
+
+            COMPRADA
+
+          </div>
+
+
+          <!-- =================================================
+               EQUIPADA
+          ================================================== -->
+
+          <div
+            class="equipped"
+            *ngIf="skin.equipada"
+          >
+
+            <ion-icon
+              name="shield-checkmark-outline"
+            ></ion-icon>
+
+            EN USO
+
+          </div>
+
+        </button>
+
+      </section>
+
+
+      <!-- =================================================
+           SIN RESULTADOS
+      ================================================== -->
+
+      <section
+        class="empty-shop"
+        *ngIf="skinsFiltradas.length === 0"
+      >
+
+        <ion-icon
+          name="search-outline"
+        ></ion-icon>
+
+        <h3>
+          No hay skins disponibles
+        </h3>
+
+        <p>
+          No se encontraron skins con estos filtros.
+        </p>
+
+      </section>
+
+    </ng-container>
+
+
+  </main>
+
+
+  <!-- =====================================================
+       PANEL DE DETALLE
+  ====================================================== -->
+
+  <aside
+    class="preview-panel"
+    *ngIf="
+      skinSeleccionada &&
+      !cargando
+    "
+  >
+
+
+    <!-- ===================================================
+         VISTA GRANDE
+    ==================================================== -->
+
     <div class="big-stage">
-      <div class="skin-character big" [ngClass]="skinSeleccionada.estilo">
+
+      <div
+        class="skin-character big"
+        [ngClass]="skinSeleccionada.estilo"
+      >
+
         <span class="eye one"></span>
+
         <span class="eye two"></span>
+
         <span class="mouth"></span>
+
         <span class="crown"></span>
+
         <span class="horn left"></span>
+
         <span class="horn right"></span>
+
       </div>
+
     </div>
+
+
+    <!-- ===================================================
+         INFORMACIÓN
+    ==================================================== -->
 
     <div class="preview-info">
-      <h2>{{ skinSeleccionada.nombre }}</h2>
-      <span [ngClass]="skinSeleccionada.rareza.toLowerCase()">{{ skinSeleccionada.rareza }}</span>
-      <p>{{ skinSeleccionada.descripcion }}</p>
 
-      <button class="buy-btn" *ngIf="!skinSeleccionada.comprada" (click)="comprarSkin()">
-        COMPRAR 🪙 {{ skinSeleccionada.precio }}
-      </button>
+      <div class="preview-title">
 
-      <button class="equip-btn" *ngIf="skinSeleccionada.comprada && !skinSeleccionada.equipada" (click)="equiparSkin()">
-        EQUIPAR
-      </button>
+        <div>
 
-      <button class="equipped-btn" *ngIf="skinSeleccionada.equipada">
-        EQUIPADA
-      </button>
+          <small>
+            {{ skinSeleccionada.categoria }}
+          </small>
+
+          <h2>
+            {{ skinSeleccionada.nombre }}
+          </h2>
+
+        </div>
+
+
+        <span
+          class="preview-rarity"
+          [ngClass]="skinSeleccionada.rareza.toLowerCase()"
+        >
+
+          {{ skinSeleccionada.rareza }}
+
+        </span>
+
+      </div>
+
+
+      <p>
+        {{ skinSeleccionada.descripcion }}
+      </p>
+
+
+      <!-- =================================================
+           PRECIO
+      ================================================== -->
+
+      <div
+        class="preview-price"
+        *ngIf="!skinSeleccionada.comprada"
+      >
+
+        Precio:
+
+        <strong>
+          🪙 {{ skinSeleccionada.precio }}
+        </strong>
+
+      </div>
+
+
+      <!-- =================================================
+           ORO ACTUAL
+      ================================================== -->
+
+      <div
+        class="preview-balance"
+        *ngIf="!skinSeleccionada.comprada"
+      >
+
+        Tu oro:
+
+        <strong>
+          🪙 {{ oro }}
+        </strong>
+
+      </div>
+
+
+      <!-- =================================================
+           NO HAY ORO SUFICIENTE
+      ================================================== -->
+
+      <div
+        class="insufficient-gold"
+        *ngIf="
+          !skinSeleccionada.comprada &&
+          oro < skinSeleccionada.precio
+        "
+      >
+
+        <ion-icon
+          name="warning-outline"
+        ></ion-icon>
+
+        Te falta oro para comprar esta skin.
+
+      </div>
+
     </div>
-  </div>
+
+
+    <!-- ===================================================
+         ACCIONES
+    ==================================================== -->
+
+    <div class="preview-actions">
+
+
+      <!-- =================================================
+           COMPRAR
+      ================================================== -->
+
+      <button
+        type="button"
+        class="buy-btn"
+        *ngIf="!skinSeleccionada.comprada"
+        [disabled]="
+          procesandoCompra ||
+          procesandoEquipar ||
+          oro < skinSeleccionada.precio
+        "
+        (click)="comprarSkin()"
+      >
+
+        <ion-spinner
+          *ngIf="procesandoCompra"
+          name="crescent"
+        ></ion-spinner>
+
+
+        <ng-container *ngIf="!procesandoCompra">
+
+          <span>
+            COMPRAR
+          </span>
+
+          <span>
+            🪙 {{ skinSeleccionada.precio }}
+          </span>
+
+        </ng-container>
+
+      </button>
+
+
+      <!-- =================================================
+           EQUIPAR
+      ================================================== -->
+
+      <button
+        type="button"
+        class="equip-btn"
+        *ngIf="
+          skinSeleccionada.comprada &&
+          !skinSeleccionada.equipada
+        "
+        [disabled]="
+          procesandoCompra ||
+          procesandoEquipar
+        "
+        (click)="equiparSkin()"
+      >
+
+        <ion-spinner
+          *ngIf="procesandoEquipar"
+          name="crescent"
+        ></ion-spinner>
+
+
+        <ng-container *ngIf="!procesandoEquipar">
+
+          <ion-icon
+            name="shirt-outline"
+          ></ion-icon>
+
+          EQUIPAR
+
+        </ng-container>
+
+      </button>
+
+
+      <!-- =================================================
+           YA EQUIPADA
+      ================================================== -->
+
+      <button
+        type="button"
+        class="equipped-btn"
+        *ngIf="skinSeleccionada.equipada"
+        disabled
+      >
+
+        <ion-icon
+          name="checkmark-circle-outline"
+        ></ion-icon>
+
+        EQUIPADA
+
+      </button>
+
+
+      <!-- =================================================
+           CERRAR SELECCIÓN
+      ================================================== -->
+
+      <button
+        type="button"
+        class="close-preview"
+        (click)="skinSeleccionada = undefined"
+        aria-label="Cerrar detalle"
+      >
+
+        <ion-icon
+          name="close-outline"
+        ></ion-icon>
+
+      </button>
+
+    </div>
+
+
+  </aside>
+
 </ion-content>

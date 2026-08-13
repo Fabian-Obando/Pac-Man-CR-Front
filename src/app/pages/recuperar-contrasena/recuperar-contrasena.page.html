@@ -1,0 +1,360 @@
+<ion-content
+  [fullscreen]="true"
+  class="recuperar-page"
+>
+
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
+
+  <div
+    class="background"
+    aria-hidden="true"
+  ></div>
+
+
+  <!-- =====================================================
+       PERSONAJES DECORATIVOS
+  ====================================================== -->
+
+  <div
+    class="characters"
+    aria-hidden="true"
+  >
+
+    <div class="monster">
+      😈
+    </div>
+
+    <div class="ghost red"></div>
+
+    <div class="ghost pink"></div>
+
+    <div class="ghost cyan"></div>
+
+    <div class="ghost orange"></div>
+
+  </div>
+
+
+  <!-- =====================================================
+       TARJETA PRINCIPAL
+  ====================================================== -->
+
+  <main class="recuperar-card">
+
+    <!-- ===================================================
+         ENCABEZADO
+    ==================================================== -->
+
+    <header class="recuperar-header">
+
+      <div
+        class="icono-recuperar"
+        aria-hidden="true"
+      >
+        🔐
+      </div>
+
+      <h1>
+        PAC-MAN CR
+      </h1>
+
+      <h2>
+        Recuperar contraseña
+      </h2>
+
+      <p class="descripcion">
+        Ingresa el correo asociado a tu cuenta y te enviaremos
+        un enlace seguro para crear una nueva contraseña.
+      </p>
+
+    </header>
+
+
+    <!-- ===================================================
+         MENSAJE DE ERROR
+    ==================================================== -->
+
+    <div
+      class="error-message"
+      *ngIf="mensajeError"
+      role="alert"
+    >
+
+      <ion-icon
+        name="alert-circle-outline"
+      ></ion-icon>
+
+      <span>
+        {{ mensajeError }}
+      </span>
+
+    </div>
+
+
+    <!-- ===================================================
+         FORMULARIO
+         Solo se muestra antes de enviar el correo
+    ==================================================== -->
+
+    <section
+      class="formulario-recuperacion"
+      *ngIf="!correoEnviado"
+    >
+
+      <!-- Correo -->
+
+      <ion-item
+        lines="none"
+        class="input-item"
+      >
+
+        <ion-icon
+          slot="start"
+          name="mail-outline"
+        ></ion-icon>
+
+        <ion-input
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="Correo electrónico"
+          [(ngModel)]="correo"
+          [disabled]="cargando"
+          (keyup.enter)="alPresionarEnter()"
+        >
+        </ion-input>
+
+      </ion-item>
+
+
+      <!-- Información -->
+
+      <div class="ayuda-correo">
+
+        <ion-icon
+          name="information-circle-outline"
+        ></ion-icon>
+
+        <span>
+          Usa el mismo correo con el que registraste tu cuenta
+          en Pac-Man CR.
+        </span>
+
+      </div>
+
+
+      <!-- =================================================
+           BOTÓN ENVIAR
+      ================================================== -->
+
+      <ion-button
+        expand="block"
+        type="button"
+        class="btn-enviar"
+        [disabled]="cargando"
+        (click)="enviarRecuperacion()"
+      >
+
+        <ion-spinner
+          *ngIf="cargando"
+          name="crescent"
+        ></ion-spinner>
+
+        <ion-icon
+          *ngIf="!cargando"
+          slot="start"
+          name="send-outline"
+        ></ion-icon>
+
+        <span *ngIf="!cargando">
+          ENVIAR ENLACE
+        </span>
+
+        <span *ngIf="cargando">
+          ENVIANDO...
+        </span>
+
+      </ion-button>
+
+    </section>
+
+
+    <!-- ===================================================
+         CORREO ENVIADO
+    ==================================================== -->
+
+    <section
+      class="correo-enviado"
+      *ngIf="correoEnviado"
+    >
+
+      <div
+        class="icono-exito"
+        aria-hidden="true"
+      >
+        ✉️
+      </div>
+
+      <h3>
+        Revisa tu correo
+      </h3>
+
+      <p>
+        {{ mensajeExito }}
+      </p>
+
+
+      <div class="correo-destino">
+
+        <ion-icon
+          name="mail-outline"
+        ></ion-icon>
+
+        <strong>
+          {{ correo }}
+        </strong>
+
+      </div>
+
+
+      <!-- =================================================
+           AVISO IMPORTANTE
+      ================================================== -->
+
+      <div class="aviso-seguridad">
+
+        <ion-icon
+          name="shield-checkmark-outline"
+        ></ion-icon>
+
+        <span>
+          El enlace de recuperación es temporal y solo debe
+          utilizarlo el propietario de la cuenta.
+        </span>
+
+      </div>
+
+
+      <!-- =================================================
+           REENVIAR
+      ================================================== -->
+
+      <ion-button
+        expand="block"
+        type="button"
+        fill="outline"
+        class="btn-reenviar"
+        [disabled]="cargando"
+        (click)="reenviarCorreo()"
+      >
+
+        <ion-spinner
+          *ngIf="cargando"
+          name="crescent"
+        ></ion-spinner>
+
+        <ion-icon
+          *ngIf="!cargando"
+          slot="start"
+          name="refresh-outline"
+        ></ion-icon>
+
+        <span *ngIf="!cargando">
+          REENVIAR CORREO
+        </span>
+
+        <span *ngIf="cargando">
+          ENVIANDO...
+        </span>
+
+      </ion-button>
+
+
+      <!-- Cambiar correo -->
+
+      <button
+        type="button"
+        class="cambiar-correo"
+        [disabled]="cargando"
+        (click)="cambiarCorreo()"
+      >
+
+        ¿Escribiste mal el correo?
+
+      </button>
+
+    </section>
+
+
+    <!-- ===================================================
+         SEPARADOR
+    ==================================================== -->
+
+    <div class="separator">
+
+      <span></span>
+
+      <small>
+        PAC-MAN CR
+      </small>
+
+      <span></span>
+
+    </div>
+
+
+    <!-- ===================================================
+         VOLVER AL LOGIN
+    ==================================================== -->
+
+    <ion-button
+      expand="block"
+      type="button"
+      fill="outline"
+      class="btn-volver"
+      [disabled]="cargando"
+      (click)="volverLogin()"
+    >
+
+      <ion-icon
+        slot="start"
+        name="arrow-back-outline"
+      ></ion-icon>
+
+      VOLVER AL INICIO DE SESIÓN
+
+    </ion-button>
+
+
+    <!-- ===================================================
+         SEGURIDAD
+    ==================================================== -->
+
+    <div class="security-info">
+
+      <ion-icon
+        name="lock-closed-outline"
+      ></ion-icon>
+
+      <span>
+        Por seguridad, Pac-Man CR no mostrará si un correo
+        está registrado o no.
+      </span>
+
+    </div>
+
+  </main>
+
+
+  <!-- =====================================================
+       PAC-MAN DECORATIVO
+  ====================================================== -->
+
+  <div
+    class="pacman"
+    aria-hidden="true"
+  ></div>
+
+</ion-content>

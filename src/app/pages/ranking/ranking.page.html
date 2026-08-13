@@ -1,13 +1,197 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>ranking</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content
+  [fullscreen]="true"
+  class="ranking-page"
+>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">ranking</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="maze-background"></div>
+
+
+  <main class="ranking-container">
+
+
+    <header class="page-header">
+
+      <button
+        class="back-button"
+        (click)="volverMenu()"
+      >
+        ← MENÚ
+      </button>
+
+
+      <div>
+
+        <h1>
+          RANKING
+        </h1>
+
+        <span>
+          PAC-MAN CR
+        </span>
+
+      </div>
+
+
+      <button
+        class="refresh"
+        (click)="cargar()"
+      >
+        ↻
+      </button>
+
+    </header>
+
+
+
+    <div
+      class="error-message"
+      *ngIf="mensajeError"
+    >
+      {{ mensajeError }}
+    </div>
+
+
+
+    <!-- MI POSICIÓN -->
+
+    <section
+      class="my-ranking"
+      *ngIf="miRanking"
+    >
+
+      <span>
+        TU POSICIÓN
+      </span>
+
+
+      <strong>
+        #{{ miRanking.posicionActual }}
+      </strong>
+
+
+      <div>
+        {{ miRanking.nombreUsuario }}
+      </div>
+
+
+      <small>
+        {{ miRanking.puntos }} puntos
+      </small>
+
+    </section>
+
+
+
+    <!-- SIN RANKING -->
+
+    <section
+      class="my-ranking no-ranking"
+      *ngIf="
+        !cargando &&
+        !miRanking
+      "
+    >
+
+      <strong>
+        🎮
+      </strong>
+
+      <div>
+        Todavía no estás clasificado
+      </div>
+
+      <small>
+        Juega partidas para obtener puntos.
+      </small>
+
+    </section>
+
+
+
+    <!-- TABLA -->
+
+    <section class="ranking-table">
+
+      <div class="table-header">
+
+        <span>
+          POS.
+        </span>
+
+        <span>
+          JUGADOR
+        </span>
+
+        <span>
+          NIVEL
+        </span>
+
+        <span>
+          PUNTOS
+        </span>
+
+      </div>
+
+
+      <div
+        class="ranking-row"
+        *ngFor="let jugador of ranking"
+        [class.current-player]="
+          jugador.usuarioId === usuarioId
+        "
+      >
+
+        <div class="position">
+
+          <span>
+            {{ medalla(jugador.posicionActual) }}
+          </span>
+
+          #{{ jugador.posicionActual }}
+
+        </div>
+
+
+        <div class="player-data">
+
+          <div class="avatar">
+            👤
+          </div>
+
+
+          <strong>
+            {{ jugador.nombreUsuario }}
+          </strong>
+
+        </div>
+
+
+        <div>
+          Nivel {{ jugador.nivel }}
+        </div>
+
+
+        <div class="points">
+          {{ jugador.puntos }}
+        </div>
+
+      </div>
+
+
+      <div
+        class="empty"
+        *ngIf="
+          !cargando &&
+          ranking.length === 0
+        "
+      >
+
+        Aún no hay jugadores en el ranking.
+
+      </div>
+
+    </section>
+
+  </main>
+
 </ion-content>

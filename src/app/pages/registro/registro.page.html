@@ -1,11 +1,26 @@
-<ion-content fullscreen class="registro-page">
+<ion-content
+  fullscreen
+  class="registro-page"
+>
 
-  <!-- Fondo -->
-  <div class="maze-background"></div>
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
 
-  <!-- Personajes superiores -->
+  <div
+    class="maze-background"
+    aria-hidden="true"
+  ></div>
 
-  <section class="top-characters">
+
+  <!-- =====================================================
+       PERSONAJES SUPERIORES
+  ====================================================== -->
+
+  <section
+    class="top-characters"
+    aria-hidden="true"
+  >
 
     <div class="monster"></div>
 
@@ -39,221 +54,513 @@
 
   </section>
 
-  <!-- Tarjeta -->
 
-  <div class="registro-card">
+  <!-- =====================================================
+       TARJETA PRINCIPAL
+  ====================================================== -->
 
-    <h1>PAC-MAN CR</h1>
+  <main class="registro-card">
 
-    <h2>Crear cuenta</h2>
+    <header class="registro-header">
 
-    <p class="subtitle">
-      Crea tu perfil para jugar partidas online con tus amigos.
-    </p>
+      <h1>
+        PAC-MAN CR
+      </h1>
 
-    <!-- Usuario -->
+      <h2>
+        Crear cuenta
+      </h2>
 
-    <ion-item
-      lines="none"
-      class="input-box">
+      <p class="subtitle">
+        Crea tu perfil para jugar partidas online con tus amigos.
+      </p>
 
-      <ion-icon
-        name="person-outline"
-        slot="start">
-      </ion-icon>
+    </header>
 
-      <ion-input
 
-        labelPlacement="floating"
-
-        placeholder="Nombre de usuario"
-
-        [(ngModel)]="nombreUsuario">
-
-      </ion-input>
-
-    </ion-item>
-
-    <!-- Correo -->
-
-    <ion-item
-      lines="none"
-      class="input-box">
-
-      <ion-icon
-        name="mail-outline"
-        slot="start">
-      </ion-icon>
-
-      <ion-input
-
-        type="email"
-
-        labelPlacement="floating"
-
-        placeholder="Correo electrónico"
-
-        [(ngModel)]="correo">
-
-      </ion-input>
-
-    </ion-item>
-
-    <!-- Contraseña -->
-
-    <ion-item
-      lines="none"
-      class="input-box">
-
-      <ion-icon
-        name="lock-closed-outline"
-        slot="start">
-      </ion-icon>
-
-      <ion-input
-
-        [type]="mostrarPassword ? 'text' : 'password'"
-
-        placeholder="Contraseña"
-
-        [(ngModel)]="password">
-
-      </ion-input>
-
-      <ion-button
-
-        fill="clear"
-
-        slot="end"
-
-        (click)="mostrarPassword=!mostrarPassword">
-
-        <ion-icon
-
-          [name]="mostrarPassword ? 'eye-off-outline':'eye-outline'">
-
-        </ion-icon>
-
-      </ion-button>
-
-    </ion-item>
-
-    <!-- Confirmar -->
-
-    <ion-item
-      lines="none"
-      class="input-box">
-
-      <ion-icon
-        name="shield-checkmark-outline"
-        slot="start">
-      </ion-icon>
-
-      <ion-input
-
-        [type]="mostrarConfirmar ? 'text' : 'password'"
-
-        placeholder="Confirmar contraseña"
-
-        [(ngModel)]="confirmarPassword">
-
-      </ion-input>
-
-      <ion-button
-
-        fill="clear"
-
-        slot="end"
-
-        (click)="mostrarConfirmar=!mostrarConfirmar">
-
-        <ion-icon
-
-          [name]="mostrarConfirmar ? 'eye-off-outline':'eye-outline'">
-
-        </ion-icon>
-
-      </ion-button>
-
-    </ion-item>
-
-    <!-- Error -->
+    <!-- ===================================================
+         MENSAJE DE ERROR
+    ==================================================== -->
 
     <div
       class="error-message"
-      *ngIf="mensajeError">
+      *ngIf="mensajeError"
+      role="alert"
+    >
 
       <ion-icon
-        name="warning-outline">
-      </ion-icon>
+        name="warning-outline"
+      ></ion-icon>
 
-      {{ mensajeError }}
-
-    </div>
-
-    <!-- Crear -->
-
-    <ion-button
-
-      expand="block"
-
-      class="btn-crear"
-
-      [disabled]="cargando"
-
-      (click)="crearCuenta()">
-
-      <ion-spinner
-
-        *ngIf="cargando"
-
-        name="crescent">
-
-      </ion-spinner>
-
-      <span *ngIf="!cargando">
-
-        CREAR CUENTA
-
+      <span>
+        {{ mensajeError }}
       </span>
 
-    </ion-button>
-
-    <!-- Volver -->
-
-    <ion-button
-
-      expand="block"
-
-      fill="clear"
-
-      class="btn-volver"
-
-      (click)="volverLogin()">
-
-      ← VOLVER AL LOGIN
-
-    </ion-button>
-
-    <!-- Footer -->
-
-    <div class="footer-info">
-
-      Al registrarte aceptas los términos de uso de
-      <strong>Pac-Man CR</strong>.
-
     </div>
 
-  </div>
 
-  <!-- Pac-Man inferior -->
+    <!-- ===================================================
+         FORMULARIO DE REGISTRO
+    ==================================================== -->
 
-  <div class="pacman-run">
+    <section
+      class="formulario-registro"
+      *ngIf="!cuentaCreada"
+    >
+
+      <!-- USUARIO -->
+
+      <ion-item
+        lines="none"
+        class="input-box"
+      >
+
+        <ion-icon
+          name="person-outline"
+          slot="start"
+        ></ion-icon>
+
+        <ion-input
+          type="text"
+          autocomplete="username"
+          placeholder="Nombre de usuario"
+          [(ngModel)]="nombreUsuario"
+          [disabled]="cargando"
+          (keyup.enter)="alPresionarEnter()"
+        >
+        </ion-input>
+
+      </ion-item>
+
+
+      <!-- CORREO -->
+
+      <ion-item
+        lines="none"
+        class="input-box"
+      >
+
+        <ion-icon
+          name="mail-outline"
+          slot="start"
+        ></ion-icon>
+
+        <ion-input
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="Correo electrónico"
+          [(ngModel)]="correo"
+          [disabled]="cargando"
+          (keyup.enter)="alPresionarEnter()"
+        >
+        </ion-input>
+
+      </ion-item>
+
+
+      <!-- CONTRASEÑA -->
+
+      <ion-item
+        lines="none"
+        class="input-box password-box"
+      >
+
+        <ion-icon
+          name="lock-closed-outline"
+          slot="start"
+        ></ion-icon>
+
+        <ion-input
+          [type]="mostrarPassword ? 'text' : 'password'"
+          autocomplete="new-password"
+          placeholder="Contraseña"
+          [(ngModel)]="password"
+          [disabled]="cargando"
+          (keyup.enter)="alPresionarEnter()"
+        >
+        </ion-input>
+
+        <ion-button
+          fill="clear"
+          slot="end"
+          type="button"
+          class="btn-password"
+          [disabled]="cargando"
+          (click)="alternarPassword()"
+        >
+
+          <ion-icon
+            slot="icon-only"
+            [name]="
+              mostrarPassword
+                ? 'eye-off-outline'
+                : 'eye-outline'
+            "
+          ></ion-icon>
+
+        </ion-button>
+
+      </ion-item>
+
+
+      <!-- CONFIRMAR CONTRASEÑA -->
+
+      <ion-item
+        lines="none"
+        class="input-box password-box"
+      >
+
+        <ion-icon
+          name="shield-checkmark-outline"
+          slot="start"
+        ></ion-icon>
+
+        <ion-input
+          [type]="mostrarConfirmar ? 'text' : 'password'"
+          autocomplete="new-password"
+          placeholder="Confirmar contraseña"
+          [(ngModel)]="confirmarPassword"
+          [disabled]="cargando"
+          (keyup.enter)="alPresionarEnter()"
+        >
+        </ion-input>
+
+        <ion-button
+          fill="clear"
+          slot="end"
+          type="button"
+          class="btn-password"
+          [disabled]="cargando"
+          (click)="alternarConfirmarPassword()"
+        >
+
+          <ion-icon
+            slot="icon-only"
+            [name]="
+              mostrarConfirmar
+                ? 'eye-off-outline'
+                : 'eye-outline'
+            "
+          ></ion-icon>
+
+        </ion-button>
+
+      </ion-item>
+
+
+      <!-- =================================================
+           REQUISITOS DE CONTRASEÑA
+      ================================================== -->
+
+      <div class="password-requisitos">
+
+        <div class="password-requisitos-titulo">
+
+          <ion-icon
+            name="information-circle-outline"
+          ></ion-icon>
+
+          <strong>
+            La contraseña debe incluir:
+          </strong>
+
+        </div>
+
+        <ul>
+          <li>Al menos 8 caracteres</li>
+          <li>Una letra mayúscula</li>
+          <li>Una letra minúscula</li>
+          <li>Al menos un número</li>
+          <li>Al menos un símbolo</li>
+        </ul>
+
+      </div>
+
+
+      <!-- =================================================
+           CREAR CUENTA
+      ================================================== -->
+
+      <ion-button
+        expand="block"
+        type="button"
+        class="btn-crear"
+        [disabled]="cargando"
+        (click)="crearCuenta()"
+      >
+
+        <ion-spinner
+          *ngIf="cargando"
+          name="crescent"
+        ></ion-spinner>
+
+        <ion-icon
+          *ngIf="!cargando"
+          slot="start"
+          name="person-add-outline"
+        ></ion-icon>
+
+        <span *ngIf="!cargando">
+          CREAR CUENTA
+        </span>
+
+        <span *ngIf="cargando">
+          CREANDO CUENTA...
+        </span>
+
+      </ion-button>
+
+
+      <!-- =================================================
+           VOLVER
+      ================================================== -->
+
+      <ion-button
+        expand="block"
+        fill="clear"
+        type="button"
+        class="btn-volver"
+        [disabled]="cargando"
+        (click)="volverLogin()"
+      >
+
+        <ion-icon
+          slot="start"
+          name="arrow-back-outline"
+        ></ion-icon>
+
+        VOLVER AL LOGIN
+
+      </ion-button>
+
+
+      <!-- =================================================
+           FOOTER
+      ================================================== -->
+
+      <div class="footer-info">
+
+        <ion-icon
+          name="shield-checkmark-outline"
+        ></ion-icon>
+
+        <span>
+          Tu correo deberá verificarse antes de poder
+          iniciar sesión.
+        </span>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         CUENTA CREADA
+    ==================================================== -->
+
+    <section
+      class="cuenta-creada"
+      *ngIf="cuentaCreada"
+    >
+
+      <div
+        class="icono-cuenta-creada"
+        aria-hidden="true"
+      >
+        ✉️
+      </div>
+
+      <h3>
+        ¡Cuenta creada!
+      </h3>
+
+      <p class="mensaje-registro-exito">
+        {{ mensajeExito }}
+      </p>
+
+
+      <!-- CORREO AL QUE SE ENVIÓ -->
+
+      <div class="correo-registrado">
+
+        <ion-icon
+          name="mail-outline"
+        ></ion-icon>
+
+        <strong>
+          {{ correo }}
+        </strong>
+
+      </div>
+
+
+      <!-- PASOS -->
+
+      <div class="pasos-verificacion">
+
+        <div class="paso">
+
+          <span class="numero-paso">
+            1
+          </span>
+
+          <div>
+            <strong>
+              Revisa tu correo
+            </strong>
+
+            <small>
+              Busca el mensaje enviado por Pac-Man CR.
+            </small>
+          </div>
+
+        </div>
+
+
+        <div class="paso">
+
+          <span class="numero-paso">
+            2
+          </span>
+
+          <div>
+            <strong>
+              Verifica tu cuenta
+            </strong>
+
+            <small>
+              Presiona el botón de verificación del correo.
+            </small>
+          </div>
+
+        </div>
+
+
+        <div class="paso">
+
+          <span class="numero-paso">
+            3
+          </span>
+
+          <div>
+            <strong>
+              Inicia sesión
+            </strong>
+
+            <small>
+              Después de verificar ya podrás entrar al juego.
+            </small>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           REENVIAR VERIFICACIÓN
+      ================================================== -->
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        type="button"
+        class="btn-reenviar"
+        [disabled]="cargando"
+        (click)="reenviarVerificacion()"
+      >
+
+        <ion-spinner
+          *ngIf="cargando"
+          name="crescent"
+        ></ion-spinner>
+
+        <ion-icon
+          *ngIf="!cargando"
+          slot="start"
+          name="refresh-outline"
+        ></ion-icon>
+
+        <span *ngIf="!cargando">
+          REENVIAR CORREO
+        </span>
+
+        <span *ngIf="cargando">
+          ENVIANDO...
+        </span>
+
+      </ion-button>
+
+
+      <!-- =================================================
+           IR AL LOGIN
+      ================================================== -->
+
+      <ion-button
+        expand="block"
+        type="button"
+        class="btn-login"
+        [disabled]="cargando"
+        (click)="irLogin()"
+      >
+
+        <ion-icon
+          slot="start"
+          name="log-in-outline"
+        ></ion-icon>
+
+        IR AL LOGIN
+
+      </ion-button>
+
+
+      <!-- =================================================
+           CAMBIAR DATOS
+      ================================================== -->
+
+      <button
+        type="button"
+        class="btn-cambiar-datos"
+        [disabled]="cargando"
+        (click)="cambiarDatos()"
+      >
+        ¿Escribiste algún dato incorrectamente?
+      </button>
+
+
+      <!-- SEGURIDAD -->
+
+      <div class="aviso-verificacion">
+
+        <ion-icon
+          name="lock-closed-outline"
+        ></ion-icon>
+
+        <span>
+          No podrás iniciar sesión hasta que el correo haya
+          sido verificado.
+        </span>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =====================================================
+       PAC-MAN INFERIOR
+  ====================================================== -->
+
+  <div
+    class="pacman-run"
+    aria-hidden="true"
+  >
 
     <div class="pacman"></div>
 
     <div class="dots">
-
       <span></span>
       <span></span>
       <span></span>
@@ -262,7 +569,6 @@
       <span></span>
       <span></span>
       <span></span>
-
     </div>
 
   </div>

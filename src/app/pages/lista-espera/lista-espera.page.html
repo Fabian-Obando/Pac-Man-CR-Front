@@ -1,127 +1,226 @@
-<ion-content fullscreen class="queue-page">
+<ion-content
+  [fullscreen]="true"
+  class="espera-page"
+>
 
-  <div class="background-grid"></div>
+  <div class="maze-background"></div>
 
-  <div class="container">
 
-    <h1>LISTA DE ESPERA</h1>
+  <main class="espera-container">
 
-    <p class="subtitle">
-      La sala está llena. Espera tu turno.
-    </p>
 
-    <div class="room-card">
+    <header>
 
-      <div class="top">
+      <button
+        class="back-button"
+        (click)="volverMenu()"
+      >
+        ← MENÚ
+      </button>
 
-        <div>
 
-          <span class="label">
-            Código de Sala
-          </span>
+      <div class="title">
 
-          <h2>{{codigoSala}}</h2>
+        <h1>
+          LISTA DE ESPERA
+        </h1>
 
-        </div>
-
-        <div class="capacity">
-
-          {{jugadores}} / {{capacidad}}
-
-        </div>
-
-      </div>
-
-      <div class="queue-status">
-
-        <div class="status-box">
-
-          <span>Posición</span>
-
-          <h3>#{{posicion}}</h3>
-
-        </div>
-
-        <div class="status-box">
-
-          <span>Delante de ti</span>
-
-          <h3>{{personasDelante}}</h3>
-
-        </div>
-
-        <div class="status-box">
-
-          <span>Tiempo</span>
-
-          <h3>{{tiempoTexto}}</h3>
-
-        </div>
+        <span>
+          MATCHMAKING • PAC-MAN CR
+        </span>
 
       </div>
 
-      <div class="loader">
 
-        <div class="loader-bar">
+      <button
+        class="refresh-button"
+        (click)="cargar()"
+      >
+        ↻
+      </button>
 
-          <div
-            class="loader-fill"
-            [style.width.%]="100-(tiempo/42*100)">
-          </div>
+    </header>
 
-        </div>
 
-      </div>
 
-      <div
-        class="ready-box"
-        *ngIf="listo">
-
-        <h2>
-          🎉 ¡Ya puedes entrar!
-        </h2>
-
-        <button
-          class="enter-btn"
-          (click)="entrarSala()">
-
-          ENTRAR A LA PARTIDA
-
-        </button>
-
-      </div>
-
-      <div
-        class="waiting-box"
-        *ngIf="!listo">
-
-        <div class="ghosts">
-
-          <div class="ghost red"></div>
-          <div class="ghost pink"></div>
-          <div class="ghost cyan"></div>
-          <div class="ghost orange"></div>
-
-        </div>
-
-        <p>
-
-          Esperando que un jugador abandone la partida...
-
-        </p>
-
-      </div>
-
+    <div
+      class="message success"
+      *ngIf="mensajeExito"
+    >
+      {{ mensajeExito }}
     </div>
 
-    <button
-      class="exit-btn"
-      (click)="salirCola()">
 
-      SALIR DE LA COLA
+    <div
+      class="message error"
+      *ngIf="mensajeError"
+    >
+      {{ mensajeError }}
+    </div>
 
-    </button>
 
-  </div>
+
+    <!-- ================= NO ESTÁ ESPERANDO ================= -->
+
+    <section
+      class="queue-main"
+      *ngIf="!miEstado"
+    >
+
+      <div class="queue-icon">
+        ⏳
+      </div>
+
+
+      <h2>
+        Buscar partida
+      </h2>
+
+
+      <p>
+        Entra a la cola para esperar una partida
+        con otros jugadores.
+      </p>
+
+
+      <button
+        class="enter-button"
+        [disabled]="procesando"
+        (click)="entrar()"
+      >
+
+        <ion-spinner
+          *ngIf="procesando"
+        ></ion-spinner>
+
+        <span *ngIf="!procesando">
+          🎮 ENTRAR A LA COLA
+        </span>
+
+      </button>
+
+    </section>
+
+
+
+    <!-- ================= ESTÁ ESPERANDO ================= -->
+
+    <section
+      class="queue-main waiting"
+      *ngIf="miEstado"
+    >
+
+      <div class="queue-icon pulse">
+        🕹️
+      </div>
+
+
+      <span class="searching">
+        BUSCANDO PARTIDA...
+      </span>
+
+
+      <h2>
+        {{ nombreUsuario }}
+      </h2>
+
+
+      <div class="position-box">
+
+        <small>
+          POSICIÓN EN COLA
+        </small>
+
+        <strong>
+          #{{ miEstado.posicion }}
+        </strong>
+
+      </div>
+
+
+      <button
+        class="leave-button"
+        [disabled]="procesando"
+        (click)="salir()"
+      >
+
+        SALIR DE LA COLA
+
+      </button>
+
+    </section>
+
+
+
+    <!-- ================= JUGADORES ================= -->
+
+    <section class="players-card">
+
+      <div class="card-header">
+
+        <h2>
+          👥 Jugadores esperando
+        </h2>
+
+        <strong>
+          {{ jugadores.length }}
+        </strong>
+
+      </div>
+
+
+      <div
+        class="waiting-player"
+        *ngFor="let jugador of jugadores"
+        [class.current]="
+          jugador.usuarioId === usuarioId
+        "
+      >
+
+        <span class="position">
+          #{{ jugador.posicion }}
+        </span>
+
+
+        <div class="avatar">
+          👤
+        </div>
+
+
+        <div class="player-info">
+
+          <strong>
+            {{ jugador.nombreUsuario }}
+          </strong>
+
+          <span>
+            Nivel {{ jugador.nivel }}
+          </span>
+
+        </div>
+
+
+        <span class="status">
+          ● ESPERANDO
+        </span>
+
+      </div>
+
+
+      <div
+        class="empty"
+        *ngIf="
+          !cargando &&
+          jugadores.length === 0
+        "
+      >
+
+        No hay jugadores esperando en este momento.
+
+      </div>
+
+    </section>
+
+  </main>
 
 </ion-content>

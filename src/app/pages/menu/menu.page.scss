@@ -1,913 +1,2199 @@
-.menu-page{
-  --background:#000;
-  position:relative;
-  overflow:hidden;
-  font-family:'Segoe UI',sans-serif;
-  color:white;
+/* =========================================================
+   PAC-MAN CR
+   MENÚ PRINCIPAL
+   Diseño preparado para:
+   - Navegador
+   - Tablet
+   - Android
+   - Teléfono horizontal
+========================================================= */
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+:host {
+  --amarillo: #ffd500;
+  --naranja: #ff9800;
+
+  --azul: #0a35ff;
+  --celeste: #00e5ff;
+
+  --verde: #00e676;
+  --rojo: #ff4d5f;
+
+  --blanco: #ffffff;
+  --gris: #9ca8bd;
+
+  display: block;
 }
 
-/*==========================
-        LABERINTO
-==========================*/
 
-.maze-background{
+/* =========================================================
+   PÁGINA
+========================================================= */
 
-  position:fixed;
-  inset:0;
+.menu-page {
+  --background: #000000;
+
+  position: relative;
+
+  min-height: 100%;
+
+  overflow: auto;
+
+  color: var(--blanco);
+
+  font-family:
+    'Segoe UI',
+    Tahoma,
+    Geneva,
+    Verdana,
+    sans-serif;
+}
+
+
+/* =========================================================
+   FONDO TIPO LABERINTO
+========================================================= */
+
+.maze-background {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 0;
+
+  pointer-events: none;
 
   background:
-
-  repeating-linear-gradient(
+    repeating-linear-gradient(
       90deg,
       transparent 0 120px,
-      rgba(0,90,255,.85) 120px 124px
-  ),
-
-  repeating-linear-gradient(
+      rgba(0, 90, 255, 0.82) 120px 124px
+    ),
+    repeating-linear-gradient(
+      0deg,
       transparent 0 120px,
-      rgba(0,90,255,.85) 120px 124px
-  ),
-
-  radial-gradient(circle,#ffd54f 2px,transparent 3px);
+      rgba(0, 90, 255, 0.82) 120px 124px
+    ),
+    radial-gradient(
+      circle,
+      #ffd54f 2px,
+      transparent 3px
+    ),
+    #000000;
 
   background-size:
-      124px 124px,
-      124px 124px,
-      40px 40px;
+    124px 124px,
+    124px 124px,
+    40px 40px;
 
-  opacity:.95;
+  opacity: 0.82;
 
-  z-index:-2;
-
+  filter:
+    drop-shadow(
+      0 0 4px rgba(0, 90, 255, 0.52)
+    );
 }
 
-/*==========================
-          PERFIL
-==========================*/
 
-.profile{
+.maze-background::after {
+  content: '';
 
-  display:flex;
-  align-items:center;
+  position: absolute;
 
-  padding:20px;
+  inset: 0;
 
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 0%,
+      rgba(0, 0, 0, 0.12) 54%,
+      rgba(0, 0, 0, 0.73) 100%
+    );
 }
 
-.avatar{
 
-  width:75px;
-  height:75px;
+/* =========================================================
+   CABECERA
+========================================================= */
 
-  border-radius:50%;
+.menu-header {
+  position: relative;
 
-  background:#ffd400;
+  z-index: 10;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display: flex;
 
-  font-size:42px;
+  justify-content: space-between;
 
-  margin-right:18px;
+  align-items: center;
 
-  box-shadow:0 0 25px #ffd400;
+  gap: 20px;
 
+  padding:
+    20px 24px 10px;
 }
 
-.info h2{
 
-  margin:0;
+/* =========================================================
+   PERFIL
+========================================================= */
 
-  font-size:30px;
+.profile {
+  display: flex;
 
+  align-items: center;
+
+  gap: 16px;
+
+  padding: 0;
+
+  border: none;
+
+  cursor: pointer;
+
+  color: white;
+
+  background: transparent;
+
+  text-align: left;
 }
 
-.info span{
 
-  color:#00ffff;
+.profile:hover .avatar {
+  transform:
+    scale(1.05);
 
-  font-weight:bold;
-
+  box-shadow:
+    0 0 32px rgba(255, 213, 0, 0.9);
 }
 
-.xp-bar{
 
-  width:230px;
+/* =========================================================
+   AVATAR
+========================================================= */
 
-  height:10px;
+.avatar {
+  width: 72px;
+  height: 72px;
 
-  background:#222;
+  flex: 0 0 72px;
 
-  border-radius:30px;
+  display: grid;
 
-  overflow:hidden;
+  place-items: center;
 
-  margin-top:8px;
+  overflow: hidden;
 
-}
+  border:
+    2px solid rgba(255, 213, 0, 0.9);
 
-.xp-fill{
+  border-radius: 50%;
 
-  width:36%;
-
-  height:100%;
-
-  background:linear-gradient(
-      90deg,
-      #00ff9d,
-      #6eff00
-  );
-
-  animation:xpGlow 2s infinite;
-
-}
-
-@keyframes xpGlow{
-
-0%{
-filter:brightness(1);
-}
-
-50%{
-filter:brightness(1.7);
-}
-
-100%{
-filter:brightness(1);
-}
-
-}
-
-/*==========================
-        MONEDAS
-==========================*/
-
-.coins{
-
-position:absolute;
-
-top:28px;
-
-right:25px;
-
-font-size:34px;
-
-font-weight:bold;
-
-color:#ffd400;
-
-text-shadow:0 0 20px gold;
-
-animation:coins 2s infinite;
-
-}
-
-@keyframes coins{
-
-50%{
-transform:scale(1.08);
-}
-
-}
-/*==========================
-            LOGO
-==========================*/
-
-.logo{
-
-text-align:center;
-
-margin-top:5px;
-
-animation:logoFloat 3s infinite;
-
-}
-
-.logo h1{
-
-font-size:58px;
-
-margin:0;
-
-color:#FFD500;
-
-letter-spacing:4px;
-
-text-shadow:
-0 0 8px #FFD500,
-0 0 18px #FFD500,
-0 0 35px orange;
-
-font-weight:900;
-
-}
-
-.logo h3{
-
-margin-top:5px;
-
-font-size:20px;
-
-color:#ffffff;
-
-font-weight:300;
-
-letter-spacing:2px;
-
-}
-
-@keyframes logoFloat{
-
-50%{
-
-transform:translateY(-6px);
-
-}
-
-}
-
-/*==========================
-        PERSONAJES
-==========================*/
-
-.characters{
-
-margin-top:30px;
-
-display:flex;
-
-justify-content:center;
-
-align-items:flex-end;
-
-gap:18px;
-
-}
-
-/*==========================
-        FANTASMAS
-==========================*/
-
-.ghost{
-
-width:62px;
-
-height:65px;
-
-border-radius:32px 32px 10px 10px;
-
-position:relative;
-
-animation:ghostFloat 2s ease-in-out infinite alternate;
-
-box-shadow:0 0 15px rgba(255,255,255,.2);
-
-}
-
-/* Ondas inferiores */
-
-.ghost::after{
-
-content:"";
-
-position:absolute;
-
-bottom:-8px;
-
-left:0;
-
-width:100%;
-
-height:12px;
-
-background:inherit;
-
-clip-path:polygon(
-0 100%,
-12% 0,
-24% 100%,
-36% 0,
-48% 100%,
-60% 0,
-72% 100%,
-84% 0,
-100% 100%
-);
-
-}
-
-/* Colores */
-
-.red{
-
-background:#ff2d2d;
-
-}
-
-.pink{
-
-background:#ff7dd8;
-
-}
-
-.cyan{
-
-background:#22f6ff;
-
-}
-
-.orange{
-
-background:#ff9800;
-
-}
-
-/*==========================
-          OJOS
-==========================*/
-
-.eyes{
-
-display:flex;
-
-justify-content:space-evenly;
-
-padding-top:18px;
-
-}
-
-.eyes span{
-
-width:14px;
-
-height:18px;
-
-background:white;
-
-border-radius:50%;
-
-position:relative;
-
-}
-
-.eyes span::after{
-
-content:"";
-
-position:absolute;
-
-right:2px;
-
-top:5px;
-
-width:6px;
-
-height:6px;
-
-background:#0059ff;
-
-border-radius:50%;
-
-}
-
-/*==========================
-          MONSTRUO
-==========================*/
-
-.monster{
-
-width:78px;
-
-height:78px;
-
-border-radius:50%;
-
-background:radial-gradient(circle,#ff4242,#600000);
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-font-size:44px;
-
-box-shadow:
-0 0 18px red,
-0 0 40px darkred;
-
-animation:monsterPulse 1.6s infinite;
-
-}
-
-/*==========================
-      ANIMACIONES
-==========================*/
-
-@keyframes ghostFloat{
-
-0%{
-
-transform:translateY(0);
-
-}
-
-100%{
-
-transform:translateY(-12px);
-
-}
-
-}
-
-@keyframes monsterPulse{
-
-50%{
-
-transform:scale(1.10);
-
-filter:brightness(1.2);
-
-}
-
-}/*========================================
-            BOTÓN JUGAR
-========================================*/
-
-.play-btn{
-
-    width:320px;
-
-    height:75px;
-
-    margin:35px auto;
-
-    display:block;
-
-    --background:linear-gradient(
-        90deg,
-        #FFD500,
-        #FFA500
+  background:
+    radial-gradient(
+      circle,
+      #ffe86a,
+      #ffb300
     );
 
-    --color:#000;
+  font-size: 38px;
 
-    font-size:30px;
+  box-shadow:
+    0 0 23px rgba(255, 213, 0, 0.72);
 
-    font-weight:bold;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
 
-    letter-spacing:2px;
 
-    border-radius:20px;
+.avatar img {
+  width: 100%;
+  height: 100%;
 
-    animation:playGlow 2s infinite;
+  display: block;
+
+  object-fit: cover;
+}
+
+
+/* =========================================================
+   INFORMACIÓN DEL USUARIO
+========================================================= */
+
+.info {
+  min-width: 0;
+}
+
+
+.info h2 {
+  margin: 0;
+
+  max-width: 240px;
+
+  overflow: hidden;
+
+  color: white;
+
+  font-size: 28px;
+
+  font-weight: 900;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.nivel {
+  display: inline-block;
+
+  margin-top: 2px;
+
+  color:
+    var(--celeste);
+
+  font-size: 13px;
+
+  font-weight: 850;
+}
+
+
+.info small {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    #aeb8ca;
+
+  font-size: 10px;
+
+  font-weight: 650;
+}
+
+
+/* =========================================================
+   EXPERIENCIA
+========================================================= */
+
+.xp-bar {
+  width: 230px;
+
+  max-width: 40vw;
+
+  height: 10px;
+
+  margin-top: 7px;
+
+  overflow: hidden;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.1);
+
+  border-radius: 30px;
+
+  background:
+    #20242c;
+}
+
+
+.xp-fill {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background:
+    linear-gradient(
+      90deg,
+      #00e676,
+      #a5ff00
+    );
+
+  box-shadow:
+    0 0 9px rgba(0, 230, 118, 0.55);
+
+  transition:
+    width 0.45s ease;
+
+  animation:
+    xpGlow 2s ease-in-out infinite;
+}
+
+
+@keyframes xpGlow {
+
+  50% {
+    filter:
+      brightness(1.45);
+  }
 
 }
 
-.play-btn:hover{
 
-    transform:scale(1.05);
+/* =========================================================
+   ACCIONES DEL HEADER
+========================================================= */
+
+.header-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+
+/* =========================================================
+   MONEDAS / ORO
+
+   Este valor visual viene de:
+   usuario.oroActual
+
+   Cada jugador puede tener un saldo distinto.
+========================================================= */
+
+.coins {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  min-width: 100px;
+
+  padding:
+    9px 14px;
+
+  border:
+    1px solid rgba(255, 213, 0, 0.4);
+
+  border-radius: 18px;
+
+  color:
+    var(--amarillo);
+
+  background:
+    rgba(255, 213, 0, 0.06);
+
+  box-shadow:
+    0 0 16px rgba(255, 213, 0, 0.22);
+
+  font-size: 25px;
+
+  font-weight: 1000;
+
+  text-shadow:
+    0 0 14px gold;
+
+  animation:
+    coinsPulse 2s ease-in-out infinite;
+}
+
+
+@keyframes coinsPulse {
+
+  50% {
+    transform:
+      scale(1.04);
+  }
 
 }
 
-@keyframes playGlow{
 
-0%{
+/* =========================================================
+   ACTUALIZAR DATOS
+========================================================= */
 
-filter:drop-shadow(0 0 10px gold);
+.refresh-user {
+  width: 46px;
+  height: 46px;
+
+  display: grid;
+
+  place-items: center;
+
+  border:
+    1px solid rgba(0, 229, 255, 0.45);
+
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  color:
+    var(--celeste);
+
+  background:
+    rgba(0, 229, 255, 0.055);
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    opacity 0.2s ease;
+}
+
+
+.refresh-user:hover:not(:disabled) {
+  transform:
+    rotate(15deg)
+    scale(1.05);
+
+  background:
+    rgba(0, 229, 255, 0.12);
+}
+
+
+.refresh-user:disabled {
+  opacity: 0.55;
+
+  cursor: wait;
+}
+
+
+.refresh-user ion-spinner {
+  width: 21px;
+  height: 21px;
+}
+
+
+/* =========================================================
+   ERROR DE SINCRONIZACIÓN
+========================================================= */
+
+.menu-error {
+  position: relative;
+
+  z-index: 10;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  max-width: 700px;
+
+  margin:
+    4px auto 10px;
+
+  padding:
+    10px 13px;
+
+  border:
+    1px solid rgba(255, 77, 95, 0.5);
+
+  border-radius: 12px;
+
+  color:
+    #ffc2ca;
+
+  background:
+    rgba(115, 10, 26, 0.35);
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+
+.menu-error ion-icon {
+  flex: 0 0 auto;
+
+  color:
+    var(--rojo);
+
+  font-size: 20px;
+}
+
+
+/* =========================================================
+   CONTENIDO PRINCIPAL
+========================================================= */
+
+.menu-main {
+  position: relative;
+
+  z-index: 5;
+
+  width: 100%;
+
+  max-width: 1450px;
+
+  margin: 0 auto;
+
+  padding-bottom: 80px;
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.logo {
+  position: relative;
+
+  z-index: 5;
+
+  margin-top: 8px;
+
+  text-align: center;
+
+  animation:
+    logoFloat 3s ease-in-out infinite;
+}
+
+
+.logo h1 {
+  margin: 0;
+
+  color:
+    var(--amarillo);
+
+  font-size:
+    clamp(44px, 6vw, 62px);
+
+  font-weight: 1000;
+
+  letter-spacing: 4px;
+
+  text-shadow:
+    0 0 8px #ffd500,
+    0 0 18px #ffd500,
+    0 0 35px orange;
+}
+
+
+.logo h3 {
+  margin-top: 4px;
+
+  color: white;
+
+  font-size: 18px;
+
+  font-weight: 350;
+
+  letter-spacing: 2px;
+}
+
+
+@keyframes logoFloat {
+
+  50% {
+    transform:
+      translateY(-5px);
+  }
 
 }
 
-50%{
 
-filter:drop-shadow(0 0 28px gold);
+/* =========================================================
+   PERSONAJES
+========================================================= */
+
+.characters {
+  position: relative;
+
+  z-index: 5;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: flex-end;
+
+  gap: 18px;
+
+  margin-top: 28px;
+}
+
+
+/* =========================================================
+   FANTASMAS
+========================================================= */
+
+.ghost {
+  position: relative;
+
+  width: 62px;
+  height: 65px;
+
+  border-radius:
+    32px 32px 10px 10px;
+
+  box-shadow:
+    0 0 15px rgba(255, 255, 255, 0.2);
+
+  animation:
+    ghostFloat 2s ease-in-out infinite alternate;
+}
+
+
+.ghost::after {
+  content: '';
+
+  position: absolute;
+
+  left: 0;
+
+  bottom: -8px;
+
+  width: 100%;
+  height: 12px;
+
+  background: inherit;
+
+  clip-path:
+    polygon(
+      0 100%,
+      12% 0,
+      24% 100%,
+      36% 0,
+      48% 100%,
+      60% 0,
+      72% 100%,
+      84% 0,
+      100% 100%
+    );
+}
+
+
+.red {
+  background:
+    #ff2d2d;
+}
+
+
+.pink {
+  background:
+    #ff7dd8;
+}
+
+
+.cyan {
+  background:
+    #22f6ff;
+}
+
+
+.orange {
+  background:
+    #ff9800;
+}
+
+
+/* =========================================================
+   OJOS DE LOS FANTASMAS
+========================================================= */
+
+.eyes {
+  display: flex;
+
+  justify-content: space-evenly;
+
+  padding-top: 18px;
+}
+
+
+.eyes span {
+  position: relative;
+
+  width: 14px;
+  height: 18px;
+
+  border-radius: 50%;
+
+  background: white;
+}
+
+
+.eyes span::after {
+  content: '';
+
+  position: absolute;
+
+  right: 2px;
+
+  top: 5px;
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background:
+    #0059ff;
+}
+
+
+/* =========================================================
+   MONSTRUO
+========================================================= */
+
+.monster {
+  width: 78px;
+  height: 78px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      #ff4242,
+      #600000
+    );
+
+  font-size: 44px;
+
+  box-shadow:
+    0 0 18px red,
+    0 0 40px darkred;
+
+  animation:
+    monsterPulse 1.6s ease-in-out infinite;
+}
+
+
+@keyframes ghostFloat {
+
+  to {
+    transform:
+      translateY(-11px);
+  }
 
 }
 
-100%{
 
-filter:drop-shadow(0 0 10px gold);
+@keyframes monsterPulse {
 
-}
+  50% {
+    transform:
+      scale(1.08);
 
-}
-
-/*========================================
-            GRID DEL MENÚ
-========================================*/
-
-.menu-grid{
-
-display:grid;
-
-grid-template-columns:repeat(2,1fr);
-
-gap:18px;
-
-padding:25px;
+    filter:
+      brightness(1.18);
+  }
 
 }
 
-/*========================================
-            BOTONES
-========================================*/
 
-.menu-grid ion-button{
+/* =========================================================
+   BOTÓN PRINCIPAL JUGAR
+========================================================= */
 
-height:90px;
+.play-btn {
+  --background:
+    linear-gradient(
+      90deg,
+      #ffd500,
+      #ffa500
+    );
 
-font-size:22px;
+  --background-hover:
+    linear-gradient(
+      90deg,
+      #ffe54a,
+      #ffb52f
+    );
 
-font-weight:bold;
+  --color:
+    #000000;
 
---border-radius:18px;
+  --border-radius:
+    18px;
 
---border-width:3px;
+  --box-shadow:
+    0 0 18px rgba(255, 213, 0, 0.55);
 
---border-color:#FFD500;
+  position: relative;
 
---background:#111;
+  z-index: 6;
 
---color:#fff;
+  width: 320px;
 
-transition:.25s;
+  max-width:
+    calc(100% - 40px);
+
+  min-height: 70px;
+
+  margin:
+    34px auto;
+
+  font-size: 28px;
+
+  font-weight: 1000;
+
+  letter-spacing: 2px;
+
+  animation:
+    playGlow 2s ease-in-out infinite;
+}
+
+
+.play-btn:hover:not([disabled]) {
+  transform:
+    scale(1.04);
+}
+
+
+@keyframes playGlow {
+
+  50% {
+    filter:
+      drop-shadow(0 0 22px gold);
+  }
 
 }
 
-.menu-grid ion-button:hover{
 
-transform:translateY(-5px);
+/* =========================================================
+   SECCIÓN DE OPCIONES
+========================================================= */
 
-filter:brightness(1.2);
+.menu-section {
+  position: relative;
+
+  z-index: 6;
+
+  max-width: 1250px;
+
+  margin: auto;
+
+  padding:
+    0 24px;
+}
+
+
+.section-title {
+  margin-bottom: 8px;
+
+  color:
+    var(--celeste);
+
+  font-size: 11px;
+
+  font-weight: 900;
+
+  letter-spacing: 2px;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   GRID DE OPCIONES
+========================================================= */
+
+.menu-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+
+.menu-option {
+  --border-radius:
+    18px;
+
+  --border-width:
+    2px;
+
+  --border-color:
+    rgba(255, 213, 0, 0.85);
+
+  --background:
+    rgba(15, 15, 15, 0.9);
+
+  --color:
+    #ffffff;
+
+  --background-hover:
+    rgba(255, 213, 0, 0.08);
+
+  min-height: 72px;
+
+  font-size: 17px;
+
+  font-weight: 850;
+
+  backdrop-filter:
+    blur(9px);
+
+  box-shadow:
+    0 0 12px rgba(255, 213, 0, 0.12),
+    0 0 25px rgba(0, 229, 255, 0.05);
+
+  transition:
+    transform 0.22s ease,
+    filter 0.22s ease;
+}
+
+
+.menu-option:hover {
+  transform:
+    translateY(-4px);
+
+  filter:
+    brightness(1.12);
+}
+
+
+.option-icon {
+  display: inline-block;
+
+  margin-right: 8px;
+
+  font-size: 23px;
+}
+
+
+/* =========================================================
+   NOTICIA / INFORMACIÓN DEL JUEGO
+========================================================= */
+
+.news {
+  position: relative;
+
+  z-index: 6;
+
+  max-width: 1200px;
+
+  margin:
+    20px auto 0;
+
+  padding:
+    15px 18px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 15px;
+
+  border:
+    2px solid rgba(255, 213, 0, 0.82);
+
+  border-radius: 17px;
+
+  background:
+    rgba(12, 12, 15, 0.91);
+
+  box-shadow:
+    0 0 17px rgba(255, 213, 0, 0.2);
+}
+
+
+.news-icon {
+  flex: 0 0 auto;
+
+  font-size: 30px;
+}
+
+
+.news h3 {
+  margin: 0;
+
+  color:
+    var(--amarillo);
+
+  font-size: 18px;
+}
+
+
+.news p {
+  margin:
+    5px 0 0;
+
+  color:
+    #d8dce5;
+
+  font-size: 12px;
+
+  line-height: 1.45;
+}
+
+
+/* =========================================================
+   ADMINISTRADOR
+========================================================= */
+
+.admin {
+  --border-radius:
+    16px;
+
+  position: relative;
+
+  z-index: 6;
+
+  width:
+    calc(100% - 48px);
+
+  max-width: 1200px;
+
+  min-height: 55px;
+
+  margin:
+    20px auto 0;
+
+  font-size: 16px;
+
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   CERRAR SESIÓN
+========================================================= */
+
+.session-section {
+  position: relative;
+
+  z-index: 6;
+
+  max-width: 500px;
+
+  margin:
+    22px auto 80px;
+
+  padding:
+    0 20px;
+
+  text-align: center;
+}
+
+
+.logout-btn {
+  --color:
+    #ff7585;
+
+  --border-color:
+    rgba(255, 77, 95, 0.7);
+
+  --border-width:
+    2px;
+
+  --border-style:
+    solid;
+
+  --border-radius:
+    14px;
+
+  --background:
+    rgba(255, 77, 95, 0.025);
+
+  --background-hover:
+    rgba(255, 77, 95, 0.1);
+
+  min-height: 52px;
+
+  font-size: 13px;
+
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   PAC-MAN INFERIOR
+========================================================= */
+
+.pacman-run {
+  position: fixed;
+
+  left: 0;
+
+  bottom: 17px;
+
+  z-index: 4;
+
+  width: 100%;
+
+  height: 58px;
+
+  overflow: hidden;
+
+  pointer-events: none;
+}
+
+
+.pacman {
+  position: absolute;
+
+  left: -90px;
+
+  top: 0;
+
+  width: 54px;
+  height: 54px;
+
+  border-radius: 50%;
+
+  background:
+    var(--amarillo);
+
+  filter:
+    drop-shadow(
+      0 0 10px rgba(255, 213, 0, 0.7)
+    );
+
+  animation:
+    runPacman 11s linear infinite,
+    pacmanChomp 0.25s infinite;
+}
+
+
+.dots {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+
+  top: 24px;
+
+  display: flex;
+
+  justify-content: space-around;
+
+  padding:
+    0 40px;
+}
+
+
+.dots span {
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+
+  background:
+    var(--amarillo);
+
+  animation:
+    dotBlink 1s infinite;
+}
+
+
+.dots span:nth-child(2) {
+  animation-delay:
+    0.15s;
+}
+
+
+.dots span:nth-child(3) {
+  animation-delay:
+    0.3s;
+}
+
+
+.dots span:nth-child(4) {
+  animation-delay:
+    0.45s;
+}
+
+
+.dots span:nth-child(5) {
+  animation-delay:
+    0.6s;
+}
+
+
+.dots span:nth-child(6) {
+  animation-delay:
+    0.75s;
+}
+
+
+@keyframes dotBlink {
+
+  50% {
+    opacity:
+      0.18;
+  }
 
 }
 
-/*========================================
-            NOTICIAS
-========================================*/
 
-.news{
+@keyframes runPacman {
 
-margin:25px;
+  from {
+    left:
+      -90px;
+  }
 
-padding:18px;
-
-background:rgba(15,15,15,.88);
-
-border:3px solid #FFD500;
-
-border-radius:18px;
-
-box-shadow:0 0 18px rgba(255,213,0,.35);
+  to {
+    left:
+      calc(100vw + 90px);
+  }
 
 }
 
-.news h3{
 
-margin:0;
+@keyframes pacmanChomp {
 
-color:#FFD500;
+  0%,
+  100% {
+    clip-path:
+      polygon(
+        100% 50%,
+        55% 0,
+        0 0,
+        0 100%,
+        55% 100%
+      );
+  }
 
-font-size:24px;
-
-}
-
-.news p{
-
-margin-top:10px;
-
-font-size:17px;
-
-color:white;
-
-line-height:1.4;
-
-}
-
-/*========================================
-            ADMIN
-========================================*/
-
-.admin{
-
-margin:25px;
-
-height:62px;
-
-font-size:22px;
-
-font-weight:bold;
-
---border-radius:18px;
+  50% {
+    clip-path:
+      polygon(
+        100% 50%,
+        80% 18%,
+        0 0,
+        0 100%,
+        80% 82%
+      );
+  }
 
 }
 
-/*========================================
-      PACMAN CORRIENDO
-========================================*/
 
-.pacman-run{
-
-position:fixed;
-
-bottom:25px;
-
-left:0;
-
-width:100%;
-
-display:flex;
-
-align-items:center;
-
-overflow:hidden;
-
-}
-
-.pacman{
-
-width:58px;
-
-height:58px;
-
-background:#FFD500;
-
-border-radius:50%;
-
-clip-path:polygon(
-100% 50%,
-55% 0,
-0 0,
-0 100%,
-55% 100%
-);
-
-animation:runPacman 10s linear infinite;
-
-}
-
-.dots{
-
-display:flex;
-
-gap:35px;
-
-margin-left:25px;
-
-}
-
-.dots span{
-
-width:10px;
-
-height:10px;
-
-background:#FFD500;
-
-border-radius:50%;
-
-animation:dotBlink 1s infinite;
-
-}
-
-.dots span:nth-child(2){
-
-animation-delay:.2s;
-
-}
-
-.dots span:nth-child(3){
-
-animation-delay:.4s;
-
-}
-
-.dots span:nth-child(4){
-
-animation-delay:.6s;
-
-}
-
-.dots span:nth-child(5){
-
-animation-delay:.8s;
-
-}
-
-.dots span:nth-child(6){
-
-animation-delay:1s;
-
-}
-
-@keyframes dotBlink{
-
-50%{
-
-opacity:.2;
-
-}
-
-}
-
-@keyframes runPacman{
-
-0%{
-
-transform:translateX(-120px);
-
-}
-
-100%{
-
-transform:translateX(calc(100vw + 150px));
-
-}
-
-}
-/*==========================================
-        PARTÍCULAS DORADAS
-==========================================*/
+/* =========================================================
+   PARTÍCULAS DORADAS
+========================================================= */
 
 .menu-page::before,
-.menu-page::after{
+.menu-page::after {
+  content: '';
 
-content:"";
+  position: fixed;
 
-position:fixed;
+  z-index: 2;
 
-width:8px;
-height:8px;
+  bottom: -20px;
 
-border-radius:50%;
+  width: 7px;
+  height: 7px;
 
-background:#FFD500;
+  border-radius: 50%;
 
-box-shadow:
-0 0 12px gold,
-0 0 25px gold;
+  background:
+    var(--amarillo);
 
-animation:particles 8s linear infinite;
+  box-shadow:
+    0 0 10px gold,
+    0 0 22px gold;
 
-opacity:.8;
+  opacity: 0.75;
+
+  pointer-events: none;
+
+  animation:
+    particles 8s linear infinite;
+}
+
+
+.menu-page::before {
+  left: 12%;
+}
+
+
+.menu-page::after {
+  right: 18%;
+
+  animation-delay:
+    3s;
+}
+
+
+@keyframes particles {
+
+  0% {
+    transform:
+      translateY(0)
+      scale(0.4);
+
+    opacity: 0;
+  }
+
+  20%,
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    transform:
+      translateY(-900px)
+      scale(1.3);
+
+    opacity: 0;
+  }
 
 }
 
-.menu-page::before{
 
-left:12%;
-bottom:-20px;
+/* =========================================================
+   BOTONES GENERALES
+========================================================= */
 
-animation-delay:0s;
+ion-button {
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease;
+}
+
+
+ion-button:hover:not([disabled]) {
+  filter:
+    brightness(1.1);
+}
+
+
+ion-button:active {
+  transform:
+    scale(0.98);
+}
+
+
+/* =========================================================
+   TABLET / PANTALLAS MEDIAS
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .menu-header {
+    padding:
+      14px 16px 8px;
+  }
+
+
+  .menu-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+
+  .menu-option {
+    min-height: 64px;
+
+    font-size: 15px;
+  }
 
 }
 
-.menu-page::after{
 
-right:18%;
-bottom:-20px;
+/* =========================================================
+   TELÉFONO VERTICAL
+========================================================= */
 
-animation-delay:3s;
+@media (max-width: 600px) and (orientation: portrait) {
+
+  .maze-background {
+    background-size:
+      82px 82px,
+      82px 82px,
+      38px 38px;
+  }
+
+
+  .menu-header {
+    flex-direction:
+      column;
+
+    align-items:
+      stretch;
+
+    gap: 13px;
+
+    padding:
+      15px 14px 5px;
+  }
+
+
+  .profile {
+    width:
+      100%;
+  }
+
+
+  .avatar {
+    width: 58px;
+    height: 58px;
+
+    flex-basis:
+      58px;
+
+    font-size:
+      30px;
+  }
+
+
+  .info {
+    flex:
+      1;
+  }
+
+
+  .info h2 {
+    max-width:
+      65vw;
+
+    font-size:
+      21px;
+  }
+
+
+  .xp-bar {
+    width:
+      100%;
+
+    max-width:
+      none;
+  }
+
+
+  .header-actions {
+    justify-content:
+      space-between;
+  }
+
+
+  .coins {
+    flex:
+      1;
+
+    font-size:
+      20px;
+  }
+
+
+  .logo {
+    margin-top:
+      13px;
+  }
+
+
+  .logo h1 {
+    font-size:
+      39px;
+  }
+
+
+  .logo h3 {
+    font-size:
+      14px;
+  }
+
+
+  .characters {
+    gap:
+      7px;
+
+    margin-top:
+      20px;
+
+    transform:
+      scale(0.82);
+  }
+
+
+  .play-btn {
+    width:
+      calc(100% - 32px);
+
+    min-height:
+      58px;
+
+    margin:
+      24px auto;
+
+    font-size:
+      21px;
+  }
+
+
+  .menu-section {
+    padding:
+      0 12px;
+  }
+
+
+  .menu-grid {
+    grid-template-columns:
+      1fr;
+
+    gap:
+      10px;
+  }
+
+
+  .menu-option {
+    min-height:
+      60px;
+
+    font-size:
+      15px;
+  }
+
+
+  .news {
+    margin:
+      16px 12px 0;
+
+    padding:
+      13px;
+  }
+
+
+  .news-icon {
+    font-size:
+      26px;
+  }
+
+
+  .news h3 {
+    font-size:
+      15px;
+  }
+
+
+  .news p {
+    font-size:
+      10px;
+  }
+
+
+  .session-section {
+    margin-bottom:
+      75px;
+  }
+
+
+  .pacman-run {
+    height:
+      45px;
+  }
+
+
+  .pacman {
+    width:
+      42px;
+
+    height:
+      42px;
+  }
 
 }
 
-@keyframes particles{
 
-0%{
+/* =========================================================
+   TELÉFONO HORIZONTAL
+   IMPORTANTE PARA APK ANDROID
 
-transform:
-translateY(0)
-scale(.4);
+   El juego está pensado principalmente para utilizarse
+   en orientación horizontal.
 
-opacity:0;
+   Aquí compactamos la interfaz sin eliminar personajes.
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 620px) {
+
+  /* -------------------------------------------------------
+     FONDO
+  ------------------------------------------------------- */
+
+  .maze-background {
+    background-size:
+      90px 90px,
+      90px 90px,
+      32px 32px;
+  }
+
+
+  /* -------------------------------------------------------
+     HEADER
+  ------------------------------------------------------- */
+
+  .menu-header {
+    flex-direction:
+      row;
+
+    align-items:
+      center;
+
+    padding:
+      7px 12px 2px;
+
+    gap:
+      10px;
+  }
+
+
+  /* -------------------------------------------------------
+     PERFIL
+  ------------------------------------------------------- */
+
+  .profile {
+    width:
+      auto;
+
+    gap:
+      9px;
+  }
+
+
+  .avatar {
+    width:
+      48px;
+
+    height:
+      48px;
+
+    flex-basis:
+      48px;
+
+    font-size:
+      25px;
+  }
+
+
+  .info h2 {
+    max-width:
+      170px;
+
+    font-size:
+      18px;
+  }
+
+
+  .nivel {
+    margin-top:
+      0;
+
+    font-size:
+      9px;
+  }
+
+
+  .info small {
+    margin-top:
+      1px;
+
+    font-size:
+      7px;
+  }
+
+
+  .xp-bar {
+    width:
+      160px;
+
+    max-width:
+      27vw;
+
+    height:
+      6px;
+
+    margin-top:
+      3px;
+  }
+
+
+  /* -------------------------------------------------------
+     ORO
+  ------------------------------------------------------- */
+
+  .header-actions {
+    gap:
+      7px;
+  }
+
+
+  .coins {
+    min-width:
+      72px;
+
+    padding:
+      5px 8px;
+
+    border-radius:
+      12px;
+
+    font-size:
+      17px;
+  }
+
+
+  .refresh-user {
+    width:
+      35px;
+
+    height:
+      35px;
+
+    border-radius:
+      10px;
+  }
+
+
+  /* -------------------------------------------------------
+     ERROR
+  ------------------------------------------------------- */
+
+  .menu-error {
+    max-width:
+      580px;
+
+    margin:
+      1px auto 3px;
+
+    padding:
+      5px 9px;
+
+    font-size:
+      8px;
+  }
+
+
+  /* -------------------------------------------------------
+     CONTENIDO PRINCIPAL
+  ------------------------------------------------------- */
+
+  .menu-main {
+    max-width:
+      900px;
+
+    padding:
+      0 12px 40px;
+  }
+
+
+  /* -------------------------------------------------------
+     LOGO
+  ------------------------------------------------------- */
+
+  .logo {
+    margin-top:
+      0;
+  }
+
+
+  .logo h1 {
+    font-size:
+      clamp(
+        29px,
+        5vw,
+        42px
+      );
+
+    letter-spacing:
+      3px;
+  }
+
+
+  .logo h3 {
+    margin-top:
+      0;
+
+    font-size:
+      11px;
+
+    letter-spacing:
+      1px;
+  }
+
+
+  /* -------------------------------------------------------
+     PERSONAJES
+  ------------------------------------------------------- */
+
+  .characters {
+    display:
+      flex;
+
+    gap:
+      9px;
+
+    margin-top:
+      6px;
+
+    transform:
+      scale(0.62);
+
+    transform-origin:
+      center center;
+
+    margin-bottom:
+      -8px;
+  }
+
+
+  /* -------------------------------------------------------
+     JUGAR
+  ------------------------------------------------------- */
+
+  .play-btn {
+    width:
+      255px;
+
+    min-height:
+      44px;
+
+    margin:
+      4px auto 7px;
+
+    font-size:
+      18px;
+
+    --border-radius:
+      13px;
+  }
+
+
+  /* -------------------------------------------------------
+     OPCIONES
+  ------------------------------------------------------- */
+
+  .menu-section {
+    max-width:
+      820px;
+
+    padding:
+      0;
+  }
+
+
+  .section-title {
+    margin-bottom:
+      3px;
+
+    font-size:
+      8px;
+  }
+
+
+  .menu-grid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+
+    gap:
+      6px;
+  }
+
+
+  .menu-option {
+    min-height:
+      39px;
+
+    font-size:
+      11px;
+
+    --border-radius:
+      10px;
+  }
+
+
+  .option-icon {
+    margin-right:
+      4px;
+
+    font-size:
+      15px;
+  }
+
+
+  /* -------------------------------------------------------
+     INFORMACIÓN
+  ------------------------------------------------------- */
+
+  .news {
+    max-width:
+      820px;
+
+    margin:
+      7px auto 0;
+
+    padding:
+      6px 10px;
+
+    border-width:
+      1px;
+
+    border-radius:
+      10px;
+  }
+
+
+  .news-icon {
+    font-size:
+      17px;
+  }
+
+
+  .news h3 {
+    display:
+      none;
+  }
+
+
+  .news p {
+    margin:
+      0;
+
+    font-size:
+      8px;
+  }
+
+
+  /* -------------------------------------------------------
+     ADMIN
+  ------------------------------------------------------- */
+
+  .admin {
+    max-width:
+      820px;
+
+    min-height:
+      38px;
+
+    margin:
+      6px auto 0;
+
+    font-size:
+      10px;
+  }
+
+
+  /* -------------------------------------------------------
+     CERRAR SESIÓN
+  ------------------------------------------------------- */
+
+  .session-section {
+    max-width:
+      280px;
+
+    margin:
+      7px auto 28px;
+
+    padding:
+      0;
+  }
+
+
+  .logout-btn {
+    min-height:
+      34px;
+
+    font-size:
+      9px;
+  }
+
+
+  /* -------------------------------------------------------
+     PAC-MAN INFERIOR
+  ------------------------------------------------------- */
+
+  .pacman-run {
+    bottom:
+      2px;
+
+    height:
+      29px;
+  }
+
+
+  .pacman {
+    width:
+      27px;
+
+    height:
+      27px;
+  }
+
+
+  .dots {
+    top:
+      11px;
+  }
+
+
+  .dots span {
+    width:
+      5px;
+
+    height:
+      5px;
+  }
 
 }
 
-20%{
 
-opacity:1;
+/* =========================================================
+   TELÉFONO HORIZONTAL MUY PEQUEÑO
+========================================================= */
 
-}
+@media (orientation: landscape) and (max-height: 430px) {
 
-80%{
+  .menu-header {
+    padding:
+      4px 9px 0;
+  }
 
-opacity:1;
 
-}
+  .avatar {
+    width:
+      42px;
 
-100%{
+    height:
+      42px;
 
-transform:
-translateY(-900px)
-scale(1.3);
+    flex-basis:
+      42px;
+  }
 
-opacity:0;
 
-}
+  .info h2 {
+    font-size:
+      16px;
+  }
 
-}
 
-/*==========================================
-            BOTONES
-==========================================*/
+  .xp-bar {
+    width:
+      135px;
+  }
 
-ion-button{
 
-transition:.30s ease;
+  .logo h1 {
+    font-size:
+      30px;
+  }
 
-}
 
-ion-button:hover{
+  .logo h3 {
+    font-size:
+      9px;
+  }
 
-transform:translateY(-4px);
 
-filter:brightness(1.18);
+  .characters {
+    transform:
+      scale(0.52);
 
-}
+    margin-top:
+      0;
 
-ion-button:active{
+    margin-bottom:
+      -14px;
+  }
 
-transform:scale(.97);
 
-}
+  .play-btn {
+    width:
+      230px;
 
-/*==========================================
-            TARJETAS
-==========================================*/
+    min-height:
+      38px;
 
-.menu-grid ion-button{
+    margin:
+      1px auto 4px;
 
-backdrop-filter:blur(10px);
+    font-size:
+      16px;
+  }
 
-box-shadow:
 
-0 0 12px rgba(255,213,0,.15),
+  .menu-grid {
+    gap:
+      4px;
+  }
 
-0 0 30px rgba(0,255,255,.08);
 
-}
+  .menu-option {
+    min-height:
+      34px;
 
-/*==========================================
-          PACMAN
-==========================================*/
+    font-size:
+      9px;
+  }
 
-.pacman{
 
-animation:
+  .news {
+    margin-top:
+      4px;
 
-runPacman 11s linear infinite,
+    padding:
+      4px 8px;
+  }
 
-pacmanChomp .25s infinite;
 
-}
+  .session-section {
+    margin:
+      5px auto 23px;
+  }
 
-@keyframes pacmanChomp{
 
-0%{
+  .logout-btn {
+    min-height:
+      30px;
 
-clip-path:polygon(
-100% 50%,
-55% 0,
-0 0,
-0 100%,
-55% 100%
-);
-
-}
-
-50%{
-
-clip-path:polygon(
-100% 50%,
-80% 18%,
-0 0,
-0 100%,
-80% 82%
-);
-
-}
-
-100%{
-
-clip-path:polygon(
-100% 50%,
-55% 0,
-0 0,
-0 100%,
-55% 100%
-);
-
-}
+    font-size:
+      8px;
+  }
 
 }
 
-/*==========================================
-          SCROLL
-==========================================*/
 
-::-webkit-scrollbar{
+/* =========================================================
+   ACCESIBILIDAD
+========================================================= */
 
-display:none;
+button:focus-visible {
+  outline:
+    2px solid var(--celeste);
+
+  outline-offset:
+    3px;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation:
+      none !important;
+
+    transition:
+      none !important;
+  }
 
 }
+
+
+/* =========================================================
+   OCULTAR SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+  display:
+    none;
+}
+
+
+/* =========================================================
+   FIN
+========================================================= */

@@ -1,107 +1,333 @@
-<ion-content [fullscreen]="true" class="login-page">
+<ion-content
+  [fullscreen]="true"
+  class="login-page"
+>
 
-  <div class="background"></div>
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
 
-  <!-- Personajes -->
-  <div class="characters">
+  <div
+    class="background"
+    aria-hidden="true"
+  ></div>
+
+
+  <!-- =====================================================
+       PERSONAJES
+  ====================================================== -->
+
+  <div
+    class="characters"
+    aria-hidden="true"
+  >
 
     <div class="monster">
       😈
     </div>
 
     <div class="ghost red"></div>
+
     <div class="ghost pink"></div>
+
     <div class="ghost cyan"></div>
+
     <div class="ghost orange"></div>
 
   </div>
 
-  <div class="login-card">
 
-    <h1>PAC-MAN CR</h1>
+  <!-- =====================================================
+       TARJETA
+  ====================================================== -->
 
-    <h2>Multijugador Online</h2>
+  <main class="login-card">
 
-    <p class="authors">
-      Fabián Obando • Steven Gutiérrez
-    </p>
 
-    <ion-item lines="none">
+    <!-- ===================================================
+         CABECERA
+    ==================================================== -->
+
+    <header class="login-header">
+
+      <h1>
+        PAC-MAN CR
+      </h1>
+
+      <h2>
+        Multijugador Online
+      </h2>
+
+      <p class="authors">
+        Fabián Obando • Steven Gutiérrez
+      </p>
+
+    </header>
+
+
+    <!-- ===================================================
+         ERROR
+    ==================================================== -->
+
+    <div
+      class="error-message"
+      *ngIf="mensajeError"
+      role="alert"
+    >
 
       <ion-icon
-      slot="start"
-      name="mail-outline">
-      </ion-icon>
+        name="alert-circle-outline"
+      ></ion-icon>
+
+      <span>
+        {{ mensajeError }}
+      </span>
+
+    </div>
+
+
+    <!-- ===================================================
+         ÉXITO
+    ==================================================== -->
+
+    <div
+      class="success-message"
+      *ngIf="mensajeExito"
+      role="status"
+    >
+
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>
+        {{ mensajeExito }}
+      </span>
+
+    </div>
+
+
+    <!-- ===================================================
+         CORREO
+    ==================================================== -->
+
+    <ion-item
+      lines="none"
+      class="input-item"
+    >
+
+      <ion-icon
+        slot="start"
+        name="mail-outline"
+      ></ion-icon>
 
       <ion-input
-      placeholder="Correo"
-      type="email"
-      [(ngModel)]="correo">
+        type="email"
+        inputmode="email"
+        autocomplete="email"
+        placeholder="Correo electrónico"
+        [(ngModel)]="correo"
+        [disabled]="cargando"
+        (keyup.enter)="alPresionarEnter()"
+      >
       </ion-input>
 
     </ion-item>
 
-    <ion-item lines="none">
+
+    <!-- ===================================================
+         CONTRASEÑA
+    ==================================================== -->
+
+    <ion-item
+      lines="none"
+      class="input-item password-item"
+    >
 
       <ion-icon
-      slot="start"
-      name="lock-closed-outline">
-      </ion-icon>
+        slot="start"
+        name="lock-closed-outline"
+      ></ion-icon>
 
       <ion-input
-      [type]="mostrarPassword ? 'text':'password'"
-      placeholder="Contraseña"
-      [(ngModel)]="password">
+        [type]="
+          mostrarPassword
+            ? 'text'
+            : 'password'
+        "
+        autocomplete="current-password"
+        placeholder="Contraseña"
+        [(ngModel)]="password"
+        [disabled]="cargando"
+        (keyup.enter)="alPresionarEnter()"
+      >
       </ion-input>
 
-<ion-button
-  expand="block"
-  class="btn-pacman"
-  [disabled]="cargando"
-  (click)="login()">
 
-  <ion-spinner
-    *ngIf="cargando"
-    name="crescent">
-  </ion-spinner>
+      <!-- MOSTRAR / OCULTAR -->
 
-  <span *ngIf="!cargando">
-    Iniciar sesión
-  </span>
+      <ion-button
+        slot="end"
+        fill="clear"
+        type="button"
+        class="btn-password"
+        [disabled]="cargando"
+        (click)="alternarPassword()"
+      >
 
-</ion-button>
+        <ion-icon
+          slot="icon-only"
+          [name]="
+            mostrarPassword
+              ? 'eye-off-outline'
+              : 'eye-outline'
+          "
+        ></ion-icon>
+
+      </ion-button>
 
     </ion-item>
+
+
+    <!-- ===================================================
+         RECUPERAR CONTRASEÑA
+
+         Para jugadores normales se mantiene.
+
+         Para la cuenta administrativa NO aparece.
+    ==================================================== -->
+
+    <div
+      class="forgot-container"
+      *ngIf="!esCorreoAdministradorActual()"
+    >
+
+      <ion-button
+        type="button"
+        fill="clear"
+        size="small"
+        class="forgot-link"
+        [disabled]="cargando"
+        (click)="irRecuperarContrasena()"
+      >
+
+        <ion-icon
+          slot="start"
+          name="key-outline"
+        ></ion-icon>
+
+        ¿Olvidaste tu contraseña?
+
+      </ion-button>
+
+    </div>
+
+
+    <!-- ===================================================
+         LOGIN
+    ==================================================== -->
 
     <ion-button
-    expand="block"
-    class="btn-login"
-    (click)="login()">
+      expand="block"
+      type="button"
+      class="btn-login"
+      [disabled]="cargando"
+      (click)="login()"
+    >
 
-      INICIAR SESIÓN
+      <ion-spinner
+        *ngIf="cargando"
+        name="crescent"
+      ></ion-spinner>
+
+      <ion-icon
+        *ngIf="!cargando"
+        slot="start"
+        name="log-in-outline"
+      ></ion-icon>
+
+      <span *ngIf="!cargando">
+        INICIAR SESIÓN
+      </span>
+
+      <span *ngIf="cargando">
+        INICIANDO...
+      </span>
 
     </ion-button>
 
+
+    <!-- ===================================================
+         SEPARADOR
+    ==================================================== -->
+
+    <div class="separator">
+
+      <span></span>
+
+      <small>
+        O
+      </small>
+
+      <span></span>
+
+    </div>
+
+
+    <!-- ===================================================
+         REGISTRO
+    ==================================================== -->
+
     <ion-button
+      fill="outline"
+      expand="block"
+      type="button"
+      class="btn-register"
+      [disabled]="cargando"
+      (click)="irRegistro()"
+    >
 
-    fill="outline"
-
-    expand="block"
-
-    color="primary"
-
-    routerLink="/registro">
+      <ion-icon
+        slot="start"
+        name="person-add-outline"
+      ></ion-icon>
 
       CREAR CUENTA NUEVA
 
     </ion-button>
 
-  </div>
 
-  <div class="pacman"></div>
+    <!-- ===================================================
+         SEGURIDAD
+    ==================================================== -->
 
-  <p class="error-message" *ngIf="mensajeError">
-  {{ mensajeError }}
-</p>
+    <div class="security-info">
+
+      <ion-icon
+        name="shield-checkmark-outline"
+      ></ion-icon>
+
+      <span>
+
+        Tu cuenta está protegida por
+        verificación de correo y recuperación
+        segura de contraseña.
+
+      </span>
+
+    </div>
+
+
+  </main>
+
+
+  <!-- =====================================================
+       PAC-MAN
+  ====================================================== -->
+
+  <div
+    class="pacman"
+    aria-hidden="true"
+  ></div>
 
 </ion-content>

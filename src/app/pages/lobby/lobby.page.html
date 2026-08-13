@@ -1,349 +1,965 @@
-<ion-content fullscreen class="lobby-page">
+<ion-content
+  [fullscreen]="true"
+  class="lobby-page"
+  [scrollY]="true"
+>
 
-  <div class="maze-background"></div>
-
-  <!-- CABECERA -->
-
-  <section class="lobby-header">
-
-    <h1>VESTÍBULO</h1>
-
-    <p>Pac-Man CR Online</p>
-
-  </section>
-
-  <!-- MENSAJE -->
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
 
   <div
-    class="mensaje"
-    *ngIf="mensaje">
+    class="maze-background"
+    aria-hidden="true"
+  ></div>
 
-    {{ mensaje }}
 
-  </div>
+  <!-- =====================================================
+       CONTENEDOR
+  ====================================================== -->
 
-  <!-- CARGANDO -->
+  <main class="lobby-container">
 
-  <div
-    class="loading"
-    *ngIf="cargando">
 
-    <ion-spinner name="crescent"></ion-spinner>
+    <!-- ===================================================
+         HEADER
+    ==================================================== -->
 
-    <p>Cargando lobby...</p>
+    <header class="lobby-header">
 
-  </div>
 
-  <!-- LOBBY -->
+      <button
+        type="button"
+        class="btn-salir-superior"
+        [disabled]="procesando"
+        (click)="salir()"
+      >
 
-  <section
-    class="room-card"
-    *ngIf="!cargando && lobby">
+        ← SALIR
 
-    <div class="room-top">
+      </button>
 
-      <div>
 
-        <span class="label">
+      <div class="titulo">
 
-          Código de Sala
+        <h1>
+          VESTÍBULO
+        </h1>
 
+        <span>
+          PAC-MAN CR ONLINE
         </span>
 
-        <h2>
-
-          {{ lobby.codigoSala }}
-
-        </h2>
-
       </div>
 
-      <div class="status">
 
-        {{ totalJugadores() }}/{{ lobby.maxJugadores }}
+      <button
+        type="button"
+        class="btn-refresh"
+        [disabled]="
+          procesando ||
+          cargando
+        "
+        (click)="actualizarLobby()"
+        aria-label="Actualizar lobby"
+      >
 
-      </div>
+        ↻
+
+      </button>
+
+
+    </header>
+
+
+    <!-- ===================================================
+         MENSAJE
+    ==================================================== -->
+
+    <div
+      class="mensaje"
+      *ngIf="mensaje"
+      [class.error]="tipoMensaje === 'error'"
+      [class.exito]="tipoMensaje === 'exito'"
+      [class.info]="tipoMensaje === 'info'"
+    >
+
+      <span>
+
+        {{
+          tipoMensaje === 'error'
+            ? '⚠️'
+            : tipoMensaje === 'exito'
+              ? '✅'
+              : 'ℹ️'
+        }}
+
+      </span>
+
+      <span>
+        {{ mensaje }}
+      </span>
 
     </div>
 
-    <div class="datos">
+
+    <!-- ===================================================
+         CARGANDO
+    ==================================================== -->
+
+    <section
+      class="loading"
+      *ngIf="
+        cargando &&
+        !lobby
+      "
+    >
+
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
 
       <p>
-
-        👑 Creador:
-
-        <strong>
-
-          {{ esCreador() ? usuario.nombreUsuario : ('Jugador #' + lobby.jugadorCreadorId) }}
-
-        </strong>
-
+        Cargando vestíbulo...
       </p>
 
-      <p>
+    </section>
 
-        🗺️ Mapa:
 
-        <strong>
+    <!-- ===================================================
+         LOBBY
+    ==================================================== -->
 
-          {{ lobby.nombreMapa || 'Sin seleccionar' }}
+    <ng-container
+      *ngIf="lobby"
+    >
 
-        </strong>
 
-      </p>
+      <!-- =================================================
+           INFORMACIÓN
+      ================================================== -->
 
-      <p>
+      <section class="room-card">
 
-        ⚡ Dificultad:
 
-        <strong>
+        <div class="room-top">
 
-          {{ lobby.nombreDificultad || 'Sin seleccionar' }}
 
-        </strong>
+          <!-- CÓDIGO -->
 
-      </p>
+          <div class="codigo">
 
-      <p>
+            <span>
+              Código de sala
+            </span>
 
-        📡 Estado:
+            <strong>
+              {{ lobby.codigoSala }}
+            </strong>
 
-        <strong>
+          </div>
 
-          {{ lobby.estadoSala }}
 
-        </strong>
+          <!-- DATOS -->
 
-      </p>
+          <div class="datos">
 
-    </div>
 
-    <!-- JUGADORES -->
+            <div>
 
-    <div class="players">
+              <span>
+                👑 Creador
+              </span>
 
-      <div
-        class="player-card"
-        *ngFor="let jugador of lobby.jugadores">
+              <strong>
 
-        <div class="player-avatar">
+                {{
+                  obtenerCreador()
+                    ?.nombreUsuario
+                  ||
+                  ('Jugador #' + lobby.jugadorCreadorId)
+                }}
 
-          <span *ngIf="jugador.esBot">
+              </strong>
 
-            🤖
+            </div>
 
-          </span>
 
-          <span *ngIf="!jugador.esBot && esRolPacMan(jugador)">
+            <div>
 
-            🟡
+              <span>
+                🗺️ Laberinto
+              </span>
 
-          </span>
+              <strong>
+                {{ obtenerNombreMapaActual() }}
+              </strong>
 
-          <span *ngIf="!jugador.esBot && esRolFantasma(jugador)">
+            </div>
 
-            👻
 
-          </span>
+            <div>
 
-          <span *ngIf="!jugador.esBot && esRolMonstruo(jugador)">
+              <span>
+                ⚡ Dificultad
+              </span>
 
-            😈
+              <strong>
 
-          </span>
+                {{
+                  lobby.nombreDificultad
+                  ||
+                  'Normal'
+                }}
+
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                📡 Estado
+              </span>
+
+              <strong>
+                {{ lobby.estadoSala }}
+              </strong>
+
+            </div>
+
+
+          </div>
+
+
+          <!-- CONTADOR -->
+
+          <div
+            class="status"
+            [class.completo]="salaCompleta()"
+          >
+
+            {{ totalJugadores() }}
+            /
+            {{ lobby.maxJugadores }}
+
+          </div>
+
 
         </div>
 
-        <div class="player-info">
 
-          <h3>
+      </section>
 
-            {{ jugador.nombreUsuario }}
 
-            <span *ngIf="jugador.esCreador">
+      <!-- =================================================
+           GRID CENTRAL
+      ================================================== -->
 
-              👑
+      <section class="lobby-grid">
+
+
+        <!-- ===============================================
+             PARTICIPANTES
+        ================================================ -->
+
+        <section
+          class="panel jugadores-panel"
+        >
+
+
+          <div class="panel-header">
+
+
+            <div>
+
+              <h2>
+                👥 PARTICIPANTES
+              </h2>
+
+              <small>
+                Máximo
+                {{ lobby.maxJugadores }}
+                jugadores
+              </small>
+
+            </div>
+
+
+            <span
+              class="ready-counter"
+              [class.todos-listos]="todosListos()"
+            >
+
+              {{
+                todosListos()
+                  ? 'TODOS LISTOS'
+                  : 'PREPARANDO'
+              }}
 
             </span>
 
-          </h3>
 
-          <p>
+          </div>
 
-            {{ jugador.nombreRol }}
 
-          </p>
+          <!-- =============================================
+               JUGADORES
+          ============================================== -->
 
-          <small>
+          <div class="players">
 
-            {{ jugador.estadoJugador }}
 
-          </small>
+            <article
+              class="player-card"
+              *ngFor="let jugador of lobby.jugadores"
+              [class.ready]="
+                jugador.estadoJugador === 'Listo'
+              "
+              [class.me]="
+                jugador.usuarioId ===
+                usuario.usuarioId
+              "
+            >
 
-        </div>
 
-      </div>
+              <!-- AVATAR GRANDE -->
+
+              <div
+                class="player-avatar"
+                [class.bot]="jugador.esBot"
+                [ngClass]="obtenerClaseRol(jugador)"
+              >
+
+
+                <!-- PAC-MAN -->
+
+                <div
+                  *ngIf="esRolPacMan(jugador)"
+                  class="avatar-character pacman-character"
+                >
+
+                  <span class="pac-eye"></span>
+
+                </div>
+
+
+                <!-- FANTASMA -->
+
+                <div
+                  *ngIf="esRolFantasma(jugador)"
+                  class="avatar-character ghost-character"
+                >
+
+                  <span class="ghost-eye one"></span>
+
+                  <span class="ghost-eye two"></span>
+
+                </div>
+
+
+                <!-- MONSTRUO -->
+
+                <div
+                  *ngIf="esRolMonstruo(jugador)"
+                  class="avatar-character monster-character"
+                >
+
+                  <span class="monster-eye one"></span>
+
+                  <span class="monster-eye two"></span>
+
+                  <span class="monster-mouth"></span>
+
+                </div>
+
+
+                <span
+                  class="bot-corner"
+                  *ngIf="jugador.esBot"
+                >
+                  BOT
+                </span>
+
+
+              </div>
+
+
+              <!-- INFORMACIÓN -->
+
+              <div class="player-info">
+
+
+                <div class="player-name">
+
+
+                  <strong>
+                    {{ jugador.nombreUsuario }}
+                  </strong>
+
+
+                  <span
+                    *ngIf="jugador.esCreador"
+                    title="Creador"
+                  >
+                    👑
+                  </span>
+
+
+                  <span
+                    class="bot-tag"
+                    *ngIf="jugador.esBot"
+                  >
+                    BOT
+                  </span>
+
+
+                  <span
+                    class="tu-tag"
+                    *ngIf="
+                      jugador.usuarioId ===
+                      usuario.usuarioId
+                    "
+                  >
+                    TÚ
+                  </span>
+
+
+                </div>
+
+
+                <span class="rol">
+
+                  {{
+                    jugador.nombreRol
+                    ||
+                    'Sin rol'
+                  }}
+
+                </span>
+
+
+                <small
+                  [class.listo]="
+                    jugador.estadoJugador ===
+                    'Listo'
+                  "
+                >
+
+                  {{
+                    jugador.estadoJugador ===
+                    'Listo'
+                      ? '✓ Listo'
+                      : jugador.estadoJugador
+                  }}
+
+                </small>
+
+
+              </div>
+
+
+            </article>
+
+
+            <!-- ===========================================
+                 ESPACIOS VACÍOS
+            ============================================ -->
+
+            <article
+              class="player-card empty-player"
+              *ngFor="
+                let espacio of
+                  [].constructor(
+                    lobby.maxJugadores -
+                    totalJugadores()
+                  )
+              "
+            >
+
+
+              <div
+                class="player-avatar vacio"
+              >
+
+                ?
+
+              </div>
+
+
+              <div class="player-info">
+
+                <strong>
+                  Esperando jugador
+                </strong>
+
+                <span class="rol">
+                  Espacio disponible
+                </span>
+
+                <small>
+                  Esperando...
+                </small>
+
+              </div>
+
+
+            </article>
+
+
+          </div>
+
+
+        </section>
+
+
+        <!-- ===============================================
+             CONTROLES
+        ================================================ -->
+
+        <aside
+          class="panel controles-panel"
+        >
+
+
+          <!-- =============================================
+               TU PERSONAJE
+          ============================================== -->
+
+          <section class="control-section">
+
+
+            <div class="control-title">
+
+              <h2>
+                🎮 TU PERSONAJE
+              </h2>
+
+              <small>
+                Selecciona tu rol para la partida
+              </small>
+
+            </div>
+
+
+            <div class="roles">
+
+
+              <!-- PAC-MAN -->
+
+              <button
+                type="button"
+                class="rol-btn pacman-btn"
+                [class.seleccionado]="
+                  miJugador()?.rolId ===
+                  ROL_PACMAN
+                "
+                [disabled]="
+                  !rolDisponibleParaUsuario(
+                    ROL_PACMAN
+                  )
+                "
+                (click)="
+                  cambiarRol(
+                    ROL_PACMAN
+                  )
+                "
+              >
+
+                <div
+                  class="role-figure
+                         mini-pacman"
+                >
+
+                  <span></span>
+
+                </div>
+
+
+                <strong>
+                  PAC-MAN
+                </strong>
+
+
+                <small>
+
+                  {{
+                    contarRol(
+                      ROL_PACMAN
+                    )
+                  }}
+                  /
+                  {{ MAX_PACMAN }}
+
+                </small>
+
+              </button>
+
+
+              <!-- FANTASMA -->
+
+              <button
+                type="button"
+                class="rol-btn ghost-btn"
+                [class.seleccionado]="
+                  miJugador()?.rolId ===
+                  ROL_FANTASMA
+                "
+                [disabled]="
+                  !rolDisponibleParaUsuario(
+                    ROL_FANTASMA
+                  )
+                "
+                (click)="
+                  cambiarRol(
+                    ROL_FANTASMA
+                  )
+                "
+              >
+
+                <div
+                  class="role-figure
+                         mini-ghost"
+                >
+
+                  <span class="e1"></span>
+
+                  <span class="e2"></span>
+
+                </div>
+
+
+                <strong>
+                  FANTASMA
+                </strong>
+
+
+                <small>
+
+                  {{
+                    contarRol(
+                      ROL_FANTASMA
+                    )
+                  }}
+                  /
+                  {{ MAX_FANTASMA }}
+
+                </small>
+
+              </button>
+
+
+              <!-- MONSTRUO -->
+
+              <button
+                type="button"
+                class="rol-btn monster-btn"
+                [class.seleccionado]="
+                  miJugador()?.rolId ===
+                  ROL_MONSTRUO
+                "
+                [disabled]="
+                  !rolDisponibleParaUsuario(
+                    ROL_MONSTRUO
+                  )
+                "
+                (click)="
+                  cambiarRol(
+                    ROL_MONSTRUO
+                  )
+                "
+              >
+
+                <div
+                  class="role-figure
+                         mini-monster"
+                >
+
+                  <span class="e1"></span>
+
+                  <span class="e2"></span>
+
+                </div>
+
+
+                <strong>
+                  MONSTRUO
+                </strong>
+
+
+                <small>
+
+                  {{
+                    contarRol(
+                      ROL_MONSTRUO
+                    )
+                  }}
+                  /
+                  {{ MAX_MONSTRUO }}
+
+                </small>
+
+              </button>
+
+
+            </div>
+
+
+          </section>
+
+
+          <!-- =============================================
+               MAPAS
+          ============================================== -->
+
+          <section
+            class="control-section map-section"
+            *ngIf="esCreador()"
+          >
+
+
+            <div class="map-header">
+
+              <div>
+
+                <h2>
+                  🗺️ LABERINTO
+                </h2>
+
+                <small>
+                  Elige el escenario de la partida
+                </small>
+
+              </div>
+
+
+              <strong>
+                {{ obtenerNombreMapaActual() }}
+              </strong>
+
+            </div>
+
+
+            <div class="map-options">
+
+
+              <button
+                type="button"
+                class="map-option"
+                *ngFor="
+                  let mapa of
+                    MAPAS_DISPONIBLES
+                "
+                [class.active]="
+                  mapaSeleccionado(
+                    mapa.id
+                  )
+                "
+                [disabled]="procesando"
+                [attr.title]="mapa.nombre"
+                (click)="
+                  cambiarMapa(
+                    mapa.id
+                  )
+                "
+              >
+
+                <span class="map-icon">
+                  {{ mapa.icono }}
+                </span>
+
+                <strong>
+                  {{ mapa.corto }}
+                </strong>
+
+              </button>
+
+
+            </div>
+
+
+          </section>
+
+
+          <!-- =============================================
+               ADMINISTRAR
+          ============================================== -->
+
+          <section
+            class="control-section"
+            *ngIf="esCreador()"
+          >
+
+
+            <h2>
+              👑 ADMINISTRAR SALA
+            </h2>
+
+
+            <div class="admin-grid">
+
+
+              <button
+                type="button"
+                class="action-btn friend"
+                [disabled]="
+                  procesando ||
+                  salaCompleta()
+                "
+                (click)="invitarAmigo()"
+              >
+
+                👥 INVITAR
+
+              </button>
+
+
+              <button
+                type="button"
+                class="action-btn bot"
+                [disabled]="
+                  procesando ||
+                  salaCompleta()
+                "
+                (click)="agregarBot()"
+              >
+
+                🤖 AGREGAR BOT
+
+              </button>
+
+
+            </div>
+
+
+          </section>
+
+
+          <!-- =============================================
+               LISTO
+          ============================================== -->
+
+          <button
+            type="button"
+            class="ready-btn"
+            [class.active]="estaListo()"
+            [disabled]="procesando"
+            (click)="alternarListo()"
+          >
+
+            {{
+              estaListo()
+                ? '✅ ESTOY LISTO'
+                : '☑️ MARCAR LISTO'
+            }}
+
+          </button>
+
+
+          <!-- =============================================
+               INICIAR
+          ============================================== -->
+
+          <button
+            *ngIf="esCreador()"
+            type="button"
+            class="start-btn"
+            [disabled]="!puedeIniciar()"
+            (click)="iniciarPartida()"
+          >
+
+            ▶ INICIAR PARTIDA
+
+          </button>
+
+
+          <!-- =============================================
+               REQUISITOS
+          ============================================== -->
+
+          <div
+            class="start-info"
+            *ngIf="
+              esCreador() &&
+              !puedeIniciar()
+            "
+          >
+
+            <span>
+              ℹ️
+            </span>
+
+            <small>
+
+              Se necesitan 4 participantes:
+              2 Pac-Man,
+              1 Fantasma,
+              1 Monstruo,
+              todos listos
+              y un laberinto seleccionado.
+
+            </small>
+
+          </div>
+
+
+          <!-- =============================================
+               CERRAR / SALIR
+          ============================================== -->
+
+          <button
+            type="button"
+            class="exit-btn"
+            [disabled]="procesando"
+            (click)="
+              esCreador()
+                ? cerrarSala()
+                : salir()
+            "
+          >
+
+            {{
+              esCreador()
+                ? '✕ CERRAR SALA'
+                : '🚪 SALIR DEL LOBBY'
+            }}
+
+          </button>
+
+
+        </aside>
+
+
+      </section>
+
+
+    </ng-container>
+
+
+    <!-- ===================================================
+         PAC-MAN INFERIOR
+    ==================================================== -->
+
+    <div
+      class="pacman-run"
+      aria-hidden="true"
+    >
+
+      <div class="pacman-runner"></div>
+
+      <span></span>
+
+      <span></span>
+
+      <span></span>
+
+      <span></span>
 
     </div>
 
-  </section>
 
-  <!-- ACCIONES -->
+  </main>
 
-  <section
-    class="actions"
-    *ngIf="!cargando && lobby">
-
-    <ion-button
-
-      expand="block"
-
-      class="btn-main"
-
-      [disabled]="!rolDisponibleParaUsuario(ROL_PACMAN)"
-
-      (click)="cambiarRol(ROL_PACMAN)">
-
-      🟡 Elegir Pac-Man
-
-    </ion-button>
-
-    <ion-button
-
-      expand="block"
-
-      color="secondary"
-
-      [disabled]="!rolDisponibleParaUsuario(ROL_FANTASMA)"
-
-      (click)="cambiarRol(ROL_FANTASMA)">
-
-      👻 Elegir Fantasma
-
-    </ion-button>
-
-    <ion-button
-
-      expand="block"
-
-      color="tertiary"
-
-      [disabled]="!rolDisponibleParaUsuario(ROL_MONSTRUO)"
-
-      (click)="cambiarRol(ROL_MONSTRUO)">
-
-      😈 Elegir Monstruo
-
-    </ion-button>
-
-    <ion-button
-
-      *ngIf="esCreador()"
-
-      expand="block"
-
-      fill="outline"
-
-      (click)="invitarAmigo()">
-
-      👥 Invitar amigo
-
-    </ion-button>
-
-    <ion-button
-
-      *ngIf="esCreador()"
-
-      expand="block"
-
-      color="success"
-
-      fill="outline"
-
-      [disabled]="salaCompleta()"
-
-      (click)="agregarBot()">
-
-      🤖 Agregar Bot
-
-    </ion-button>
-
-    <ion-button
-
-      expand="block"
-
-      color="{{ estaListo() ? 'medium' : 'success' }}"
-
-      (click)="alternarListo()">
-
-      {{ estaListo() ? '❎ Quitar Listo' : '✅ Estoy Listo' }}
-
-    </ion-button>
-
-    <ion-button
-
-      *ngIf="esCreador()"
-
-      expand="block"
-
-      color="warning"
-
-      [disabled]="!puedeIniciar()"
-
-      (click)="iniciarPartida()">
-
-      ▶️ Iniciar Partida
-
-    </ion-button>
-
-    <ion-button
-
-      *ngIf="esCreador()"
-
-      expand="block"
-
-      color="danger"
-
-      (click)="cerrarSala()">
-
-      ❌ Cerrar Sala
-
-    </ion-button>
-
-    <ion-button
-
-      *ngIf="!esCreador()"
-
-      expand="block"
-
-      fill="clear"
-
-      color="danger"
-
-      (click)="salir()">
-
-      🚪 Salir del Lobby
-
-    </ion-button>
-
-  </section>
-
-  <!-- PACMAN -->
-
-  <div class="pacman-run">
-
-    <div class="pacman"></div>
-
-    <div class="dots">
-
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-
-    </div>
-
-  </div>
 
 </ion-content>

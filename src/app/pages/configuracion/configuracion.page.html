@@ -1,13 +1,730 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>configuracion</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content
+  [fullscreen]="true"
+  class="configuracion-page"
+>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">configuracion</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
+
+  <div
+    class="maze-background"
+    aria-hidden="true"
+  ></div>
+
+
+  <main class="config-container">
+
+
+    <!-- ===================================================
+         HEADER
+    ==================================================== -->
+
+    <header class="config-header">
+
+
+      <!-- VOLVER -->
+
+      <button
+        type="button"
+        class="btn-back"
+        (click)="volverMenu()"
+      >
+
+        ← MENÚ
+
+      </button>
+
+
+      <!-- TÍTULO -->
+
+      <div class="title-area">
+
+        <h1>
+          CONFIGURACIÓN
+        </h1>
+
+        <span>
+          PAC-MAN CR
+        </span>
+
+      </div>
+
+
+      <!-- USUARIO -->
+
+      <div class="user-chip">
+
+        <ion-icon
+          name="person-outline"
+        ></ion-icon>
+
+        <span>
+          {{ nombreUsuario }}
+        </span>
+
+      </div>
+
+
+    </header>
+
+
+
+    <!-- ===================================================
+         ERROR
+    ==================================================== -->
+
+    <div
+      class="message error"
+      *ngIf="mensajeError"
+      role="alert"
+    >
+
+      <ion-icon
+        name="alert-circle-outline"
+      ></ion-icon>
+
+      <span>
+        {{ mensajeError }}
+      </span>
+
+    </div>
+
+
+
+    <!-- ===================================================
+         ÉXITO
+    ==================================================== -->
+
+    <div
+      class="message success"
+      *ngIf="mensajeExito"
+      role="status"
+    >
+
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>
+        {{ mensajeExito }}
+      </span>
+
+    </div>
+
+
+
+    <!-- ===================================================
+         CARGANDO
+    ==================================================== -->
+
+    <section
+      class="loading"
+      *ngIf="cargando"
+    >
+
+      <ion-spinner
+        name="crescent"
+      ></ion-spinner>
+
+
+      <span>
+        Cargando configuración...
+      </span>
+
+    </section>
+
+
+
+    <!-- ===================================================
+         CONFIGURACIÓN
+    ==================================================== -->
+
+    <section
+      class="config-grid"
+      *ngIf="!cargando"
+    >
+
+
+      <!-- =================================================
+           AUDIO
+      ================================================== -->
+
+      <article class="config-card audio-card">
+
+
+        <div class="card-header">
+
+          <div class="card-icon">
+            🔊
+          </div>
+
+
+          <div>
+
+            <h2>
+              Audio
+            </h2>
+
+            <p>
+              Configura el volumen del juego.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- ===============================================
+             MÚSICA
+        ================================================ -->
+
+        <div class="control-group">
+
+
+          <div class="control-title">
+
+            <span>
+              🎵 Música
+            </span>
+
+
+            <strong>
+              {{ volumenMusica }}%
+            </strong>
+
+          </div>
+
+
+          <ion-range
+            min="0"
+            max="100"
+            step="1"
+            [(ngModel)]="volumenMusica"
+            [disabled]="guardando"
+            (ionInput)="cambiarVolumenMusica()"
+          >
+
+
+            <ion-icon
+              slot="start"
+              name="volume-mute-outline"
+            ></ion-icon>
+
+
+            <ion-icon
+              slot="end"
+              name="volume-high-outline"
+            ></ion-icon>
+
+
+          </ion-range>
+
+
+          <div class="audio-value">
+
+            <span>
+              Música
+            </span>
+
+
+            <strong>
+              {{ volumenMusica }}/100
+            </strong>
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- ===============================================
+             EFECTOS
+        ================================================ -->
+
+        <div class="control-group">
+
+
+          <div class="control-title">
+
+            <span>
+              💥 Efectos
+            </span>
+
+
+            <strong>
+              {{ volumenEfectos }}%
+            </strong>
+
+          </div>
+
+
+          <ion-range
+            min="0"
+            max="100"
+            step="1"
+            [(ngModel)]="volumenEfectos"
+            [disabled]="guardando"
+            (ionInput)="cambiarVolumenEfectos()"
+          >
+
+
+            <ion-icon
+              slot="start"
+              name="volume-mute-outline"
+            ></ion-icon>
+
+
+            <ion-icon
+              slot="end"
+              name="volume-high-outline"
+            ></ion-icon>
+
+
+          </ion-range>
+
+
+          <div class="audio-value">
+
+            <span>
+              Efectos
+            </span>
+
+
+            <strong>
+              {{ volumenEfectos }}/100
+            </strong>
+
+          </div>
+
+
+        </div>
+
+
+
+        <!-- ===============================================
+             INFORMACIÓN
+        ================================================ -->
+
+        <div class="audio-notice">
+
+          <ion-icon
+            name="information-circle-outline"
+          ></ion-icon>
+
+
+          <span>
+            Los niveles de audio quedan guardados
+            en tu cuenta y podrán utilizarse dentro
+            de las partidas.
+          </span>
+
+        </div>
+
+
+      </article>
+
+
+
+      <!-- =================================================
+           NOTIFICACIONES
+      ================================================== -->
+
+      <article class="config-card notification-card">
+
+
+        <div class="card-header">
+
+          <div class="card-icon">
+            🔔
+          </div>
+
+
+          <div>
+
+            <h2>
+              Notificaciones
+            </h2>
+
+            <p>
+              Configura los avisos de tu cuenta.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="toggle-setting">
+
+
+          <div>
+
+            <strong>
+              Recibir notificaciones
+            </strong>
+
+
+            <span>
+              Avisos relacionados con Pac-Man CR.
+            </span>
+
+          </div>
+
+
+          <ion-toggle
+            [checked]="notificaciones"
+            [disabled]="guardando"
+            (ionChange)="cambiarNotificaciones($event)"
+          ></ion-toggle>
+
+
+        </div>
+
+
+
+        <div
+          class="notification-status"
+          [class.enabled]="notificaciones"
+        >
+
+
+          <ion-icon
+            [name]="
+              notificaciones
+                ? 'notifications-outline'
+                : 'notifications-off-outline'
+            "
+          ></ion-icon>
+
+
+          <span
+            *ngIf="notificaciones"
+          >
+            Notificaciones activadas
+          </span>
+
+
+          <span
+            *ngIf="!notificaciones"
+          >
+            Notificaciones desactivadas
+          </span>
+
+
+        </div>
+
+
+      </article>
+
+
+
+      <!-- =================================================
+           PREFERENCIAS DEL JUGADOR
+      ================================================== -->
+
+      <article class="config-card preferences-card">
+
+
+        <div class="card-header">
+
+          <div class="card-icon">
+            🎮
+          </div>
+
+
+          <div>
+
+            <h2>
+              Preferencias
+            </h2>
+
+            <p>
+              Configuración individual del jugador.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="info-line">
+
+          <ion-icon
+            name="cloud-done-outline"
+          ></ion-icon>
+
+
+          <span>
+            Tus preferencias se guardan en tu cuenta.
+          </span>
+
+        </div>
+
+
+
+        <div class="info-line">
+
+          <ion-icon
+            name="person-circle-outline"
+          ></ion-icon>
+
+
+          <span>
+            Cada jugador mantiene su propia configuración.
+          </span>
+
+        </div>
+
+
+
+        <div class="info-line">
+
+          <ion-icon
+            name="volume-high-outline"
+          ></ion-icon>
+
+
+          <span>
+            Música y efectos tienen niveles independientes.
+          </span>
+
+        </div>
+
+
+
+        <div class="info-line">
+
+          <ion-icon
+            name="phone-landscape-outline"
+          ></ion-icon>
+
+
+          <span>
+            La configuración se conservará también
+            al utilizar la aplicación en Android.
+          </span>
+
+        </div>
+
+
+      </article>
+
+
+
+      <!-- =================================================
+           RESUMEN
+      ================================================== -->
+
+      <article class="config-card summary-card">
+
+
+        <div class="card-header">
+
+          <div class="card-icon">
+            ⚙️
+          </div>
+
+
+          <div>
+
+            <h2>
+              Resumen
+            </h2>
+
+            <p>
+              Configuración seleccionada actualmente.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="summary-grid">
+
+
+          <div class="summary-item">
+
+            <span>
+              🎵
+            </span>
+
+            <div>
+
+              <small>
+                Música
+              </small>
+
+              <strong>
+                {{ volumenMusica }}%
+              </strong>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="summary-item">
+
+            <span>
+              💥
+            </span>
+
+            <div>
+
+              <small>
+                Efectos
+              </small>
+
+              <strong>
+                {{ volumenEfectos }}%
+              </strong>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="summary-item">
+
+            <span>
+              🔔
+            </span>
+
+            <div>
+
+              <small>
+                Notificaciones
+              </small>
+
+              <strong>
+                {{
+                  notificaciones
+                    ? 'Activadas'
+                    : 'Desactivadas'
+                }}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+
+      </article>
+
+
+    </section>
+
+
+
+    <!-- ===================================================
+         BOTONES
+    ==================================================== -->
+
+    <section
+      class="actions"
+      *ngIf="!cargando"
+    >
+
+
+      <!-- RESTAURAR -->
+
+      <button
+        type="button"
+        class="btn-default"
+        [disabled]="guardando"
+        (click)="restaurarPredeterminados()"
+      >
+
+        <ion-icon
+          name="refresh-circle-outline"
+        ></ion-icon>
+
+        RESTAURAR
+
+      </button>
+
+
+
+      <!-- GUARDAR -->
+
+      <button
+        type="button"
+        class="btn-save"
+        [disabled]="
+          guardando ||
+          !cambiosPendientes
+        "
+        (click)="guardarConfiguracion()"
+      >
+
+
+        <ion-spinner
+          *ngIf="guardando"
+          name="crescent"
+        ></ion-spinner>
+
+
+        <ion-icon
+          *ngIf="!guardando"
+          name="save-outline"
+        ></ion-icon>
+
+
+        <span
+          *ngIf="!guardando"
+        >
+          GUARDAR CAMBIOS
+        </span>
+
+
+        <span
+          *ngIf="guardando"
+        >
+          GUARDANDO...
+        </span>
+
+
+      </button>
+
+
+    </section>
+
+
+
+    <!-- ===================================================
+         CONFIGURACIÓN SINCRONIZADA
+    ==================================================== -->
+
+    <div
+      class="saved-state"
+      *ngIf="
+        !cargando &&
+        !guardando &&
+        !cambiosPendientes
+      "
+    >
+
+      <ion-icon
+        name="checkmark-done-outline"
+      ></ion-icon>
+
+      Configuración sincronizada con tu cuenta
+
+    </div>
+
+
+  </main>
+
 </ion-content>

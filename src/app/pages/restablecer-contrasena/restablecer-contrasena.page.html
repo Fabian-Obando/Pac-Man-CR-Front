@@ -1,0 +1,490 @@
+<ion-content
+  [fullscreen]="true"
+  class="restablecer-page"
+>
+
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
+
+  <div
+    class="background"
+    aria-hidden="true"
+  ></div>
+
+
+  <!-- =====================================================
+       PERSONAJES DECORATIVOS
+  ====================================================== -->
+
+  <div
+    class="characters"
+    aria-hidden="true"
+  >
+
+    <div class="monster">
+      😈
+    </div>
+
+    <div class="ghost red"></div>
+
+    <div class="ghost pink"></div>
+
+    <div class="ghost cyan"></div>
+
+    <div class="ghost orange"></div>
+
+  </div>
+
+
+  <!-- =====================================================
+       TARJETA PRINCIPAL
+  ====================================================== -->
+
+  <main class="restablecer-card">
+
+
+    <!-- ===================================================
+         CABECERA
+    ==================================================== -->
+
+    <header class="restablecer-header">
+
+      <div
+        class="icono-restablecer"
+        aria-hidden="true"
+      >
+        🔑
+      </div>
+
+      <h1>
+        PAC-MAN CR
+      </h1>
+
+      <h2>
+        Nueva contraseña
+      </h2>
+
+      <p class="descripcion">
+        Crea una nueva contraseña segura para recuperar
+        el acceso a tu cuenta.
+      </p>
+
+    </header>
+
+
+    <!-- ===================================================
+         MENSAJE DE ERROR
+    ==================================================== -->
+
+    <div
+      class="error-message"
+      *ngIf="mensajeError"
+      role="alert"
+    >
+
+      <ion-icon
+        name="alert-circle-outline"
+      ></ion-icon>
+
+      <span>
+        {{ mensajeError }}
+      </span>
+
+    </div>
+
+
+    <!-- ===================================================
+         MENSAJE DE ÉXITO
+    ==================================================== -->
+
+    <div
+      class="success-message"
+      *ngIf="
+        mensajeExito &&
+        !contrasenaActualizada
+      "
+      role="status"
+    >
+
+      <ion-icon
+        name="checkmark-circle-outline"
+      ></ion-icon>
+
+      <span>
+        {{ mensajeExito }}
+      </span>
+
+    </div>
+
+
+    <!-- ===================================================
+         FORMULARIO
+    ==================================================== -->
+
+    <section
+      class="formulario-restablecer"
+      *ngIf="!contrasenaActualizada"
+    >
+
+      <!-- ===============================================
+           NUEVA CONTRASEÑA
+      ================================================ -->
+
+      <ion-item
+        lines="none"
+        class="input-item password-item"
+      >
+
+        <ion-icon
+          slot="start"
+          name="lock-closed-outline"
+        ></ion-icon>
+
+        <ion-input
+          [type]="
+            mostrarNuevaContrasena
+              ? 'text'
+              : 'password'
+          "
+          autocomplete="new-password"
+          placeholder="Nueva contraseña"
+          [(ngModel)]="nuevaContrasena"
+          [disabled]="cargando"
+          (keyup.enter)="alPresionarEnter()"
+        >
+        </ion-input>
+
+
+        <ion-button
+          slot="end"
+          fill="clear"
+          type="button"
+          class="btn-password"
+          [disabled]="cargando"
+          [attr.aria-label]="
+            mostrarNuevaContrasena
+              ? 'Ocultar nueva contraseña'
+              : 'Mostrar nueva contraseña'
+          "
+          (click)="alternarNuevaContrasena()"
+        >
+
+          <ion-icon
+            slot="icon-only"
+            [name]="
+              mostrarNuevaContrasena
+                ? 'eye-off-outline'
+                : 'eye-outline'
+            "
+          ></ion-icon>
+
+        </ion-button>
+
+      </ion-item>
+
+
+      <!-- ===============================================
+           CONFIRMAR CONTRASEÑA
+      ================================================ -->
+
+      <ion-item
+        lines="none"
+        class="input-item password-item"
+      >
+
+        <ion-icon
+          slot="start"
+          name="shield-checkmark-outline"
+        ></ion-icon>
+
+        <ion-input
+          [type]="
+            mostrarConfirmacion
+              ? 'text'
+              : 'password'
+          "
+          autocomplete="new-password"
+          placeholder="Confirmar contraseña"
+          [(ngModel)]="confirmarContrasena"
+          [disabled]="cargando"
+          (keyup.enter)="alPresionarEnter()"
+        >
+        </ion-input>
+
+
+        <ion-button
+          slot="end"
+          fill="clear"
+          type="button"
+          class="btn-password"
+          [disabled]="cargando"
+          [attr.aria-label]="
+            mostrarConfirmacion
+              ? 'Ocultar confirmación'
+              : 'Mostrar confirmación'
+          "
+          (click)="alternarConfirmacion()"
+        >
+
+          <ion-icon
+            slot="icon-only"
+            [name]="
+              mostrarConfirmacion
+                ? 'eye-off-outline'
+                : 'eye-outline'
+            "
+          ></ion-icon>
+
+        </ion-button>
+
+      </ion-item>
+
+
+      <!-- =================================================
+           REQUISITOS
+      ================================================== -->
+
+      <div class="requisitos-contrasena">
+
+        <div class="requisitos-titulo">
+
+          <ion-icon
+            name="information-circle-outline"
+          ></ion-icon>
+
+          <strong>
+            La contraseña debe incluir:
+          </strong>
+
+        </div>
+
+
+        <ul>
+
+          <li>
+            Al menos 8 caracteres
+          </li>
+
+          <li>
+            Una letra mayúscula
+          </li>
+
+          <li>
+            Una letra minúscula
+          </li>
+
+          <li>
+            Al menos un número
+          </li>
+
+          <li>
+            Al menos un símbolo
+          </li>
+
+        </ul>
+
+      </div>
+
+
+      <!-- =================================================
+           BOTÓN CAMBIAR CONTRASEÑA
+      ================================================== -->
+
+      <ion-button
+        expand="block"
+        type="button"
+        class="btn-restablecer"
+        [disabled]="
+          cargando ||
+          !token
+        "
+        (click)="restablecerContrasena()"
+      >
+
+        <ion-spinner
+          *ngIf="cargando"
+          name="crescent"
+        ></ion-spinner>
+
+        <ion-icon
+          *ngIf="!cargando"
+          slot="start"
+          name="key-outline"
+        ></ion-icon>
+
+        <span *ngIf="!cargando">
+          CAMBIAR CONTRASEÑA
+        </span>
+
+        <span *ngIf="cargando">
+          ACTUALIZANDO...
+        </span>
+
+      </ion-button>
+
+    </section>
+
+
+    <!-- ===================================================
+         CONTRASEÑA ACTUALIZADA
+    ==================================================== -->
+
+    <section
+      class="contrasena-actualizada"
+      *ngIf="contrasenaActualizada"
+    >
+
+      <div
+        class="icono-exito"
+        aria-hidden="true"
+      >
+        ✅
+      </div>
+
+      <h3>
+        Contraseña actualizada
+      </h3>
+
+      <p>
+        {{ mensajeExito }}
+      </p>
+
+
+      <div class="aviso-exito">
+
+        <ion-icon
+          name="shield-checkmark-outline"
+        ></ion-icon>
+
+        <span>
+          Tu contraseña anterior ya no puede utilizarse
+          para iniciar sesión.
+        </span>
+
+      </div>
+
+
+      <!-- ===============================================
+           LOGIN
+      ================================================ -->
+
+      <ion-button
+        expand="block"
+        type="button"
+        class="btn-login-final"
+        (click)="volverLogin()"
+      >
+
+        <ion-icon
+          slot="start"
+          name="log-in-outline"
+        ></ion-icon>
+
+        IR AL INICIO DE SESIÓN
+
+      </ion-button>
+
+    </section>
+
+
+    <!-- ===================================================
+         TOKEN INVÁLIDO / FALTANTE
+    ==================================================== -->
+
+    <section
+      class="token-invalido"
+      *ngIf="
+        !token &&
+        !contrasenaActualizada
+      "
+    >
+
+      <ion-icon
+        name="warning-outline"
+      ></ion-icon>
+
+      <strong>
+        Enlace inválido
+      </strong>
+
+      <p>
+        No se encontró un token de recuperación válido.
+        Solicita un nuevo enlace desde la pantalla de
+        recuperación de contraseña.
+      </p>
+
+    </section>
+
+
+    <!-- ===================================================
+         SEPARADOR
+    ==================================================== -->
+
+    <div class="separator">
+
+      <span></span>
+
+      <small>
+        PAC-MAN CR
+      </small>
+
+      <span></span>
+
+    </div>
+
+
+    <!-- ===================================================
+         VOLVER
+    ==================================================== -->
+
+    <ion-button
+      *ngIf="!contrasenaActualizada"
+      expand="block"
+      type="button"
+      fill="outline"
+      class="btn-volver"
+      [disabled]="cargando"
+      (click)="volverLogin()"
+    >
+
+      <ion-icon
+        slot="start"
+        name="arrow-back-outline"
+      ></ion-icon>
+
+      VOLVER AL INICIO DE SESIÓN
+
+    </ion-button>
+
+
+    <!-- ===================================================
+         SEGURIDAD
+    ==================================================== -->
+
+    <div class="security-info">
+
+      <ion-icon
+        name="lock-closed-outline"
+      ></ion-icon>
+
+      <span>
+        El enlace enviado a tu correo es temporal.
+        Si ya venció, solicita uno nuevo.
+      </span>
+
+    </div>
+
+  </main>
+
+
+  <!-- =====================================================
+       PAC-MAN DECORATIVO
+  ====================================================== -->
+
+  <div
+    class="pacman"
+    aria-hidden="true"
+  ></div>
+
+</ion-content>

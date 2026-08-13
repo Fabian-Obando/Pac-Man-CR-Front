@@ -1,13 +1,576 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>amigos</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content
+  [fullscreen]="true"
+  class="amigos-page"
+>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">amigos</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- =====================================================
+       FONDO
+  ====================================================== -->
+
+  <div
+    class="maze-background"
+    aria-hidden="true"
+  ></div>
+
+
+  <main class="amigos-container">
+
+
+    <!-- ===================================================
+         HEADER
+    ==================================================== -->
+
+    <header class="page-header">
+
+      <!-- VOLVER -->
+
+      <button
+        type="button"
+        class="btn-back"
+        (click)="volverMenu()"
+      >
+        ← MENÚ
+      </button>
+
+
+      <!-- TÍTULO -->
+
+      <div class="title">
+
+        <h1>
+          AMIGOS
+        </h1>
+
+        <span>
+          PAC-MAN CR
+        </span>
+
+      </div>
+
+
+      <!-- USUARIO -->
+
+      <div class="player">
+
+        👤 {{ nombreUsuario }}
+
+      </div>
+
+    </header>
+
+
+    <!-- ===================================================
+         MENSAJE DE ÉXITO
+    ==================================================== -->
+
+    <div
+      class="message success"
+      *ngIf="mensajeExito"
+      role="status"
+    >
+
+      {{ mensajeExito }}
+
+    </div>
+
+
+    <!-- ===================================================
+         MENSAJE DE ERROR
+    ==================================================== -->
+
+    <div
+      class="message error"
+      *ngIf="mensajeError"
+      role="alert"
+    >
+
+      {{ mensajeError }}
+
+    </div>
+
+
+    <!-- ===================================================
+         BUSCAR JUGADORES
+    ==================================================== -->
+
+    <section class="search-card">
+
+      <div>
+
+        <h2>
+          🔎 Buscar jugadores
+        </h2>
+
+        <p>
+          Busca por nombre de usuario o correo.
+        </p>
+
+      </div>
+
+
+      <div class="search-row">
+
+        <!-- CAMPO DE BÚSQUEDA -->
+
+        <ion-input
+          [(ngModel)]="terminoBusqueda"
+          type="text"
+          autocomplete="off"
+          placeholder="Nombre o correo..."
+          [disabled]="buscando"
+          (keyup.enter)="buscar()"
+        >
+        </ion-input>
+
+
+        <!-- BOTÓN BUSCAR -->
+
+        <ion-button
+          type="button"
+          class="btn-search"
+          (click)="buscar()"
+          [disabled]="buscando"
+        >
+
+          <ion-spinner
+            *ngIf="buscando"
+            name="crescent"
+          ></ion-spinner>
+
+
+          <ion-icon
+            *ngIf="!buscando"
+            slot="start"
+            name="search-outline"
+          ></ion-icon>
+
+
+          <span *ngIf="!buscando">
+            BUSCAR
+          </span>
+
+
+          <span *ngIf="buscando">
+            BUSCANDO...
+          </span>
+
+        </ion-button>
+
+      </div>
+
+
+      <!-- =================================================
+           RESULTADOS
+      ================================================== -->
+
+      <div
+        class="search-results"
+        *ngIf="resultados.length > 0"
+      >
+
+        <article
+          class="player-row"
+          *ngFor="let usuario of resultados"
+        >
+
+          <!-- AVATAR -->
+
+          <div class="avatar">
+
+            <img
+              *ngIf="usuario.fotoPerfil"
+              [src]="usuario.fotoPerfil"
+              [alt]="'Foto de ' + usuario.nombreUsuario"
+            >
+
+            <span
+              *ngIf="!usuario.fotoPerfil"
+            >
+              👤
+            </span>
+
+          </div>
+
+
+          <!-- DATOS -->
+
+          <div class="player-info">
+
+            <strong>
+              {{ usuario.nombreUsuario }}
+            </strong>
+
+            <span>
+              {{ usuario.correo }}
+            </span>
+
+            <small>
+              Nivel {{ usuario.nivel }}
+            </small>
+
+          </div>
+
+
+          <!-- AGREGAR -->
+
+          <button
+            type="button"
+            class="btn-add"
+            [disabled]="procesandoId > 0"
+            (click)="enviarSolicitud(usuario)"
+          >
+
+            <span
+              *ngIf="
+                procesandoId !==
+                usuario.usuarioId
+              "
+            >
+              ＋ AGREGAR
+            </span>
+
+
+            <span
+              *ngIf="
+                procesandoId ===
+                usuario.usuarioId
+              "
+            >
+              ENVIANDO...
+            </span>
+
+          </button>
+
+        </article>
+
+      </div>
+
+
+      <!-- SIN RESULTADOS -->
+
+      <div
+        class="search-empty"
+        *ngIf="
+          !buscando &&
+          terminoBusqueda.trim().length >= 2 &&
+          resultados.length === 0
+        "
+      >
+
+        No se encontraron jugadores para esta búsqueda.
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         GRID DE AMISTADES
+    ==================================================== -->
+
+    <section class="friends-grid">
+
+
+      <!-- =================================================
+           SOLICITUDES RECIBIDAS
+      ================================================== -->
+
+      <article class="friends-card">
+
+        <div class="card-title">
+
+          <h2>
+            📩 Solicitudes
+          </h2>
+
+          <span>
+            {{ solicitudes.length }}
+          </span>
+
+        </div>
+
+
+        <!-- VACÍO -->
+
+        <div
+          class="empty"
+          *ngIf="
+            !cargando &&
+            solicitudes.length === 0
+          "
+        >
+
+          No tienes solicitudes pendientes.
+
+        </div>
+
+
+        <!-- SOLICITUD -->
+
+        <div
+          class="player-row"
+          *ngFor="let solicitud of solicitudes"
+        >
+
+          <div class="avatar">
+
+            <img
+              *ngIf="solicitud.fotoPerfil"
+              [src]="solicitud.fotoPerfil"
+              [alt]="'Foto de ' + solicitud.nombreUsuario"
+            >
+
+            <span
+              *ngIf="!solicitud.fotoPerfil"
+            >
+              👤
+            </span>
+
+          </div>
+
+
+          <div class="player-info">
+
+            <strong>
+              {{ solicitud.nombreUsuario }}
+            </strong>
+
+            <span>
+              {{ solicitud.correo }}
+            </span>
+
+            <small>
+              Nivel {{ solicitud.nivel }}
+            </small>
+
+          </div>
+
+
+          <div class="row-actions">
+
+            <!-- ACEPTAR -->
+
+            <button
+              type="button"
+              class="accept"
+              title="Aceptar solicitud"
+              [disabled]="procesandoId > 0"
+              (click)="aceptar(solicitud)"
+            >
+
+              ✓
+
+            </button>
+
+
+            <!-- RECHAZAR -->
+
+            <button
+              type="button"
+              class="reject"
+              title="Rechazar solicitud"
+              [disabled]="procesandoId > 0"
+              (click)="rechazar(solicitud)"
+            >
+
+              ✕
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </article>
+
+
+      <!-- =================================================
+           MIS AMIGOS
+      ================================================== -->
+
+      <article class="friends-card">
+
+        <div class="card-title">
+
+          <h2>
+            👥 Mis amigos
+          </h2>
+
+          <span>
+            {{ amigos.length }}
+          </span>
+
+        </div>
+
+
+        <!-- VACÍO -->
+
+        <div
+          class="empty"
+          *ngIf="
+            !cargando &&
+            amigos.length === 0
+          "
+        >
+
+          Todavía no tienes amigos agregados.
+
+        </div>
+
+
+        <!-- AMIGO -->
+
+        <div
+          class="player-row"
+          *ngFor="let amigo of amigos"
+        >
+
+          <div class="avatar">
+
+            <img
+              *ngIf="amigo.fotoPerfil"
+              [src]="amigo.fotoPerfil"
+              [alt]="'Foto de ' + amigo.nombreUsuario"
+            >
+
+            <span
+              *ngIf="!amigo.fotoPerfil"
+            >
+              👤
+            </span>
+
+          </div>
+
+
+          <div class="player-info">
+
+            <strong>
+              {{ amigo.nombreUsuario }}
+            </strong>
+
+            <span>
+              {{ amigo.correo }}
+            </span>
+
+            <small>
+              Nivel {{ amigo.nivel }}
+            </small>
+
+          </div>
+
+
+          <!-- ELIMINAR -->
+
+          <button
+            type="button"
+            class="btn-delete"
+            [disabled]="procesandoId > 0"
+            (click)="eliminarAmigo(amigo)"
+          >
+
+            ELIMINAR
+
+          </button>
+
+        </div>
+
+      </article>
+
+
+      <!-- =================================================
+           SOLICITUDES ENVIADAS
+      ================================================== -->
+
+      <article class="friends-card sent-card">
+
+        <div class="card-title">
+
+          <h2>
+            📤 Enviadas
+          </h2>
+
+          <span>
+            {{ solicitudesEnviadas.length }}
+          </span>
+
+        </div>
+
+
+        <!-- VACÍO -->
+
+        <div
+          class="empty"
+          *ngIf="
+            !cargando &&
+            solicitudesEnviadas.length === 0
+          "
+        >
+
+          No tienes solicitudes enviadas.
+
+        </div>
+
+
+        <!-- SOLICITUD ENVIADA -->
+
+        <div
+          class="player-row"
+          *ngFor="let solicitud of solicitudesEnviadas"
+        >
+
+          <div class="avatar">
+
+            <img
+              *ngIf="solicitud.fotoPerfil"
+              [src]="solicitud.fotoPerfil"
+              [alt]="'Foto de ' + solicitud.nombreUsuario"
+            >
+
+            <span
+              *ngIf="!solicitud.fotoPerfil"
+            >
+              👤
+            </span>
+
+          </div>
+
+
+          <div class="player-info">
+
+            <strong>
+              {{ solicitud.nombreUsuario }}
+            </strong>
+
+            <span>
+              {{ solicitud.correo }}
+            </span>
+
+            <small>
+              Solicitud pendiente
+            </small>
+
+          </div>
+
+
+          <!-- CANCELAR -->
+
+          <button
+            type="button"
+            class="btn-delete"
+            [disabled]="procesandoId > 0"
+            (click)="cancelarSolicitud(solicitud)"
+          >
+
+            CANCELAR
+
+          </button>
+
+        </div>
+
+      </article>
+
+    </section>
+
+  </main>
+
 </ion-content>

@@ -1,437 +1,2638 @@
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+:host {
+  --amarillo: #ffd500;
+  --naranja: #ff9800;
+
+  --azul: #0059ff;
+  --celeste: #00ffff;
+
+  --verde: #00e676;
+  --rojo: #ff4d5f;
+
+  --blanco: #ffffff;
+  --gris: #aeb8ca;
+
+  display: block;
+}
+
+
+/* =========================================================
+   PÁGINA
+========================================================= */
+
 .skins-page {
   --background: #000;
+
+  position: relative;
+
   color: white;
-  font-family: 'Segoe UI', sans-serif;
+
+  font-family:
+    'Segoe UI',
+    Tahoma,
+    Geneva,
+    Verdana,
+    sans-serif;
+
   overflow: auto;
 }
 
+
+/* =========================================================
+   FONDO
+========================================================= */
+
 .background-grid {
   position: fixed;
+
   inset: 0;
+
+  z-index: 0;
+
+  pointer-events: none;
+
   background:
-    radial-gradient(circle, #ffd500 2px, transparent 3px),
-    repeating-linear-gradient(90deg, transparent 0 120px, rgba(0, 90, 255, .85) 120px 124px),
-    repeating-linear-gradient(transparent 0 120px, rgba(0, 90, 255, .85) 120px 124px),
+    radial-gradient(
+      circle,
+      #ffd500 2px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 120px,
+      rgba(0, 90, 255, 0.82) 120px 124px
+    ),
+    repeating-linear-gradient(
+      transparent 0 120px,
+      rgba(0, 90, 255, 0.82) 120px 124px
+    ),
     #000;
-  background-size: 42px 42px, 124px 124px, 124px 124px;
-  z-index: -1;
+
+  background-size:
+    42px 42px,
+    124px 124px,
+    124px 124px;
+
+  opacity: 0.85;
 }
+
+
+.background-grid::after {
+  content: '';
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 0%,
+      rgba(0, 0, 0, 0.2) 58%,
+      rgba(0, 0, 0, 0.75) 100%
+    );
+}
+
+
+/* =========================================================
+   CONTENEDOR
+========================================================= */
 
 .shop-container {
+  position: relative;
+
+  z-index: 5;
+
+  width: 100%;
+
+  max-width: 1500px;
+
+  margin: 0 auto;
+
   padding: 24px;
-  padding-bottom: 270px;
+
+  /*
+   * Dejamos espacio inferior porque el panel
+   * de detalle se muestra fijo.
+   */
+  padding-bottom: 290px;
 }
 
+
+/* =========================================================
+   CABECERA
+========================================================= */
+
 .shop-header {
-  display: flex;
+  display: grid;
+
+  grid-template-columns:
+    1fr auto 1fr;
+
   align-items: center;
-  justify-content: space-between;
+
   gap: 18px;
 }
 
+
+/* =========================================================
+   VOLVER AL MENÚ
+========================================================= */
+
 .back-shop {
-  height: 56px;
-  padding: 0 22px;
-  border-radius: 16px;
-  border: 2px solid #00ffff;
-  background: #050505;
-  color: #00ffff;
-  font-size: 18px;
+  justify-self: start;
+
+  min-width: 125px;
+
+  height: 52px;
+
+  padding:
+    0 20px;
+
+  border:
+    2px solid var(--celeste);
+
+  border-radius: 15px;
+
+  cursor: pointer;
+
+  color:
+    var(--celeste);
+
+  background:
+    rgba(5, 5, 5, 0.94);
+
+  box-shadow:
+    0 0 14px rgba(0, 255, 255, 0.35);
+
+  font-size: 16px;
+
   font-weight: 900;
-  box-shadow: 0 0 15px cyan;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
 }
+
+
+.back-shop:hover:not(:disabled) {
+  transform:
+    translateY(-2px);
+
+  background:
+    rgba(0, 255, 255, 0.08);
+}
+
+
+.back-shop:disabled {
+  opacity: 0.55;
+
+  cursor: wait;
+}
+
+
+/* =========================================================
+   TÍTULO
+========================================================= */
 
 .title-area {
   text-align: center;
 }
 
+
 .title-area h1 {
   margin: 0;
-  color: #ffd500;
-  font-size: 54px;
-  letter-spacing: 3px;
-  text-shadow: 0 0 25px gold;
+
+  color:
+    var(--amarillo);
+
+  font-size:
+    clamp(38px, 5vw, 56px);
+
+  font-weight: 1000;
+
+  letter-spacing: 4px;
+
+  text-shadow:
+    0 0 12px gold,
+    0 0 28px orange;
 }
+
 
 .title-area small {
-  color: #00ffff;
-  font-size: 18px;
+  color:
+    var(--celeste);
+
+  font-size: 15px;
+
   font-weight: 900;
+
+  letter-spacing: 2px;
 }
+
+
+/* =========================================================
+   ORO DEL USUARIO
+========================================================= */
 
 .gold-box {
-  padding: 14px 22px;
-  border-radius: 18px;
-  background: #ffd500;
-  color: black;
-  font-size: 23px;
-  font-weight: 900;
-  box-shadow: 0 0 25px gold;
-}
+  justify-self: end;
 
-.categorias,
-.rarezas {
+  min-width: 110px;
+
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  margin-top: 20px;
-  padding-bottom: 8px;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  padding:
+    11px 18px;
+
+  border:
+    1px solid rgba(255, 213, 0, 0.5);
+
+  border-radius: 17px;
+
+  color:
+    #111;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffe45c,
+      var(--amarillo),
+      #ffad00
+    );
+
+  box-shadow:
+    0 0 21px rgba(255, 213, 0, 0.65);
+
+  font-size: 22px;
+
+  font-weight: 1000;
 }
 
-.categorias button,
-.rarezas button {
-  flex: none;
-  padding: 12px 20px;
-  border-radius: 16px;
-  border: 2px solid #0059ff;
-  background: #080808;
-  color: white;
-  font-weight: 900;
-}
 
-.categorias button.active,
-.rarezas button.active {
-  background: #ffd500;
-  color: black;
-  border-color: #ffd500;
-  box-shadow: 0 0 20px gold;
-}
+/* =========================================================
+   MENSAJES
+========================================================= */
 
-.skins-grid {
-  margin-top: 25px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 20px;
-}
+.shop-message {
+  display: flex;
 
-.skin-card {
-  position: relative;
-  min-height: 285px;
-  padding: 16px;
-  border-radius: 24px;
-  background: rgba(0, 0, 0, .92);
-  border: 3px solid #0059ff;
-  box-shadow: 0 0 18px #0059ff;
-  text-align: center;
-  transition: .25s;
-  overflow: hidden;
-}
+  align-items: center;
 
-.skin-card.selected {
-  border-color: #ffd500;
-  box-shadow: 0 0 35px gold;
-  transform: translateY(-8px);
-}
+  gap: 10px;
 
-.equipped-card {
-  border-color: #00ff66;
-}
+  max-width: 850px;
 
-.rarity {
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  padding: 5px 10px;
-  border-radius: 20px;
+  margin:
+    16px auto 0;
+
+  padding:
+    11px 14px;
+
+  border-radius: 13px;
+
   font-size: 12px;
-  font-weight: 900;
-  background: #222;
+
+  font-weight: 750;
 }
 
-.común { color: white; }
-.rara { color: #00aaff; }
-.épica { color: #b94cff; }
-.legendaria { color: #ff9800; }
-.mítica { color: #ff2ad4; }
 
-.skin-stage {
-  height: 120px;
-  display: grid;
-  place-items: center;
-  margin-top: 25px;
-}
+.shop-message ion-icon {
+  flex: 0 0 auto;
 
-.skin-card h2 {
-  margin: 10px 0 5px;
-  color: white;
   font-size: 21px;
 }
 
-.skin-card p {
-  color: #00ffff;
-  font-size: 13px;
-  min-height: 36px;
+
+.shop-message.error {
+  border:
+    1px solid rgba(255, 77, 95, 0.6);
+
+  color:
+    #ffc2cb;
+
+  background:
+    rgba(120, 10, 28, 0.4);
 }
 
-.price {
-  color: #ffd500;
+
+.shop-message.error ion-icon {
+  color:
+    var(--rojo);
+}
+
+
+.shop-message.success {
+  border:
+    1px solid rgba(0, 230, 118, 0.55);
+
+  color:
+    #adffd0;
+
+  background:
+    rgba(0, 90, 45, 0.35);
+}
+
+
+.shop-message.success ion-icon {
+  color:
+    var(--verde);
+}
+
+
+/* =========================================================
+   CARGANDO
+========================================================= */
+
+.loading-shop {
+  min-height: 300px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 15px;
+
+  color:
+    var(--celeste);
+
+  font-size: 16px;
+
+  font-weight: 850;
+}
+
+
+.loading-shop ion-spinner {
+  width: 42px;
+  height: 42px;
+
+  color:
+    var(--amarillo);
+}
+
+
+/* =========================================================
+   CATEGORÍAS
+========================================================= */
+
+.categorias {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+
+  max-width: 950px;
+
+  margin:
+    22px auto 0;
+}
+
+
+.categorias button {
+  min-height: 52px;
+
+  padding:
+    9px 15px;
+
+  border:
+    2px solid rgba(0, 89, 255, 0.95);
+
+  border-radius: 15px;
+
+  cursor: pointer;
+
+  color: white;
+
+  background:
+    rgba(7, 7, 10, 0.94);
+
+  font-size: 14px;
+
   font-weight: 900;
+
+  letter-spacing: 0.6px;
+
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    background 0.2s ease;
+}
+
+
+.categorias button:hover {
+  transform:
+    translateY(-2px);
+
+  filter:
+    brightness(1.15);
+}
+
+
+.categorias button.active {
+  border-color:
+    var(--amarillo);
+
+  color: black;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--amarillo),
+      #ffac00
+    );
+
+  box-shadow:
+    0 0 20px rgba(255, 213, 0, 0.55);
+}
+
+
+/* =========================================================
+   RAREZAS
+========================================================= */
+
+.rarezas {
+  display: flex;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  overflow-x: auto;
+
+  margin-top: 13px;
+
+  padding:
+    2px 4px 8px;
+}
+
+
+.rarezas button {
+  flex: 0 0 auto;
+
+  min-width: 78px;
+
+  padding:
+    8px 14px;
+
+  border:
+    1px solid rgba(0, 89, 255, 0.85);
+
+  border-radius: 13px;
+
+  cursor: pointer;
+
+  color:
+    #dfe5f1;
+
+  background:
+    rgba(8, 8, 10, 0.94);
+
+  font-size: 11px;
+
+  font-weight: 850;
+}
+
+
+.rarezas button.active {
+  border-color:
+    var(--amarillo);
+
+  color:
+    #111;
+
+  background:
+    var(--amarillo);
+
+  box-shadow:
+    0 0 13px rgba(255, 213, 0, 0.45);
+}
+
+
+/* =========================================================
+   INFORMACIÓN DE CATEGORÍA
+========================================================= */
+
+.category-info {
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 8px;
+
+  max-width: 650px;
+
+  margin:
+    6px auto 0;
+
+  padding:
+    8px 12px;
+
+  border:
+    1px solid rgba(0, 229, 255, 0.28);
+
+  border-radius: 12px;
+
+  color:
+    #a8cbd2;
+
+  background:
+    rgba(0, 229, 255, 0.035);
+
+  font-size: 10px;
+
+  text-align: center;
+}
+
+
+.category-info ion-icon {
+  color:
+    var(--celeste);
+
   font-size: 18px;
 }
 
-.owned {
-  color: #00ffff;
+
+/* =========================================================
+   GRID DE SKINS
+========================================================= */
+
+.skins-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(190px, 1fr));
+
+  gap: 18px;
+
+  margin-top: 20px;
+}
+
+
+/* =========================================================
+   TARJETA
+========================================================= */
+
+.skin-card {
+  position: relative;
+
+  min-height: 285px;
+
+  padding: 16px;
+
+  overflow: hidden;
+
+  border:
+    2px solid rgba(0, 89, 255, 0.9);
+
+  border-radius: 22px;
+
+  cursor: pointer;
+
+  color: white;
+
+  background:
+    rgba(3, 5, 10, 0.94);
+
+  box-shadow:
+    0 0 15px rgba(0, 89, 255, 0.35);
+
+  text-align: center;
+
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+
+.skin-card:hover {
+  transform:
+    translateY(-4px);
+}
+
+
+.skin-card.selected {
+  transform:
+    translateY(-6px);
+
+  border-color:
+    var(--amarillo);
+
+  box-shadow:
+    0 0 28px rgba(255, 213, 0, 0.7);
+}
+
+
+.skin-card.equipped-card {
+  border-color:
+    var(--verde);
+
+  box-shadow:
+    0 0 24px rgba(0, 230, 118, 0.45);
+}
+
+
+/* =========================================================
+   RAREZA DE TARJETA
+========================================================= */
+
+.rarity {
+  position: absolute;
+
+  top: 10px;
+
+  right: 10px;
+
+  z-index: 3;
+
+  padding:
+    4px 9px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.1);
+
+  border-radius: 20px;
+
+  background:
+    rgba(18, 18, 23, 0.9);
+
+  font-size: 10px;
+
   font-weight: 900;
 }
+
+
+/* =========================================================
+   BADGE EQUIPADA
+========================================================= */
+
+.equipped-badge {
+  position: absolute;
+
+  top: 10px;
+
+  left: 10px;
+
+  z-index: 3;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  padding:
+    4px 7px;
+
+  border:
+    1px solid rgba(0, 230, 118, 0.5);
+
+  border-radius: 15px;
+
+  color:
+    #8effba;
+
+  background:
+    rgba(0, 80, 39, 0.55);
+
+  font-size: 8px;
+
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   COLORES DE RAREZA
+========================================================= */
+
+.común {
+  color:
+    #ffffff;
+}
+
+
+.rara {
+  color:
+    #28bfff;
+}
+
+
+.épica {
+  color:
+    #c266ff;
+}
+
+
+.legendaria {
+  color:
+    #ffad24;
+}
+
+
+.mítica {
+  color:
+    #ff45dc;
+}
+
+
+/* =========================================================
+   ESCENARIO DE SKIN
+========================================================= */
+
+.skin-stage {
+  height: 120px;
+
+  display: grid;
+
+  place-items: center;
+
+  margin-top: 25px;
+}
+
+
+.skin-card h2 {
+  margin:
+    9px 0 4px;
+
+  color: white;
+
+  font-size: 20px;
+
+  font-weight: 900;
+}
+
+
+.skin-card p {
+  min-height: 35px;
+
+  margin:
+    5px 0 8px;
+
+  color:
+    var(--celeste);
+
+  font-size: 11px;
+
+  line-height: 1.35;
+}
+
+
+/* =========================================================
+   PRECIO / ESTADO
+========================================================= */
+
+.price {
+  color:
+    var(--amarillo);
+
+  font-size: 17px;
+
+  font-weight: 1000;
+}
+
+
+.owned {
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 5px;
+
+  color:
+    var(--celeste);
+
+  font-size: 11px;
+
+  font-weight: 900;
+}
+
 
 .equipped {
-  color: #00ff66;
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 5px;
+
+  color:
+    var(--verde);
+
+  font-size: 11px;
+
   font-weight: 900;
 }
 
-/* PERSONAJES */
+
+/* =========================================================
+   SIN RESULTADOS
+========================================================= */
+
+.empty-shop {
+  max-width: 600px;
+
+  margin:
+    50px auto;
+
+  padding:
+    30px;
+
+  border:
+    1px solid rgba(0, 229, 255, 0.3);
+
+  border-radius: 18px;
+
+  color:
+    #c8d4dd;
+
+  background:
+    rgba(5, 8, 12, 0.92);
+
+  text-align: center;
+}
+
+
+.empty-shop ion-icon {
+  color:
+    var(--celeste);
+
+  font-size: 48px;
+}
+
+
+.empty-shop h3 {
+  margin:
+    8px 0;
+
+  color: white;
+}
+
+
+/* =========================================================
+   PERSONAJES
+========================================================= */
 
 .skin-character {
   position: relative;
+
   width: 88px;
   height: 88px;
-  animation: float 2s ease-in-out infinite;
+
+  animation:
+    float 2s ease-in-out infinite;
 }
+
 
 .skin-character.big {
   width: 145px;
   height: 145px;
 }
 
-/* PAC-MAN */
+
+/* =========================================================
+   PAC-MAN
+========================================================= */
 
 .pacman {
   border-radius: 50%;
-  background: #ffd500;
-  clip-path: polygon(100% 50%, 62% 8%, 0 0, 0 100%, 62% 92%);
-  box-shadow: 0 0 25px gold;
-  animation: chomp .25s infinite, float 2s ease-in-out infinite;
+
+  background:
+    var(--amarillo);
+
+  clip-path:
+    polygon(
+      100% 50%,
+      62% 8%,
+      0 0,
+      0 100%,
+      62% 92%
+    );
+
+  box-shadow:
+    0 0 25px gold;
+
+  animation:
+    chomp 0.25s infinite,
+    float 2s ease-in-out infinite;
 }
+
 
 .pacman .eye.one {
   display: block;
+
   position: absolute;
+
   top: 22%;
+
   right: 34%;
+
   width: 9%;
   height: 9%;
-  background: #111;
+
   border-radius: 50%;
+
+  background:
+    #111;
 }
 
-.pacman.ice { background: linear-gradient(135deg, #dffcff, #00aaff); box-shadow: 0 0 25px cyan; }
-.pacman.lava { background: radial-gradient(circle, #fff07a, #ff3b00 55%, #700000); box-shadow: 0 0 30px red; }
-.pacman.king { background: linear-gradient(135deg, #fff6a0, gold, #a86d00); }
-.pacman.galaxy { background: radial-gradient(circle at 30% 30%, white, #8d32ff 30%, #120024); box-shadow: 0 0 30px #b94cff; }
+
+.pacman.ice {
+  background:
+    linear-gradient(
+      135deg,
+      #dffcff,
+      #00aaff
+    );
+
+  box-shadow:
+    0 0 25px cyan;
+}
+
+
+.pacman.lava {
+  background:
+    radial-gradient(
+      circle,
+      #fff07a,
+      #ff3b00 55%,
+      #700000
+    );
+
+  box-shadow:
+    0 0 30px red;
+}
+
+
+.pacman.king {
+  background:
+    linear-gradient(
+      135deg,
+      #fff6a0,
+      gold,
+      #a86d00
+    );
+
+  box-shadow:
+    0 0 28px gold;
+}
+
+
+.pacman.galaxy {
+  background:
+    radial-gradient(
+      circle at 30% 30%,
+      white,
+      #8d32ff 30%,
+      #120024
+    );
+
+  box-shadow:
+    0 0 30px #b94cff;
+}
+
+
+/* =========================================================
+   CORONA
+========================================================= */
 
 .crown {
   display: none;
 }
 
+
 .king .crown {
   display: block;
+
   position: absolute;
+
   top: -24%;
+
   left: 28%;
+
   width: 45%;
   height: 28%;
+
   background: gold;
-  clip-path: polygon(0 100%, 0 40%, 25% 75%, 50% 0, 75% 75%, 100% 40%, 100% 100%);
-  filter: drop-shadow(0 0 7px gold);
+
+  clip-path:
+    polygon(
+      0 100%,
+      0 40%,
+      25% 75%,
+      50% 0,
+      75% 75%,
+      100% 40%,
+      100% 100%
+    );
+
+  filter:
+    drop-shadow(
+      0 0 7px gold
+    );
 }
 
-/* FANTASMAS */
+
+/* =========================================================
+   FANTASMAS
+========================================================= */
 
 .ghost {
-  border-radius: 45% 45% 8% 8%;
+  border-radius:
+    45% 45% 8% 8%;
+
   background: red;
-  clip-path: polygon(0 0, 100% 0, 100% 78%, 88% 100%, 74% 82%, 58% 100%, 42% 82%, 26% 100%, 12% 82%, 0 100%);
-  filter: drop-shadow(0 0 18px currentColor);
+
+  clip-path:
+    polygon(
+      0 0,
+      100% 0,
+      100% 78%,
+      88% 100%,
+      74% 82%,
+      58% 100%,
+      42% 82%,
+      26% 100%,
+      12% 82%,
+      0 100%
+    );
+
+  filter:
+    drop-shadow(
+      0 0 18px currentColor
+    );
 }
+
 
 .ghost .eye {
   display: block;
+
   position: absolute;
+
   top: 28%;
+
   width: 18%;
   height: 23%;
-  background: white;
+
   border-radius: 50%;
+
+  background: white;
 }
 
-.ghost .eye.one { left: 24%; }
-.ghost .eye.two { right: 24%; }
+
+.ghost .eye.one {
+  left: 24%;
+}
+
+
+.ghost .eye.two {
+  right: 24%;
+}
+
 
 .ghost .eye::after {
-  content: "";
+  content: '';
+
   position: absolute;
+
   top: 38%;
+
   left: 38%;
+
   width: 38%;
   height: 38%;
-  background: #0059ff;
+
   border-radius: 50%;
+
+  background:
+    #0059ff;
 }
 
-.ghost.red { background: #ff2d2d; color: #ff2d2d; }
-.ghost.ice { background: linear-gradient(#dffcff, #00aaff); color: cyan; }
-.ghost.shadow { background: linear-gradient(#555, #050505); color: #8d32ff; }
-.ghost.plasma { background: linear-gradient(#00ffff, #003cff); color: cyan; }
-.ghost.cosmic { background: radial-gradient(circle, white, #8d32ff 30%, #18002f); color: #b94cff; }
 
-/* MONSTRUOS */
+.ghost.red {
+  color:
+    #ff2d2d;
+
+  background:
+    #ff2d2d;
+}
+
+
+.ghost.ice {
+  color: cyan;
+
+  background:
+    linear-gradient(
+      #dffcff,
+      #00aaff
+    );
+}
+
+
+.ghost.shadow {
+  color:
+    #8d32ff;
+
+  background:
+    linear-gradient(
+      #555,
+      #050505
+    );
+}
+
+
+.ghost.plasma {
+  color: cyan;
+
+  background:
+    linear-gradient(
+      #00ffff,
+      #003cff
+    );
+}
+
+
+.ghost.cosmic {
+  color:
+    #b94cff;
+
+  background:
+    radial-gradient(
+      circle,
+      white,
+      #8d32ff 30%,
+      #18002f
+    );
+}
+
+
+/* =========================================================
+   MONSTRUOS
+========================================================= */
 
 .monster {
-  border-radius: 42% 42% 22% 22%;
+  border-radius:
+    42% 42% 22% 22%;
+
   background: red;
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 22px currentColor);
-  animation: monsterBreath 1.4s infinite;
+
+  transform:
+    scale(1.1);
+
+  filter:
+    drop-shadow(
+      0 0 22px currentColor
+    );
+
+  animation:
+    monsterBreath 1.4s infinite;
 }
+
 
 .monster .horn {
   display: block;
+
   position: absolute;
+
   top: -12%;
+
   width: 25%;
   height: 25%;
+
   background: inherit;
-  clip-path: polygon(50% 0, 0 100%, 100% 100%);
+
+  clip-path:
+    polygon(
+      50% 0,
+      0 100%,
+      100% 100%
+    );
 }
 
-.monster .horn.left { left: 12%; transform: rotate(-25deg); }
-.monster .horn.right { right: 12%; transform: rotate(25deg); }
+
+.monster .horn.left {
+  left: 12%;
+
+  transform:
+    rotate(-25deg);
+}
+
+
+.monster .horn.right {
+  right: 12%;
+
+  transform:
+    rotate(25deg);
+}
+
 
 .monster .eye {
   display: block;
+
   position: absolute;
+
   top: 32%;
+
   width: 17%;
   height: 15%;
-  background: #ffd500;
+
   border-radius: 50%;
+
+  background:
+    #ffd500;
 }
 
-.monster .eye.one { left: 25%; }
-.monster .eye.two { right: 25%; }
+
+.monster .eye.one {
+  left: 25%;
+}
+
+
+.monster .eye.two {
+  right: 25%;
+}
+
 
 .monster .mouth {
   display: block;
+
   position: absolute;
+
   left: 33%;
+
   bottom: 22%;
+
   width: 34%;
   height: 12%;
-  background: #050505;
-  border-radius: 0 0 50% 50%;
+
+  border-radius:
+    0 0 50% 50%;
+
+  background:
+    #050505;
 }
 
-.monster.demon { background: radial-gradient(circle, #ff5757, #750000); color: red; }
-.monster.oni { background: radial-gradient(circle, #ff5aff, #4a003d); color: #ff5aff; }
-.monster.cyborg { background: linear-gradient(135deg, #ddd, #222); color: cyan; border: 3px solid cyan; }
-.monster.dragon { background: radial-gradient(circle, #ffd94f, #ff6600, #6b0000); color: #ff6600; }
-.monster.hydra { background: radial-gradient(circle, #79ffcb, #00cc88, #003322); color: #00ff99; }
 
-/* PANEL */
+.monster.demon {
+  color: red;
+
+  background:
+    radial-gradient(
+      circle,
+      #ff5757,
+      #750000
+    );
+}
+
+
+.monster.oni {
+  color:
+    #ff5aff;
+
+  background:
+    radial-gradient(
+      circle,
+      #ff5aff,
+      #4a003d
+    );
+}
+
+
+.monster.cyborg {
+  color: cyan;
+
+  border:
+    3px solid cyan;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ddd,
+      #222
+    );
+}
+
+
+.monster.dragon {
+  color:
+    #ff6600;
+
+  background:
+    radial-gradient(
+      circle,
+      #ffd94f,
+      #ff6600,
+      #6b0000
+    );
+}
+
+
+.monster.hydra {
+  color:
+    #00ff99;
+
+  background:
+    radial-gradient(
+      circle,
+      #79ffcb,
+      #00cc88,
+      #003322
+    );
+}
+
+
+/* =========================================================
+   PANEL DE DETALLE
+========================================================= */
 
 .preview-panel {
   position: fixed;
+
   left: 0;
+
   right: 0;
+
   bottom: 0;
-  min-height: 245px;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  padding: 25px;
-  background: rgba(0, 0, 0, .96);
-  border-top: 4px solid #ffd500;
-  box-shadow: 0 -8px 30px gold;
+
   z-index: 50;
+
+  min-height: 245px;
+
+  display: grid;
+
+  grid-template-columns:
+    190px minmax(0, 1fr) auto;
+
+  align-items: center;
+
+  gap: 25px;
+
+  padding:
+    20px 28px;
+
+  border-top:
+    3px solid var(--amarillo);
+
+  background:
+    rgba(0, 0, 0, 0.97);
+
+  box-shadow:
+    0 -8px 28px rgba(255, 213, 0, 0.55);
+
+  backdrop-filter:
+    blur(12px);
 }
+
+
+/* =========================================================
+   VISTA GRANDE
+========================================================= */
 
 .big-stage {
   width: 190px;
+
   display: grid;
+
   place-items: center;
 }
 
-.preview-info h2 {
-  margin: 0;
-  color: white;
-  font-size: 36px;
+
+/* =========================================================
+   INFORMACIÓN DEL PREVIEW
+========================================================= */
+
+.preview-info {
+  min-width: 0;
 }
 
-.preview-info p {
-  color: #ddd;
-  max-width: 650px;
+
+.preview-title {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 15px;
 }
+
+
+.preview-title small {
+  color:
+    var(--celeste);
+
+  font-size: 10px;
+
+  font-weight: 850;
+
+  text-transform: uppercase;
+
+  letter-spacing: 1px;
+}
+
+
+.preview-info h2 {
+  margin:
+    2px 0 0;
+
+  color: white;
+
+  font-size:
+    clamp(25px, 3vw, 35px);
+
+  font-weight: 950;
+}
+
+
+.preview-rarity {
+  flex: 0 0 auto;
+
+  padding:
+    5px 10px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 15px;
+
+  background:
+    #15171d;
+
+  font-size: 10px;
+
+  font-weight: 900;
+}
+
+
+.preview-info p {
+  max-width: 700px;
+
+  margin:
+    7px 0;
+
+  color:
+    #d2d6de;
+
+  font-size: 12px;
+
+  line-height: 1.4;
+}
+
+
+.preview-price,
+.preview-balance {
+  margin-top: 4px;
+
+  color:
+    #bac3d2;
+
+  font-size: 11px;
+}
+
+
+.preview-price strong {
+  color:
+    var(--amarillo);
+}
+
+
+.preview-balance strong {
+  color:
+    var(--celeste);
+}
+
+
+/* =========================================================
+   ORO INSUFICIENTE
+========================================================= */
+
+.insufficient-gold {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 7px;
+
+  color:
+    #ff9da8;
+
+  font-size: 10px;
+
+  font-weight: 750;
+}
+
+
+/* =========================================================
+   ACCIONES DEL PREVIEW
+========================================================= */
+
+.preview-actions {
+  position: relative;
+
+  min-width: 245px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
 
 .buy-btn,
 .equip-btn,
 .equipped-btn {
-  width: 250px;
-  height: 55px;
-  border-radius: 16px;
+  width: 245px;
+
+  min-height: 52px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  border-radius: 15px;
+
   border: none;
-  font-size: 19px;
-  font-weight: 900;
+
+  font-size: 15px;
+
+  font-weight: 950;
+
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
 }
+
 
 .buy-btn {
-  background: linear-gradient(90deg, #ffd500, #ff9800);
   color: black;
-  box-shadow: 0 0 20px gold;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--amarillo),
+      var(--naranja)
+    );
+
+  box-shadow:
+    0 0 18px rgba(255, 213, 0, 0.55);
 }
+
+
+.buy-btn:hover:not(:disabled),
+.equip-btn:hover:not(:disabled) {
+  transform:
+    translateY(-2px);
+
+  filter:
+    brightness(1.1);
+}
+
+
+.buy-btn:disabled {
+  opacity: 0.45;
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+}
+
 
 .equip-btn {
-  background: #00c853;
   color: white;
-  box-shadow: 0 0 20px #00ff66;
+
+  background:
+    linear-gradient(
+      90deg,
+      #00b94f,
+      #00d96a
+    );
+
+  box-shadow:
+    0 0 17px rgba(0, 230, 118, 0.45);
 }
+
 
 .equipped-btn {
-  background: #111;
-  color: #00ff66;
-  border: 2px solid #00ff66;
+  border:
+    2px solid var(--verde);
+
+  color:
+    var(--verde);
+
+  background:
+    rgba(0, 230, 118, 0.045);
 }
 
-/* ANIMACIONES */
+
+/* =========================================================
+   CERRAR PREVIEW
+========================================================= */
+
+.close-preview {
+  position: absolute;
+
+  top: -8px;
+
+  right: -8px;
+
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+
+  place-items: center;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.25);
+
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  color: white;
+
+  background:
+    #17191f;
+}
+
+
+.close-preview ion-icon {
+  font-size: 20px;
+}
+
+
+/* =========================================================
+   ANIMACIONES
+========================================================= */
 
 @keyframes chomp {
+
   50% {
-    clip-path: polygon(100% 50%, 85% 28%, 0 0, 0 100%, 85% 72%);
+    clip-path:
+      polygon(
+        100% 50%,
+        85% 28%,
+        0 0,
+        0 100%,
+        85% 72%
+      );
   }
+
 }
+
 
 @keyframes float {
+
   50% {
-    transform: translateY(-8px);
+    transform:
+      translateY(-8px);
   }
+
 }
+
 
 @keyframes monsterBreath {
+
   50% {
-    transform: scale(1.18);
+    transform:
+      scale(1.18);
   }
+
 }
 
-/* RESPONSIVE */
 
-@media (max-width: 900px) {
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 950px) {
+
   .shop-header {
-    flex-direction: column;
+    grid-template-columns:
+      1fr auto 1fr;
   }
 
-  .title-area h1 {
-    font-size: 38px;
-  }
 
   .skins-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(3, minmax(160px, 1fr));
   }
 
-  .shop-container {
-    padding-bottom: 360px;
-  }
 
   .preview-panel {
-    flex-direction: column;
-    text-align: center;
+    grid-template-columns:
+      145px minmax(0, 1fr) 210px;
+
+    gap: 18px;
+
+    padding:
+      18px;
   }
+
+
+  .big-stage {
+    width:
+      145px;
+  }
+
+
+  .skin-character.big {
+    width:
+      115px;
+
+    height:
+      115px;
+  }
+
+
+  .preview-actions,
+  .buy-btn,
+  .equip-btn,
+  .equipped-btn {
+    min-width:
+      200px;
+
+    width:
+      200px;
+  }
+
+}
+
+
+/* =========================================================
+   MÓVIL VERTICAL
+========================================================= */
+
+@media (max-width: 650px) and (orientation: portrait) {
+
+  .shop-container {
+    padding:
+      15px;
+
+    padding-bottom:
+      430px;
+  }
+
+
+  .shop-header {
+    grid-template-columns:
+      1fr 1fr;
+
+    grid-template-areas:
+      'volver oro'
+      'titulo titulo';
+
+    gap:
+      10px;
+  }
+
+
+  .back-shop {
+    grid-area:
+      volver;
+  }
+
+
+  .gold-box {
+    grid-area:
+      oro;
+  }
+
+
+  .title-area {
+    grid-area:
+      titulo;
+  }
+
+
+  .title-area h1 {
+    font-size:
+      38px;
+  }
+
+
+  .categorias {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .skins-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap:
+      10px;
+  }
+
+
+  .skin-card {
+    min-height:
+      245px;
+
+    padding:
+      11px;
+  }
+
+
+  .skin-stage {
+    height:
+      95px;
+  }
+
+
+  .skin-character {
+    width:
+      72px;
+
+    height:
+      72px;
+  }
+
+
+  .skin-card h2 {
+    font-size:
+      16px;
+  }
+
+
+  .skin-card p {
+    font-size:
+      9px;
+  }
+
+
+  .preview-panel {
+    grid-template-columns:
+      1fr;
+
+    gap:
+      8px;
+
+    text-align:
+      center;
+
+    padding:
+      16px;
+  }
+
+
+  .big-stage {
+    width:
+      100%;
+  }
+
+
+  .skin-character.big {
+    width:
+      95px;
+
+    height:
+      95px;
+  }
+
+
+  .preview-title {
+    justify-content:
+      center;
+  }
+
+
+  .preview-actions {
+    width:
+      100%;
+
+    min-width:
+      0;
+  }
+
+
+  .buy-btn,
+  .equip-btn,
+  .equipped-btn {
+    width:
+      100%;
+
+    min-width:
+      0;
+  }
+
+}
+
+
+/* =========================================================
+   ANDROID / TELÉFONO HORIZONTAL
+
+   Este será el modo principal del juego.
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 650px) {
+
+  /* -------------------------------------------------------
+     FONDO
+  ------------------------------------------------------- */
+
+  .background-grid {
+    background-size:
+      32px 32px,
+      90px 90px,
+      90px 90px;
+  }
+
+
+  /* -------------------------------------------------------
+     CONTENEDOR
+  ------------------------------------------------------- */
+
+  .shop-container {
+    max-width:
+      1200px;
+
+    padding:
+      8px 12px;
+
+    /*
+     * Panel inferior compacto.
+     */
+    padding-bottom:
+      155px;
+  }
+
+
+  /* -------------------------------------------------------
+     HEADER
+  ------------------------------------------------------- */
+
+  .shop-header {
+    grid-template-columns:
+      1fr auto 1fr;
+
+    gap:
+      8px;
+  }
+
+
+  .back-shop {
+    min-width:
+      90px;
+
+    height:
+      35px;
+
+    padding:
+      0 10px;
+
+    border-radius:
+      10px;
+
+    font-size:
+      10px;
+  }
+
+
+  .title-area h1 {
+    font-size:
+      clamp(
+        26px,
+        4vw,
+        35px
+      );
+
+    letter-spacing:
+      3px;
+  }
+
+
+  .title-area small {
+    font-size:
+      9px;
+  }
+
+
+  .gold-box {
+    min-width:
+      75px;
+
+    padding:
+      6px 10px;
+
+    border-radius:
+      11px;
+
+    font-size:
+      15px;
+  }
+
+
+  /* -------------------------------------------------------
+     MENSAJES
+  ------------------------------------------------------- */
+
+  .shop-message {
+    max-width:
+      650px;
+
+    margin-top:
+      5px;
+
+    padding:
+      5px 8px;
+
+    font-size:
+      8px;
+  }
+
+
+  .shop-message ion-icon {
+    font-size:
+      15px;
+  }
+
+
+  /* -------------------------------------------------------
+     CATEGORÍAS
+  ------------------------------------------------------- */
+
+  .categorias {
+    max-width:
+      720px;
+
+    gap:
+      6px;
+
+    margin-top:
+      8px;
+  }
+
+
+  .categorias button {
+    min-height:
+      33px;
+
+    padding:
+      4px 8px;
+
+    border-radius:
+      9px;
+
+    font-size:
+      9px;
+  }
+
+
+  /* -------------------------------------------------------
+     RAREZAS
+  ------------------------------------------------------- */
+
+  .rarezas {
+    gap:
+      5px;
+
+    margin-top:
+      5px;
+
+    padding-bottom:
+      4px;
+  }
+
+
+  .rarezas button {
+    min-width:
+      62px;
+
+    padding:
+      5px 8px;
+
+    border-radius:
+      9px;
+
+    font-size:
+      8px;
+  }
+
+
+  /* -------------------------------------------------------
+     INFO CATEGORÍA
+  ------------------------------------------------------- */
+
+  .category-info {
+    max-width:
+      500px;
+
+    margin-top:
+      2px;
+
+    padding:
+      4px 7px;
+
+    font-size:
+      7px;
+  }
+
+
+  .category-info ion-icon {
+    font-size:
+      13px;
+  }
+
+
+  /* -------------------------------------------------------
+     GRID
+
+     Tenemos 5 skins por categoría.
+     En horizontal mostramos las 5 en una sola fila
+     cuando el ancho lo permita.
+  ------------------------------------------------------- */
+
+  .skins-grid {
+    grid-template-columns:
+      repeat(5, minmax(130px, 1fr));
+
+    gap:
+      8px;
+
+    margin-top:
+      7px;
+  }
+
+
+  .skin-card {
+    min-height:
+      185px;
+
+    padding:
+      8px;
+
+    border-radius:
+      14px;
+  }
+
+
+  .skin-card.selected {
+    transform:
+      translateY(-3px);
+  }
+
+
+  .rarity {
+    top:
+      5px;
+
+    right:
+      5px;
+
+    padding:
+      2px 5px;
+
+    font-size:
+      6px;
+  }
+
+
+  .equipped-badge {
+    top:
+      5px;
+
+    left:
+      5px;
+
+    padding:
+      2px 4px;
+
+    font-size:
+      5px;
+  }
+
+
+  /* -------------------------------------------------------
+     PERSONAJES
+  ------------------------------------------------------- */
+
+  .skin-stage {
+    height:
+      78px;
+
+    margin-top:
+      15px;
+  }
+
+
+  .skin-character {
+    width:
+      61px;
+
+    height:
+      61px;
+  }
+
+
+  .skin-card h2 {
+    margin:
+      5px 0 2px;
+
+    font-size:
+      12px;
+  }
+
+
+  .skin-card p {
+    min-height:
+      24px;
+
+    margin:
+      2px 0 4px;
+
+    font-size:
+      7px;
+
+    line-height:
+      1.25;
+  }
+
+
+  .price {
+    font-size:
+      10px;
+  }
+
+
+  .owned,
+  .equipped {
+    font-size:
+      7px;
+  }
+
+
+  /* -------------------------------------------------------
+     PANEL INFERIOR
+
+     Compacto para no tapar la tienda.
+  ------------------------------------------------------- */
+
+  .preview-panel {
+    min-height:
+      135px;
+
+    grid-template-columns:
+      110px minmax(0, 1fr) 175px;
+
+    gap:
+      10px;
+
+    padding:
+      8px 15px;
+
+    border-top-width:
+      2px;
+  }
+
+
+  .big-stage {
+    width:
+      105px;
+  }
+
+
+  .skin-character.big {
+    width:
+      82px;
+
+    height:
+      82px;
+  }
+
+
+  .preview-title {
+    gap:
+      7px;
+  }
+
+
+  .preview-title small {
+    font-size:
+      6px;
+  }
+
+
+  .preview-info h2 {
+    font-size:
+      20px;
+  }
+
+
+  .preview-rarity {
+    padding:
+      3px 6px;
+
+    font-size:
+      6px;
+  }
+
+
+  .preview-info p {
+    margin:
+      3px 0;
+
+    font-size:
+      7px;
+  }
+
+
+  .preview-price,
+  .preview-balance,
+  .insufficient-gold {
+    font-size:
+      7px;
+  }
+
+
+  .preview-actions {
+    min-width:
+      165px;
+
+    gap:
+      5px;
+  }
+
+
+  .buy-btn,
+  .equip-btn,
+  .equipped-btn {
+    width:
+      165px;
+
+    min-height:
+      35px;
+
+    border-radius:
+      9px;
+
+    font-size:
+      9px;
+  }
+
+
+  .close-preview {
+    top:
+      -3px;
+
+    right:
+      -3px;
+
+    width:
+      25px;
+
+    height:
+      25px;
+  }
+
+}
+
+
+/* =========================================================
+   HORIZONTAL MUY PEQUEÑO
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 430px) {
+
+  .shop-container {
+    padding:
+      5px 8px;
+
+    padding-bottom:
+      125px;
+  }
+
+
+  .back-shop {
+    height:
+      30px;
+
+    font-size:
+      8px;
+  }
+
+
+  .title-area h1 {
+    font-size:
+      24px;
+  }
+
+
+  .gold-box {
+    font-size:
+      12px;
+  }
+
+
+  .categorias {
+    margin-top:
+      4px;
+  }
+
+
+  .categorias button {
+    min-height:
+      27px;
+
+    font-size:
+      7px;
+  }
+
+
+  .rarezas {
+    margin-top:
+      3px;
+  }
+
+
+  .rarezas button {
+    padding:
+      3px 6px;
+
+    font-size:
+      6px;
+  }
+
+
+  .category-info {
+    display:
+      none;
+  }
+
+
+  .skins-grid {
+    gap:
+      5px;
+
+    margin-top:
+      4px;
+  }
+
+
+  .skin-card {
+    min-height:
+      148px;
+
+    padding:
+      5px;
+  }
+
+
+  .skin-stage {
+    height:
+      61px;
+
+    margin-top:
+      11px;
+  }
+
+
+  .skin-character {
+    width:
+      49px;
+
+    height:
+      49px;
+  }
+
+
+  .skin-card h2 {
+    font-size:
+      9px;
+  }
+
+
+  .skin-card p {
+    min-height:
+      17px;
+
+    font-size:
+      5px;
+  }
+
+
+  .preview-panel {
+    min-height:
+      105px;
+
+    grid-template-columns:
+      80px minmax(0, 1fr) 145px;
+
+    padding:
+      5px 10px;
+  }
+
+
+  .big-stage {
+    width:
+      75px;
+  }
+
+
+  .skin-character.big {
+    width:
+      62px;
+
+    height:
+      62px;
+  }
+
+
+  .preview-info h2 {
+    font-size:
+      15px;
+  }
+
+
+  .preview-info p {
+    font-size:
+      6px;
+  }
+
+
+  .preview-actions {
+    min-width:
+      135px;
+  }
+
+
+  .buy-btn,
+  .equip-btn,
+  .equipped-btn {
+    width:
+      135px;
+
+    min-height:
+      29px;
+
+    font-size:
+      7px;
+  }
+
+}
+
+
+/* =========================================================
+   ACCESIBILIDAD
+========================================================= */
+
+button:focus-visible {
+  outline:
+    2px solid var(--celeste);
+
+  outline-offset:
+    2px;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation:
+      none !important;
+
+    transition:
+      none !important;
+  }
+
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+  display:
+    none;
 }

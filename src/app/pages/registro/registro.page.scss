@@ -1,210 +1,1595 @@
-.registro-page {
-  --background: #000;
-  position: relative;
-  overflow: hidden;
-  color: white;
+
+
+:host {
+  --amarillo: #ffd500;
+  --naranja: #ff9800;
+  --celeste: #00e5ff;
+  --azul: #0a35ff;
+  --verde: #00e676;
+  --rojo: #ff4d5f;
+
+  display: block;
 }
+
+
+/* =========================================================
+   PÁGINA
+========================================================= */
+
+.registro-page {
+  --background: #000000;
+
+  position: relative;
+  min-height: 100%;
+
+  overflow: auto;
+
+  color: white;
+
+  font-family:
+    'Segoe UI',
+    Tahoma,
+    Geneva,
+    Verdana,
+    sans-serif;
+}
+
+
+/* =========================================================
+   FONDO
+========================================================= */
 
 .maze-background {
   position: fixed;
   inset: 0;
+
+  z-index: 0;
+
+  pointer-events: none;
+
   background:
-    repeating-linear-gradient(90deg, transparent 0 120px, rgba(0, 90, 255, .9) 120px 124px),
-    repeating-linear-gradient(transparent 0 120px, rgba(0, 90, 255, .9) 120px 124px),
-    radial-gradient(circle, #ffd54f 2px, transparent 3px);
-  background-size: 124px 124px, 124px 124px, 40px 40px;
-  opacity: .9;
-  z-index: -2;
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 120px,
+      rgba(0, 90, 255, 0.75) 120px 124px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 120px,
+      rgba(0, 90, 255, 0.75) 120px 124px
+    ),
+    radial-gradient(
+      circle,
+      #ffd54f 2px,
+      transparent 3px
+    ),
+    #000000;
+
+  background-size:
+    124px 124px,
+    124px 124px,
+    40px 40px;
+
+  opacity: 0.72;
+
+  filter:
+    drop-shadow(
+      0 0 4px rgba(0, 90, 255, 0.55)
+    );
 }
 
+.maze-background::after {
+  content: '';
+
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 0%,
+      rgba(0, 0, 0, 0.14) 55%,
+      rgba(0, 0, 0, 0.72) 100%
+    );
+}
+
+
+/* =========================================================
+   PERSONAJES
+========================================================= */
+
 .top-characters {
+  position: relative;
+  z-index: 2;
+
   display: flex;
   justify-content: center;
   align-items: flex-end;
+
   gap: 18px;
-  margin-top: 35px;
-  animation: floatCharacters 2s infinite alternate;
+
+  margin-top: 30px;
+
+  pointer-events: none;
+
+  animation:
+    floatCharacters
+    2s ease-in-out infinite alternate;
 }
 
+
+/* =========================================================
+   FANTASMAS
+========================================================= */
+
 .ghost {
+  position: relative;
+
   width: 55px;
   height: 60px;
-  border-radius: 30px 30px 8px 8px;
-  position: relative;
-  box-shadow: 0 0 18px rgba(255,255,255,.25);
+
+  border-radius:
+    30px 30px 8px 8px;
+
+  box-shadow:
+    0 0 18px rgba(255, 255, 255, 0.22);
 }
 
 .ghost::after {
-  content: "";
+  content: '';
+
   position: absolute;
+
   bottom: -8px;
+
   width: 100%;
   height: 12px;
+
   background: inherit;
-  clip-path: polygon(0 100%, 12% 0, 24% 100%, 36% 0, 48% 100%, 60% 0, 72% 100%, 84% 0, 100% 100%);
+
+  clip-path:
+    polygon(
+      0 100%,
+      12% 0,
+      24% 100%,
+      36% 0,
+      48% 100%,
+      60% 0,
+      72% 100%,
+      84% 0,
+      100% 100%
+    );
 }
 
-.red { background: #ff2d2d; }
-.pink { background: #ff7dd8; }
-.cyan { background: #22f6ff; }
-.orange { background: #ff9800; }
+.red {
+  background: #ff2d2d;
+}
+
+.pink {
+  background: #ff7dd8;
+}
+
+.cyan {
+  background: #22f6ff;
+}
+
+.orange {
+  background: #ff9800;
+}
+
+
+/* =========================================================
+   OJOS
+========================================================= */
 
 .eyes {
   display: flex;
   justify-content: space-evenly;
+
   padding-top: 16px;
 }
 
 .eyes span {
+  position: relative;
+
   width: 13px;
   height: 17px;
-  background: white;
+
   border-radius: 50%;
-  position: relative;
+
+  background: white;
 }
 
 .eyes span::after {
-  content: "";
+  content: '';
+
   position: absolute;
+
   right: 2px;
   top: 5px;
+
   width: 6px;
   height: 6px;
-  background: #0059ff;
+
   border-radius: 50%;
+
+  background: #0059ff;
 }
 
+
+/* =========================================================
+   MONSTRUO
+========================================================= */
+
 .monster {
-  font-size: 58px;
-  filter: drop-shadow(0 0 22px red);
-  animation: monsterPulse 1.5s infinite;
+  width: 58px;
+  height: 58px;
+
+  position: relative;
+
+  margin-right: 10px;
 }
+
+.monster::before {
+  content: '😈';
+
+  position: absolute;
+
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  font-size: 58px;
+
+  filter:
+    drop-shadow(
+      0 0 22px red
+    );
+
+  animation:
+    monsterPulse
+    1.5s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   TARJETA
+========================================================= */
 
 .registro-card {
   position: relative;
   z-index: 5;
-  width: 90%;
-  max-width: 440px;
-  margin: 25px auto 0;
-  padding: 28px;
-  background: rgba(0, 0, 0, .92);
-  border: 4px solid #ffd500;
-  border-radius: 24px;
-  box-shadow: 0 0 35px gold;
+
+  width:
+    min(450px, calc(100% - 30px));
+
+  margin:
+    25px auto 100px;
+
+  padding:
+    30px;
+
+  overflow: hidden;
+
+  border:
+    3px solid var(--amarillo);
+
+  border-radius:
+    24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(10, 12, 22, 0.97),
+      rgba(2, 3, 8, 0.98)
+    );
+
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.65),
+    0 0 15px rgba(255, 213, 0, 0.62),
+    0 0 38px rgba(255, 152, 0, 0.18);
+
   text-align: center;
 }
 
-.registro-card h1 {
+.registro-card::before {
+  content: '';
+
+  position: absolute;
+
+  left: 50%;
+  top: -150px;
+
+  width: 340px;
+  height: 270px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 213, 0, 0.12),
+      transparent 68%
+    );
+}
+
+
+/* =========================================================
+   CABECERA
+========================================================= */
+
+.registro-header {
+  position: relative;
+  z-index: 2;
+}
+
+.registro-header h1 {
   margin: 0;
-  font-size: 46px;
-  color: #ffd500;
+
+  color: var(--amarillo);
+
+  font-size:
+    clamp(40px, 8vw, 48px);
+
+  font-weight: 1000;
+
   letter-spacing: 3px;
-  text-shadow: 0 0 12px gold, 0 0 25px orange;
-  font-weight: 900;
+
+  line-height: 1;
+
+  text-shadow:
+    0 0 9px gold,
+    0 0 23px orange;
 }
 
-.registro-card h2 {
-  margin: 8px 0 0;
+.registro-header h2 {
+  margin:
+    9px 0 0;
+
   color: white;
-  font-size: 24px;
+
+  font-size: 23px;
+
+  font-weight: 850;
 }
 
-.registro-card p {
-  color: #00ffff;
-  font-weight: bold;
-  margin-bottom: 20px;
+.subtitle {
+  margin:
+    8px auto 20px !important;
+
+  max-width: 370px;
+
+  color:
+    var(--celeste) !important;
+
+  font-size: 12px;
+
+  font-weight:
+    650 !important;
+
+  line-height:
+    1.5;
 }
+
+
+/* =========================================================
+   FORMULARIO
+========================================================= */
+
+.formulario-registro {
+  position: relative;
+  z-index: 2;
+}
+
+
+/* =========================================================
+   INPUTS
+========================================================= */
 
 .input-box {
-  margin-top: 14px;
-  border: 2px solid #ffd500;
+  --background:
+    rgba(9, 12, 22, 0.97);
+
+  --color:
+    white;
+
+  --placeholder-color:
+    #8d98ad;
+
+  --highlight-height:
+    0;
+
+  --inner-border-width:
+    0;
+
+  margin-top: 13px;
+
+  overflow: hidden;
+
+  border:
+    2px solid rgba(255, 213, 0, 0.72);
+
   border-radius: 12px;
-  --background: #080808;
-  --color: white;
-  --padding-start: 12px;
+
+  box-shadow:
+    inset 0 0 12px rgba(255, 213, 0, 0.03);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.input-box:focus-within {
+  transform:
+    translateY(-1px);
+
+  border-color:
+    var(--celeste);
+
+  box-shadow:
+    0 0 12px rgba(0, 229, 255, 0.24);
 }
 
 .input-box ion-icon {
-  color: #ffd500;
+  color:
+    var(--amarillo);
+
+  font-size:
+    21px;
 }
 
-.btn-crear {
-  margin-top: 24px;
-  height: 55px;
-  font-weight: 900;
-  font-size: 18px;
-  --background: linear-gradient(90deg, #ffd500, #ffae00);
-  --color: black;
-  filter: drop-shadow(0 0 14px gold);
+ion-input {
+  --color:
+    white;
+
+  --placeholder-color:
+    #8894a9;
+
+  font-size:
+    14px;
+
+  font-weight:
+    600;
 }
 
-.btn-volver {
-  color: #00ffff;
-  font-weight: bold;
-  margin-top: 8px;
+
+/* =========================================================
+   MOSTRAR CONTRASEÑA
+========================================================= */
+
+.password-box {
+  padding-right: 2px;
 }
 
-.pacman-run {
-  position: fixed;
-  bottom: 25px;
-  left: 0;
-  width: 100%;
+.btn-password {
+  --color:
+    var(--celeste);
+
+  --background:
+    transparent;
+
+  --background-hover:
+    rgba(0, 229, 255, 0.08);
+
+  --border-radius:
+    10px;
+
+  width:
+    42px;
+
+  height:
+    42px;
+
+  margin:
+    0;
+}
+
+
+/* =========================================================
+   REQUISITOS CONTRASEÑA
+========================================================= */
+
+.password-requisitos {
+  margin-top:
+    13px;
+
+  padding:
+    11px 12px;
+
+  border:
+    1px solid rgba(0, 229, 255, 0.15);
+
+  border-radius:
+    11px;
+
+  color:
+    #98a5ba;
+
+  background:
+    rgba(0, 229, 255, 0.025);
+
+  text-align:
+    left;
+}
+
+.password-requisitos-titulo {
   display: flex;
   align-items: center;
-  overflow: hidden;
+
+  gap: 7px;
+
+  color:
+    var(--celeste);
+
+  font-size:
+    10px;
+}
+
+.password-requisitos-titulo ion-icon {
+  font-size:
+    18px;
+}
+
+.password-requisitos ul {
+  margin:
+    8px 0 0;
+
+  padding-left:
+    20px;
+}
+
+.password-requisitos li {
+  margin:
+    4px 0;
+
+  font-size:
+    9px;
+
+  line-height:
+    1.4;
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.error-message {
+  position: relative;
+  z-index: 3;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin:
+    15px 0 0;
+
+  padding:
+    11px 12px;
+
+  border:
+    1px solid rgba(255, 77, 95, 0.58);
+
+  border-radius:
+    11px;
+
+  color:
+    #ffb8c1;
+
+  background:
+    rgba(108, 10, 26, 0.3);
+
+  font-size:
+    11px;
+
+  font-weight:
+    750;
+
+  line-height:
+    1.4;
+
+  text-align:
+    left;
+}
+
+.error-message ion-icon {
+  flex:
+    0 0 auto;
+
+  color:
+    var(--rojo);
+
+  font-size:
+    21px;
+}
+
+
+/* =========================================================
+   BOTÓN CREAR
+========================================================= */
+
+.btn-crear {
+  --background:
+    linear-gradient(
+      135deg,
+      #ffe100,
+      #ff9800
+    );
+
+  --background-hover:
+    linear-gradient(
+      135deg,
+      #fff055,
+      #ffae1d
+    );
+
+  --color:
+    black;
+
+  --border-radius:
+    14px;
+
+  --box-shadow:
+    0 0 13px rgba(255, 213, 0, 0.56),
+    0 0 27px rgba(255, 152, 0, 0.18);
+
+  min-height:
+    55px;
+
+  margin-top:
+    23px;
+
+  font-size:
+    15px;
+
+  font-weight:
+    1000;
+
+  letter-spacing:
+    0.7px;
+}
+
+
+/* =========================================================
+   VOLVER
+========================================================= */
+
+.btn-volver {
+  --color:
+    var(--celeste);
+
+  margin-top:
+    8px;
+
+  font-size:
+    12px;
+
+  font-weight:
+    850;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer-info {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 8px;
+
+  margin-top:
+    15px;
+
+  padding:
+    9px 10px;
+
+  border:
+    1px solid rgba(0, 229, 255, 0.13);
+
+  border-radius:
+    10px;
+
+  color:
+    #8894a9;
+
+  background:
+    rgba(0, 229, 255, 0.025);
+
+  font-size:
+    9px;
+
+  line-height:
+    1.45;
+
+  text-align:
+    left;
+}
+
+.footer-info ion-icon {
+  flex:
+    0 0 auto;
+
+  color:
+    var(--celeste);
+
+  font-size:
+    18px;
+}
+
+
+/* =========================================================
+   CUENTA CREADA
+========================================================= */
+
+.cuenta-creada {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 12px;
+
+  animation:
+    cuentaEntrada
+    0.35s ease;
+}
+
+.icono-cuenta-creada {
+  width:
+    82px;
+
+  height:
+    82px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    2px solid rgba(0, 230, 118, 0.5);
+
+  border-radius:
+    50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(0, 230, 118, 0.14),
+      rgba(0, 0, 0, 0.26)
+    );
+
+  font-size:
+    41px;
+
+  box-shadow:
+    0 0 18px rgba(0, 230, 118, 0.21);
+}
+
+.cuenta-creada h3 {
+  margin: 0;
+
+  color:
+    var(--verde);
+
+  font-size:
+    24px;
+
+  font-weight:
+    900;
+
+  text-shadow:
+    0 0 9px rgba(0, 230, 118, 0.3);
+}
+
+.mensaje-registro-exito {
+  margin:
+    0 !important;
+
+  color:
+    #bbffd9 !important;
+
+  font-size:
+    11px;
+
+  font-weight:
+    650 !important;
+
+  line-height:
+    1.5;
+}
+
+
+/* =========================================================
+   CORREO
+========================================================= */
+
+.correo-registrado {
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 9px;
+
+  padding:
+    11px;
+
+  border:
+    1px solid rgba(255, 213, 0, 0.2);
+
+  border-radius:
+    11px;
+
+  color:
+    var(--amarillo);
+
+  background:
+    rgba(255, 213, 0, 0.045);
+
+  font-size:
+    11px;
+
+  overflow-wrap:
+    anywhere;
+}
+
+.correo-registrado ion-icon {
+  font-size:
+    19px;
+}
+
+
+/* =========================================================
+   PASOS DE VERIFICACIÓN
+========================================================= */
+
+.pasos-verificacion {
+  width:
+    100%;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    8px;
+
+  margin-top:
+    2px;
+}
+
+.paso {
+  display:
+    grid;
+
+  grid-template-columns:
+    32px
+    minmax(0, 1fr);
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+  padding:
+    9px 10px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  border-radius:
+    10px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  text-align:
+    left;
+}
+
+.numero-paso {
+  width:
+    30px;
+
+  height:
+    30px;
+
+  display:
+    grid;
+  place-items:
+    center;
+
+  border:
+    1px solid rgba(0, 229, 255, 0.4);
+
+  border-radius:
+    50%;
+
+  color:
+    var(--celeste);
+
+  background:
+    rgba(0, 229, 255, 0.06);
+
+  font-size:
+    11px;
+
+  font-weight:
+    900;
+}
+
+.paso strong {
+  display:
+    block;
+
+  color:
+    white;
+
+  font-size:
+    10px;
+}
+
+.paso small {
+  display:
+    block;
+
+  margin-top:
+    2px;
+
+  color:
+    #8995aa;
+
+  font-size:
+    8px;
+
+  line-height:
+    1.35;
+}
+
+
+/* =========================================================
+   REENVIAR
+========================================================= */
+
+.btn-reenviar {
+  --color:
+    var(--celeste);
+
+  --border-color:
+    rgba(0, 229, 255, 0.65);
+
+  --border-style:
+    solid;
+
+  --border-width:
+    2px;
+
+  --border-radius:
+    13px;
+
+  --background:
+    rgba(0, 229, 255, 0.025);
+
+  width:
+    100%;
+
+  min-height:
+    50px;
+
+  font-size:
+    12px;
+
+  font-weight:
+    900;
+}
+
+
+/* =========================================================
+   LOGIN DESPUÉS DE REGISTRO
+========================================================= */
+
+.btn-login {
+  --background:
+    linear-gradient(
+      135deg,
+      #00e676,
+      #00a853
+    );
+
+  --color:
+    #00150a;
+
+  --border-radius:
+    13px;
+
+  --box-shadow:
+    0 0 15px rgba(0, 230, 118, 0.28);
+
+  width:
+    100%;
+
+  min-height:
+    50px;
+
+  font-size:
+    12px;
+
+  font-weight:
+    900;
+}
+
+
+/* =========================================================
+   CAMBIAR DATOS
+========================================================= */
+
+.btn-cambiar-datos {
+  border:
+    none;
+
+  cursor:
+    pointer;
+
+  color:
+    var(--celeste);
+
+  background:
+    transparent;
+
+  font-size:
+    10px;
+
+  font-weight:
+    750;
+
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
+}
+
+.btn-cambiar-datos:hover:not(:disabled) {
+  color:
+    white;
+
+  text-shadow:
+    0 0 8px rgba(0, 229, 255, 0.6);
+}
+
+.btn-cambiar-datos:disabled {
+  opacity:
+    0.5;
+
+  cursor:
+    not-allowed;
+}
+
+
+/* =========================================================
+   AVISO VERIFICACIÓN
+========================================================= */
+
+.aviso-verificacion {
+  width:
+    100%;
+
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  gap:
+    8px;
+
+  padding:
+    9px 10px;
+
+  border:
+    1px solid rgba(255, 213, 0, 0.14);
+
+  border-radius:
+    10px;
+
+  color:
+    #a4a08a;
+
+  background:
+    rgba(255, 213, 0, 0.025);
+
+  font-size:
+    9px;
+
+  line-height:
+    1.45;
+
+  text-align:
+    left;
+}
+
+.aviso-verificacion ion-icon {
+  flex:
+    0 0 auto;
+
+  color:
+    var(--amarillo);
+
+  font-size:
+    18px;
+}
+
+
+/* =========================================================
+   PAC-MAN INFERIOR
+========================================================= */
+
+.pacman-run {
+  position:
+    fixed;
+
+  left:
+    0;
+
+  bottom:
+    20px;
+
+  z-index:
+    3;
+
+  width:
+    100%;
+
+  height:
+    60px;
+
+  pointer-events:
+    none;
+
+  overflow:
+    hidden;
 }
 
 .pacman {
-  width: 55px;
-  height: 55px;
-  background: #ffd500;
-  border-radius: 50%;
-  animation: runPacman 10s linear infinite, chomp .25s infinite;
+  position:
+    absolute;
+
+  left:
+    -100px;
+
+  top:
+    2px;
+
+  width:
+    55px;
+
+  height:
+    55px;
+
+  border-radius:
+    50%;
+
+  background:
+    var(--amarillo);
+
+  filter:
+    drop-shadow(
+      0 0 10px rgba(255, 213, 0, 0.65)
+    );
+
+  animation:
+    runPacman
+    10s linear infinite,
+    chomp
+    0.25s infinite;
 }
 
 .dots {
-  display: flex;
-  gap: 35px;
-  margin-left: 25px;
+  position:
+    absolute;
+
+  left:
+    0;
+
+  right:
+    0;
+
+  top:
+    25px;
+
+  display:
+    flex;
+
+  justify-content:
+    space-around;
+
+  padding:
+    0 30px;
 }
 
 .dots span {
-  width: 10px;
-  height: 10px;
-  background: #ffd500;
-  border-radius: 50%;
-  animation: dotBlink 1s infinite;
+  width:
+    9px;
+
+  height:
+    9px;
+
+  border-radius:
+    50%;
+
+  background:
+    var(--amarillo);
+
+  animation:
+    dotBlink
+    1s infinite;
 }
 
+
+/* =========================================================
+   ANIMACIONES
+========================================================= */
+
 @keyframes runPacman {
-  from { transform: translateX(-120px); }
-  to { transform: translateX(calc(100vw + 150px)); }
+  from {
+    left:
+      -100px;
+  }
+
+  to {
+    left:
+      calc(100vw + 100px);
+  }
 }
 
 @keyframes chomp {
   0% {
-    clip-path: polygon(100% 50%, 55% 0, 0 0, 0 100%, 55% 100%);
+    clip-path:
+      polygon(
+        100% 50%,
+        55% 0,
+        0 0,
+        0 100%,
+        55% 100%
+      );
   }
+
   50% {
-    clip-path: polygon(100% 50%, 80% 18%, 0 0, 0 100%, 80% 82%);
+    clip-path:
+      polygon(
+        100% 50%,
+        80% 18%,
+        0 0,
+        0 100%,
+        80% 82%
+      );
   }
+
   100% {
-    clip-path: polygon(100% 50%, 55% 0, 0 0, 0 100%, 55% 100%);
+    clip-path:
+      polygon(
+        100% 50%,
+        55% 0,
+        0 0,
+        0 100%,
+        55% 100%
+      );
   }
 }
 
 @keyframes dotBlink {
-  50% { opacity: .25; }
+  50% {
+    opacity:
+      0.25;
+  }
 }
 
 @keyframes floatCharacters {
-  from { transform: translateY(0); }
-  to { transform: translateY(-10px); }
+  from {
+    transform:
+      translateY(0);
+  }
+
+  to {
+    transform:
+      translateY(-9px);
+  }
 }
 
 @keyframes monsterPulse {
   50% {
-    transform: scale(1.12);
-    filter: drop-shadow(0 0 30px red);
+    transform:
+      scale(1.1);
   }
 }
+
+@keyframes cuentaEntrada {
+  from {
+    opacity:
+      0;
+
+    transform:
+      scale(0.95)
+      translateY(8px);
+  }
+
+  to {
+    opacity:
+      1;
+
+    transform:
+      scale(1)
+      translateY(0);
+  }
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 768px) {
+  .top-characters {
+    margin-top:
+      20px;
+
+    transform:
+      scale(0.88);
+  }
+
+  .registro-card {
+    margin-top:
+      15px;
+
+    padding:
+      26px 23px;
+  }
+}
+
+
+/* =========================================================
+   TELÉFONO
+========================================================= */
+
+@media (max-width: 520px) {
+  .maze-background {
+    background-size:
+      82px 82px,
+      82px 82px,
+      38px 38px;
+  }
+
+  .top-characters {
+    gap:
+      8px;
+
+    margin-top:
+      13px;
+  }
+
+  .ghost {
+    width:
+      36px;
+
+    height:
+      39px;
+
+    border-radius:
+      20px 20px 5px 5px;
+  }
+
+  .eyes {
+    padding-top:
+      10px;
+  }
+
+  .eyes span {
+    width:
+      9px;
+
+    height:
+      12px;
+  }
+
+  .eyes span::after {
+    width:
+      4px;
+
+    height:
+      4px;
+
+    top:
+      4px;
+  }
+
+  .monster {
+    width:
+      42px;
+
+    height:
+      42px;
+
+    margin-right:
+      4px;
+  }
+
+  .monster::before {
+    font-size:
+      42px;
+  }
+
+  .registro-card {
+    width:
+      calc(100% - 20px);
+
+    margin:
+      10px auto 80px;
+
+    padding:
+      23px 17px;
+
+    border-width:
+      2px;
+
+    border-radius:
+      19px;
+  }
+
+  .registro-header h1 {
+    font-size:
+      38px;
+  }
+
+  .registro-header h2 {
+    font-size:
+      18px;
+  }
+
+  .subtitle {
+    font-size:
+      10px;
+  }
+
+  ion-input {
+    font-size:
+      13px;
+  }
+
+  .btn-crear {
+    min-height:
+      50px;
+
+    font-size:
+      13px;
+  }
+
+  .icono-cuenta-creada {
+    width:
+      70px;
+
+    height:
+      70px;
+
+    font-size:
+      35px;
+  }
+
+  .cuenta-creada h3 {
+    font-size:
+      21px;
+  }
+
+  .pacman {
+    width:
+      43px;
+
+    height:
+      43px;
+  }
+
+  .pacman-run {
+    height:
+      48px;
+  }
+}
+
+
+/* =========================================================
+   TELÉFONOS MUY PEQUEÑOS
+========================================================= */
+
+@media (max-width: 370px) {
+  .top-characters {
+    transform:
+      scale(0.76);
+
+    margin-left:
+      -20px;
+
+    margin-right:
+      -20px;
+  }
+
+  .registro-card {
+    padding:
+      20px 13px;
+  }
+
+  .registro-header h1 {
+    font-size:
+      32px;
+  }
+}
+
+
+/* =========================================================
+   LANDSCAPE
+========================================================= */
+
+@media (
+  orientation: landscape
+)
+and (max-height: 600px) {
+  .top-characters {
+    display:
+      none;
+  }
+
+  .registro-card {
+    margin:
+      12px auto 60px;
+
+    padding:
+      21px 25px;
+  }
+
+  .registro-header h1 {
+    font-size:
+      36px;
+  }
+}
+
+
+/* =========================================================
+   ACCESIBILIDAD
+========================================================= */
+
+button:focus-visible {
+  outline:
+    2px solid var(--celeste);
+
+  outline-offset:
+    3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation:
+      none !important;
+
+    transition:
+      none !important;
+  }
+}
+
+
+/* =========================================================
+   FIN
+========================================================= */
